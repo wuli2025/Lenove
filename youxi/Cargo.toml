@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = ["crates/mica", "apps/desktop"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+lto = "thin"
+strip = true

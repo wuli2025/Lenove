@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "FORMA Agent 主窗口默认能力（后端全部走本机 HTTP，不需要额外插件权限）",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

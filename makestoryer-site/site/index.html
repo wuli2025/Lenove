@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编故事师 - 让每个孩子都能创作自己的故事</title>
+  <meta name="description" content="编故事师是一款面向儿童的互动故事创作平台，用 AI 激发想象力，让创作变得简单而快乐。">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    /* 导航 */
+    nav {
+      padding: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(45deg, #fff, #e0e7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; gap: 30px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.9);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 100px 0 80px;
+    }
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      background: linear-gradient(45deg, #fff, #e0e7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+    .hero p {
+      font-size: 20px;
+      color: rgba(255,255,255,0.9);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 16px 40px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #fff;
+      color: #667eea;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.5);
+    }
+
+    /* 特性 */
+    .features {
+      padding: 80px 0;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      margin: 40px 0;
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 60px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+    }
+    .feature-card {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .feature-card p {
+      color: rgba(255,255,255,0.8);
+      font-size: 15px;
+    }
+
+    /* 下载 */
+    .download {
+      padding: 80px 0;
+      text-align: center;
+    }
+    .download h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    .download p {
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 40px;
+    }
+    .download-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .download-btn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-2px);
+    }
+    .download-btn .icon { font-size: 24px; }
+
+    /* 页脚 */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 80px;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 16px; }
+      .nav-links { display: none; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="container">
+    <div class="logo">编故事师</div>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#download">下载</a>
+      <a href="https://api.makestory.cloud">API 文档</a>
+    </div>
+  </nav>
+
+  <section class="hero container">
+    <h1>让每个孩子都能<br>创作自己的故事</h1>
+    <p>编故事师是一款面向儿童的互动故事创作平台，用 AI 激发想象力，让创作变得简单而快乐。</p>
+    <div class="cta-buttons">
+      <a href="#download" class="btn btn-primary">立即下载</a>
+      <a href="#features" class="btn btn-secondary">了解更多</a>
+    </div>
+  </section>
+
+  <section id="features" class="features container">
+    <h2>核心功能</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>AI 辅助创作</h3>
+        <p>智能生成故事框架，引导孩子发挥想象力，轻松完成作品。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>丰富模板库</h3>
+        <p>海量故事模板和角色设定，涵盖童话、科幻、冒险等多种题材。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👨‍👩‍👧‍👦</div>
+        <h3>亲子互动</h3>
+        <p>支持家长与孩子共同创作，增进亲子关系，培养阅读习惯。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎭</div>
+        <h3>角色扮演</h3>
+        <p>孩子可以成为故事中的角色，沉浸式体验故事世界。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <h3>作品分享</h3>
+        <p>一键分享作品到社区，与其他小朋友交流创作心得。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>安全可靠</h3>
+        <p>严格的内容审核机制，为孩子提供纯净的创作环境。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="download" class="download container">
+    <h2>立即开始创作</h2>
+    <p>支持 Windows、macOS、Android、iOS 全平台</p>
+    <div class="download-buttons">
+      <a href="https://dl.makestory.cloud/makestory-windows.exe" class="download-btn">
+        <span class="icon">🪟</span>
+        <span>Windows 版</span>
+      </a>
+      <a href="https://dl.makestory.cloud/makestory-macos.dmg" class="download-btn">
+        <span class="icon">🍎</span>
+        <span>macOS 版</span>
+      </a>
+      <a href="https://dl.makestory.cloud/makestory-android.apk" class="download-btn">
+        <span class="icon">🤖</span>
+        <span>Android 版</span>
+      </a>
+      <a href="https://apps.apple.com/app/makestory" class="download-btn">
+        <span class="icon">📱</span>
+        <span>iOS 版</span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="container">
+    <p>&copy; 2026 编故事师 · 让创作更简单</p>
+  </footer>
+</body>
+</html>

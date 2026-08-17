@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="FORMA 个人网站模板广场：48 个视觉系统、120 套独立个人网站，支持预览、定制与下载。"
+    />
+    <title>FORMA — 个人网站创作 Agent</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./forma-agent.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="FORMA 首页">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span>FORMA</span>
+        <em>°</em>
+      </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a class="active" href="#top"><span>⌂</span> 模板广场</a>
+        <a href="#templates"><span>◇</span> 灵感库</a>
+        <button type="button" id="navCreate"><span>＋</span> 开始创作</button>
+      </nav>
+      <div class="nav-actions">
+        <button class="ghost-button desktop-only" type="button" id="randomTemplate">随机灵感</button>
+        <button class="icon-button" type="button" id="themeToggle" aria-label="切换明暗主题">☼</button>
+        <button class="avatar-button" type="button" id="accountButton" aria-label="个人中心">MI</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="eyebrow"><span></span> PERSONAL SITES, ELEVATED</div>
+        <h1>今天，想把自己<br />呈现成<span>什么样？</span></h1>
+        <p class="hero-copy">
+          为设计师、摄影师、创作者、独立工作者和技术学生准备的高级个人网站。
+          <br class="desktop-only" />选一个喜欢的方向，快速生成，或直接下载完整的动态成品。
+        </p>
+        <div class="command-bar">
+          <span class="command-icon">⌕</span>
+          <input
+            id="heroSearch"
+            type="search"
+            placeholder="搜索「摄影师」「产品设计师」「极简」..."
+            autocomplete="off"
+          />
+          <button type="button" id="surpriseMe">给我灵感 <kbd>↵</kbd></button>
+        </div>
+        <div class="hero-meta">
+          <span><i class="status-dot"></i> 48 个视觉系统 · 120 套成品</span>
+          <span>无需代码</span>
+          <span>可下载独立 HTML</span>
+        </div>
+      </section>
+
+      <section class="recent-shell" aria-labelledby="recentTitle">
+        <div class="section-heading compact">
+          <div>
+            <span class="section-index">01</span>
+            <h2 id="recentTitle">从这里开始</h2>
+          </div>
+          <button type="button" id="browseAll">浏览全部模板 <span>↘</span></button>
+        </div>
+        <div class="starter-row">
+          <button class="new-project-card" type="button" id="newProject">
+            <span class="plus-orbit"><i>＋</i></span>
+            <strong>创建空白网站</strong>
+            <small>从一张白纸开始</small>
+          </button>
+          <article class="starter-mini mini-dark" data-open="noir">
+            <div class="mini-window">
+              <span class="mini-kicker">ART DIRECTION · 2026</span>
+              <strong>Form follows<br />feeling.</strong>
+              <i></i>
+            </div>
+            <footer>
+              <div><strong>NOIR / 01</strong><small>编辑于 3 分钟前</small></div>
+              <button type="button" aria-label="打开 NOIR 模板">↗</button>
+            </footer>
+          </article>
+          <article class="starter-mini mini-lilac" data-open="orbit">
+            <div class="mini-window">
+              <span>Selected<br />Works</span>
+              <b>’26</b>
+              <i></i>
+            </div>
+            <footer>
+              <div><strong>ORBIT / 02</strong><small>创意设计师作品集</small></div>
+              <button type="button" aria-label="打开 ORBIT 模板">↗</button>
+            </footer>
+          </article>
+          <article class="starter-mini mini-paper" data-open="folio">
+            <div class="mini-window">
+              <span>WORDS &<br />OBSERVATIONS</span>
+              <i>VOL. 04</i>
+              <b>FOLIO</b>
+            </div>
+            <footer>
+              <div><strong>FOLIO / 04</strong><small>作家与研究者主页</small></div>
+              <button type="button" aria-label="打开 FOLIO 模板">↗</button>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="featured-shell" aria-labelledby="featuredTitle">
+        <div class="section-heading">
+          <div>
+            <span class="section-index">02</span>
+            <h2 id="featuredTitle">本周精选</h2>
+            <p>像杂志封面一样，让第一眼就记住你。</p>
+          </div>
+          <div class="carousel-buttons" aria-label="精选模板切换">
+            <button type="button" id="featurePrev" aria-label="上一组">←</button>
+            <button type="button" id="featureNext" aria-label="下一组">→</button>
+          </div>
+        </div>
+        <div class="featured-track" id="featuredTrack">
+          <article class="featured-card featured-editorial" data-open="noir">
+            <div class="feature-image image-editorial"></div>
+            <div class="feature-overlay"></div>
+            <div class="feature-top"><span>01 — EDITORIAL</span><span>NEW</span></div>
+            <div class="feature-title">
+              <p>FOR PHOTOGRAPHERS & DIRECTORS</p>
+              <h3>NOIR<br /><em>Atelier</em></h3>
+            </div>
+            <footer>
+              <div><strong>NOIR ATELIER</strong><span>影像创作者的暗黑编辑部</span></div>
+              <button type="button" data-quick="noir">一键生成 <span>↗</span></button>
+            </footer>
+          </article>
+          <article class="featured-card featured-architect" data-open="monolith">
+            <div class="feature-image image-architect"></div>
+            <div class="feature-overlay"></div>
+            <div class="feature-top"><span>02 — ARCHITECTURE</span><span>POPULAR</span></div>
+            <div class="feature-title">
+              <p>SPACE · MATTER · LIGHT</p>
+              <h3>LESS,<br /><em>but better.</em></h3>
+            </div>
+            <footer>
+              <div><strong>MONOLITH</strong><span>建筑师与空间设计师作品集</span></div>
+              <button type="button" data-quick="monolith">一键生成 <span>↗</span></button>
+            </footer>
+          </article>
+          <article class="featured-card featured-creative" data-open="orbit">
+            <div class="feature-image image-studio"></div>
+            <div class="feature-overlay"></div>
+            <div class="feature-top"><span>03 — CREATIVE</span><span>AWARDED</span></div>
+            <div class="feature-title">
+              <p>DESIGNING HAPPY ACCIDENTS</p>
+              <h3>MAKE IT<br /><em>unmissable.</em></h3>
+            </div>
+            <footer>
+              <div><strong>ORBIT STUDIO</strong><span>设计师的高饱和创意档案</span></div>
+              <button type="button" data-quick="orbit">一键生成 <span>↗</span></button>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="template-shell" id="templates" aria-labelledby="templateTitle">
+        <div class="section-heading template-heading">
+          <div>
+            <span class="section-index">03</span>
+            <h2 id="templateTitle">探索模板</h2>
+            <p>48 个视觉系统统一收录，新增 12 套技术学生动态作品集。</p>
+          </div>
+          <div class="result-count"><strong id="resultCount">48</strong><span>个方向</span></div>
+        </div>
+        <div class="filter-bar" role="group" aria-label="模板分类">
+          <button class="active" type="button" data-filter="all">全部</button>
+          <button type="button" data-filter="design">设计</button>
+          <button type="button" data-filter="photo">影像</button>
+          <button type="button" data-filter="writing">文字</button>
+          <button type="button" data-filter="tech">技术 / 学生作品集</button>
+          <button type="button" data-filter="business">个人品牌</button>
+          <button type="button" data-filter="professional">专业服务</button>
+          <button type="button" data-filter="creator">创作者</button>
+          <button type="button" data-filter="lifestyle">生活方式</button>
+        </div>
+        <div class="template-grid" id="templateGrid"></div>
+        <div class="empty-state" id="emptyState" hidden>
+          <span>⌕</span>
+          <h3>没有找到这个方向</h3>
+          <p>试试「设计」「摄影」或「极简」。</p>
+          <button type="button" id="clearSearch">清除搜索</button>
+        </div>
+      </section>
+
+      <section class="manifesto">
+        <div>
+          <span class="section-index">04</span>
+          <p>我们相信，个人网站不是一份在线简历。</p>
+        </div>
+        <h2>它是你在互联网上<br />最完整的一次<span>自我介绍。</span></h2>
+        <div class="manifesto-stats">
+          <div><strong>48</strong><span>视觉系统</span></div>
+          <div><strong>30s</strong><span>快速生成</span></div>
+          <div><strong>100%</strong><span>属于你</span></div>
+        </div>
+        <button type="button" id="manifestoCreate">开始制作我的网站 <span>↗</span></button>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="#top">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span>FORMA</span><em>°</em>
+      </a>
+      <p>把你的经历，设计成值得被记住的页面。</p>
+      <div><span>© 2026 FORMA</span><span>Images from Unsplash</span></div>
+    </footer>
+
+    <div class="modal-layer" id="previewModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="preview"></div>
+      <section class="preview-panel" role="dialog" aria-modal="true" aria-labelledby="previewName">
+        <header class="preview-toolbar">
+          <div class="preview-ident">
+            <button class="round-button" type="button" data-close="preview" aria-label="关闭预览">←</button>
+            <div><span>LIVE PREVIEW</span><strong id="previewName">模板预览</strong></div>
+          </div>
+          <div class="device-switcher" aria-label="预览设备">
+            <button class="active" type="button" data-device="desktop">桌面</button>
+            <button type="button" data-device="tablet">平板</button>
+            <button type="button" data-device="mobile">手机</button>
+          </div>
+          <div class="preview-actions">
+            <button class="secondary-button desktop-only" type="button" id="openPreviewTab">新窗口打开</button>
+            <button class="primary-button" type="button" id="useTemplate">用此模板 <span>↗</span></button>
+          </div>
+        </header>
+        <div class="preview-stage">
+          <div class="preview-browser desktop" id="previewBrowser">
+            <div class="browser-chrome">
+              <i></i><i></i><i></i>
+              <span id="browserUrl">yourname.studio</span>
+            </div>
+            <iframe id="templateFrame" title="模板网站预览"></iframe>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-layer" id="builderModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="builder"></div>
+      <section class="builder-panel" role="dialog" aria-modal="true" aria-labelledby="builderTitle">
+        <header>
+          <div><span>30-SECOND CREATOR</span><h2 id="builderTitle">生成你的个人网站</h2></div>
+          <button class="round-button" type="button" data-close="builder" aria-label="关闭生成器">×</button>
+        </header>
+        <div class="builder-body">
+          <form class="builder-form" id="builderForm">
+            <div class="selected-template">
+              <span>当前模板</span>
+              <strong id="selectedTemplateName">NOIR ATELIER</strong>
+              <button type="button" id="changeTemplate">更换</button>
+            </div>
+            <label>
+              <span>你的名字 / 品牌名</span>
+              <input id="profileName" name="name" value="林知夏" maxlength="24" />
+            </label>
+            <label>
+              <span>你的身份</span>
+              <input id="profileRole" name="role" value="独立设计师 & 艺术指导" maxlength="48" />
+            </label>
+            <label>
+              <span>一句话介绍</span>
+              <textarea id="profileBio" name="bio" rows="3" maxlength="100">用设计、影像和文字，把复杂的想法变成清晰而动人的体验。</textarea>
+            </label>
+            <fieldset>
+              <legend>强调色</legend>
+              <div class="color-options">
+                <button class="active" type="button" data-color="#DFFF57" style="--swatch:#DFFF57" aria-label="荧光绿"></button>
+                <button type="button" data-color="#FF5C35" style="--swatch:#FF5C35" aria-label="珊瑚橙"></button>
+                <button type="button" data-color="#9B8CFF" style="--swatch:#9B8CFF" aria-label="薰衣草紫"></button>
+                <button type="button" data-color="#53D7FF" style="--swatch:#53D7FF" aria-label="天空蓝"></button>
+                <button type="button" data-color="#F2D0A4" style="--swatch:#F2D0A4" aria-label="沙金色"></button>
+              </div>
+            </fieldset>
+            <button class="generate-button" type="submit">
+              <span>生成我的网站</span><small>可继续编辑并下载 HTML</small><b>↗</b>
+            </button>
+          </form>
+          <div class="builder-preview">
+            <div class="builder-label"><span>实时预览</span><i></i></div>
+            <div class="builder-frame-shell"><iframe id="builderFrame" title="生成网站实时预览"></iframe></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-layer" id="resultModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="result"></div>
+      <section class="result-panel" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <header>
+          <div><span>YOUR SITE IS READY</span><h2 id="resultTitle">漂亮，网站已经生成。</h2></div>
+          <button class="round-button" type="button" data-close="result" aria-label="关闭生成结果">×</button>
+        </header>
+        <div class="result-preview"><iframe id="resultFrame" title="已生成的个人网站"></iframe></div>
+        <footer>
+          <div><i class="status-dot"></i><span>独立 HTML · 样式已包含</span></div>
+          <div>
+            <button class="secondary-button" type="button" id="editAgain">继续修改</button>
+            <button class="secondary-button" type="button" id="openResult">新窗口打开</button>
+            <button class="primary-button" type="button" id="downloadHtml">下载 HTML <span>↓</span></button>
+          </div>
+        </footer>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <span>✓</span><p id="toastText">已完成</p>
+    </div>
+
+    <script src="./app.js"></script>
+    <!-- FORMA Agent：AI 创作面板 + 设置页（API 切换 / 环境医生 / 软件更新）。
+         必须排在 app.js 之后 —— 它复用 app.js 的 templates / renderTemplate。 -->
+    <script src="./forma-agent.js"></script>
+  </body>
+</html>

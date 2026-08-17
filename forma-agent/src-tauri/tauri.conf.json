@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FORMA Agent",
+  "version": "0.1.0",
+  "identifier": "com.forma.site-agent",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "FORMA · 个人网站创作 Agent",
+        "width": 1480,
+        "height": 960,
+        "minWidth": 1080,
+        "minHeight": 700,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "FORMA 个人网站创作 Agent",
+    "longDescription": "把 FORMA 的 120 套高级个人网站模板，接上 youxi(MicaBase) 的 AI 任务网关 —— 采访式生成、整页深度改写、API 切换与环境医生。"
+  }
+}

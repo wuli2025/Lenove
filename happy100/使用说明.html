@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幸福小事 · 使用说明</title>
+<style>
+:root{
+  --paper:#FBF6EE; --paper2:#F4EADB; --card:#FFFDF9;
+  --ink:#4B4139; --ink2:#92836F; --ink3:#C1B3A0; --line:#EBE0CE;
+  --peach:#F0A582; --peachd:#DE8A64; --peachl:#FBE3D6;
+  --matcha:#A6C69C; --matchal:#E4EFDF; --butterl:#FBF0D9; --lilacl:#EDE6F5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink); line-height:1.75;
+  font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei",system-ui,sans-serif;
+  font-size:15.5px;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+}
+.wrap{position:relative; max-width:740px; margin:0 auto; padding:0 22px 80px}
+
+header{
+  text-align:center; padding:56px 0 34px;
+  background:radial-gradient(90% 70% at 50% 0%, var(--peachl) 0%, transparent 65%);
+  margin:0 -22px 8px;
+}
+header img{width:96px;height:96px;border-radius:26px;box-shadow:0 8px 26px rgba(120,95,65,.16);margin:0 auto 16px;display:block}
+h1{margin:0;font-size:31px;font-weight:800;letter-spacing:-.01em}
+header p{margin:8px 0 0;color:var(--ink2);font-size:14.5px}
+
+h2{
+  margin:40px 0 14px; font-size:20px; font-weight:800;
+  display:flex; align-items:center; gap:9px;
+}
+h2 .n{
+  width:28px;height:28px;border-radius:9px;flex:none;
+  background:var(--peach);color:#fff;font-size:14px;
+  display:grid;place-items:center;box-shadow:0 3px 9px rgba(222,138,100,.3);
+}
+h3{margin:24px 0 8px;font-size:16px;font-weight:800}
+
+.card{
+  background:var(--card); border-radius:22px; padding:20px 22px;
+  box-shadow:0 3px 14px rgba(120,95,65,.08); margin:14px 0;
+}
+.card.peach{background:linear-gradient(160deg,#FFF6EE,#FDEBE0)}
+.card.matcha{background:linear-gradient(160deg,#F2F8EF,#E7F1E2)}
+.card.butter{background:linear-gradient(160deg,#FFF8E8,#FCF0D8)}
+.card.lilac{background:linear-gradient(160deg,#F6F2FB,#EDE5F5)}
+
+ol,ul{margin:8px 0;padding-left:22px}
+li{margin:7px 0}
+code{
+  background:var(--paper2); padding:2px 7px; border-radius:6px;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-size:13.5px;
+}
+b{font-weight:800}
+.muted{color:var(--ink2);font-size:14px}
+.tag{
+  display:inline-block; padding:2px 10px; border-radius:999px;
+  font-size:12px; font-weight:800; margin-right:6px;
+}
+.tag.ok{background:var(--matchal);color:#5F8A52}
+.tag.no{background:#FBE3E3;color:#B5675F}
+.tag.mid{background:var(--butterl);color:#A8802F}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--ink2);font-weight:800}
+td:first-child{white-space:nowrap;font-weight:700}
+
+.files{font-size:14.5px;line-height:2.1}
+.files .f{font-weight:800}
+.files .d{color:var(--ink2);font-size:13.5px}
+
+.quote{
+  border-left:3px solid var(--peach); padding:4px 0 4px 15px;
+  color:var(--ink2); font-size:14px; margin:14px 0;
+}
+hr{border:0;border-top:1px dashed var(--line);margin:38px 0}
+footer{text-align:center;color:var(--ink3);font-size:13px;margin-top:50px}
+@media(max-width:520px){ h1{font-size:26px} .card{padding:16px 17px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <img src="网页版/art/icon-192.png" alt="幸福小事">
+  <h1>幸福小事</h1>
+  <p>让生活更幸福的 100 件小事 · v1.0</p>
+</header>
+
+<div class="card peach">
+  <b>一句话说明白：</b>网页版已经上线，手机电脑打开
+  <a href="https://happy.llmwiki.cloud" style="color:#C0714A;font-weight:800">happy.llmwiki.cloud</a>
+  就能用；安卓也可以装文件夹里的 <code>.apk</code>。
+  数据默认只存在你自己设备上，想跨设备用就开「云同步」（第 4 节）。
+</div>
+
+<div class="card matcha">
+  <b>在线地址</b><br>
+  正式域名 <code>https://happy.llmwiki.cloud</code><br>
+  备用域名 <code>https://happy-e0k.pages.dev</code><br>
+  <span class="muted">两个是同一个站点。iPhone 直接用 Safari 打开正式域名，
+  「分享 → 添加到主屏幕」就是一个完整的 App，不用电脑、不用 Mac。</span>
+</div>
+
+<h2><span class="n">1</span>安卓手机</h2>
+<div class="card">
+  <ol>
+    <li>把 <b>幸福小事.apk</b> 传到手机上（微信文件传输助手 / QQ / 数据线都行）</li>
+    <li>在手机上点开它，系统会问「是否允许安装未知来源应用」，选<b>允许</b></li>
+    <li>装完桌面上就有一个小太阳图标了 ☀️</li>
+  </ol>
+  <p class="muted">如果这个装不上，试试文件夹里的 <b>幸福小事-备用包.apk</b>（调试版，兼容性更宽松）。</p>
+</div>
+
+<h2><span class="n">2</span>iPhone / iPad</h2>
+
+<div class="card butter">
+  <b>先说清楚一件事：</b>iPhone 上的 <code>.ipa</code> 安装包必须在 Mac 电脑的 Xcode 里编译和签名，
+  这是苹果的硬性限制，Windows 电脑上做不出来。<br><br>
+  但下面这个办法效果几乎一样，而且<b>不需要 Mac、不需要开发者账号、不用花钱</b>：
+</div>
+
+<h3>办法 A：添加到主屏幕（推荐，一分钟搞定）</h3>
+<div class="card">
+  <ol>
+    <li>用 iPhone 的 <b>Safari</b> 打开 <code>https://happy.llmwiki.cloud</code></li>
+    <li>点屏幕底部中间的<b>分享</b>按钮 <span class="muted">（方框里一个向上箭头）</span></li>
+    <li>往下滑，点<b>「添加到主屏幕」</b> → 添加</li>
+  </ol>
+  <p class="muted">桌面上就出现小太阳图标了，点开是全屏的，没有浏览器地址栏，和真 App 一模一样。
+  站点是 HTTPS 的，<b>离线缓存也会生效</b>——装好之后没网也能打开用。</p>
+  <div class="quote">必须用 <b>Safari</b>。微信里打开、或者用 Chrome，都没有「添加到主屏幕」这个选项。</div>
+</div>
+
+<h3>办法 B：不想联网，用局域网自己开</h3>
+<div class="card">
+  <ol>
+    <li>手机和电脑连<b>同一个 WiFi</b></li>
+    <li>双击文件夹里的 <b>启动网页版.bat</b>，黑窗口会列出几个网址</li>
+    <li>iPhone 的 Safari 打开那个 <code>192.168.x.x:5178</code>，同样「添加到主屏幕」</li>
+  </ol>
+  <p class="muted">完全不经过外网。代价是这条路是 HTTP，浏览器不给注册离线缓存，
+  而且每次都要开着电脑那个窗口。日常用还是办法 A 省事。</p>
+</div>
+
+<h3>办法 C：真的要出 .ipa（需要一台 Mac）</h3>
+<div class="card">
+  <ol>
+    <li>把 <b>iOS-Xcode工程</b> 整个文件夹拷到 Mac 上</li>
+    <li>用 Xcode 打开里面的 <code>App/App.xcworkspace</code></li>
+    <li>左上角选好你的 Apple ID 签名，接上 iPhone，点运行</li>
+  </ol>
+  <p class="muted">用免费 Apple ID 签的话，App 每 7 天要重新签一次；付费开发者账号（$99/年）可以签一年。</p>
+</div>
+
+<h2><span class="n">3</span>怎么用</h2>
+<div class="card">
+  <table>
+    <tr><th>页面</th><th>能干什么</th></tr>
+    <tr><td>今天</td><td>挑小事打勾。选「忙碌 / 松弛」和天气之后，合适的小事会自动排到前面，
+      天气对得上的还会标一颗小星星。</td></tr>
+    <tr><td>写感悟</td><td>任何一件小事打完勾，卡片上会出现「写感悟」。想写就写，
+      <b>点「这次跳过」也完全没关系</b>——本来就不是必须的。</td></tr>
+    <tr><td>记录</td><td>选今天的心情，写点随笔。不想打字可以点「说给它听」语音输入。</td></tr>
+    <tr><td>报告</td><td><b>日报</b>：今天做了什么、心情、感悟，自动整理好。<br>
+      <b>周报</b>：一周柱状图、分类分布、心情统计、感悟集锦，每周一自动开始新的一周。<br>
+      两个都能一键复制成文字，发给朋友或存到备忘录。</td></tr>
+    <tr><td>我的</td><td>累计数据、徽章墙，还有<b>留给你自己的 12 个空位</b>——
+      内置 88 件，剩下 12 件写你自己的，凑满属于你的 100。</td></tr>
+  </table>
+</div>
+
+<h2><span class="n">4</span>账号与云同步</h2>
+
+<div class="card">
+  <p>默认情况下数据只存在你这台设备上，<b>不联网、不上传</b>。
+  想在手机和电脑之间同步、或者怕清了浏览器数据会丢，就去
+  <b>我的 → 云同步 → 注册</b>，填个邮箱和密码就行。</p>
+
+  <h3 style="margin-top:18px">下次不用再登录</h3>
+  <p class="muted">注册或登录时勾着「在这台设备上记住我」（默认勾着），
+  登录状态就存在这台设备里。以后打开 App 直接进，不会再问你密码。
+  想换设备、或者数据丢了，用<b>邮箱 + 密码</b>登录就能全部拿回来。</p>
+
+  <h3 style="margin-top:18px">数据是加密的</h3>
+  <ol>
+    <li>App 随机生成一把<b>数据密钥</b>，你写的东西都用它加密</li>
+    <li>这把密钥被「邮箱+密码」派生出的锁包住，再存到服务器</li>
+    <li>服务器只有被锁住的密钥和加密后的密文，<b>没有密码就永远打不开</b></li>
+  </ol>
+  <p class="muted">所以 Cloudflare 看不到、我也看不到你写了什么。
+  邮箱不会验证、不会发广告——整个注册过程根本不经过任何邮件服务。</p>
+</div>
+
+<div class="card butter">
+  <b>关于恢复码</b><br>
+  注册时会给你一串恢复码，比如 <code>JBBGQ-2N2A2-WSZ9V-KS4CN</code>。
+  它和密码是<b>两把各自独立的钥匙，开同一个盒子</b>——忘了密码就用它进去，然后重设密码。<br><br>
+  注册那一屏有个「发到我邮箱」按钮，点了会打开你自己的邮件 App 并填好内容，
+  <b>不经过任何服务器</b>，你点发送就存进自己邮箱了，以后翻邮件就能找到。<br><br>
+  <b>⚠️ 密码和恢复码两个都丢了，云端那份就真的打不开了。</b>
+  没有「找回密码」这种功能，因为服务器根本没有能解开它的钥匙。
+  这是端到端加密的代价，也是它的意义。
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>情况</th><th>会怎样</th></tr>
+    <tr><td>两台设备各打了几件</td><td>合并，两边的都算上</td></tr>
+    <tr><td>同一天两边不一样</td><td>按最后修改时间取新的；<b>但感悟永远合并，不会被覆盖掉</b></td></tr>
+    <tr><td>密码输错</td><td>提示「密码不对」，并告诉你可以用恢复码进去</td></tr>
+    <tr><td>改了密码</td><td>旧密码立刻失效，恢复码依然有效</td></tr>
+    <tr><td>退出登录</td><td>只断开这台设备，本机和云端数据都保留，登回来就有</td></tr>
+    <tr><td>清空所有记录</td><td>会额外问一次要不要连云端一起删</td></tr>
+  </table>
+  <p class="muted">同步是自动的：改动后过两秒自动上传，每次打开 App 或从后台切回来会自动拉取。
+  「我的 → 云同步」那里也有「立即同步」可以手动点。</p>
+</div>
+
+<div class="card lilac">
+  <b>密码强度直接决定安全性。</b>数据是用你的密码加密的，
+  所以别用 <code>12345678</code> 这种。注册时下面会实时提示强度，
+  能给到「很不错」最好。<br>
+  <span class="muted">技术上：密钥用 PBKDF2 跑 30 万轮派生，AES-GCM-256 加密。
+  账号指针的定位 id 由「邮箱+密码」一起哈希得到——只知道你的邮箱，
+  连你的数据存在哪儿都定位不到。</span>
+</div>
+
+<h2><span class="n">5</span>周报发到邮箱</h2>
+
+<div class="card">
+  <p>两种方式：</p>
+  <ul>
+    <li><b>手动</b>：报告页 → 本周周报 → 点「📮 发到我邮箱」</li>
+    <li><b>自动</b>：设置里打开「每周把周报发到我邮箱」，填好收信邮箱。
+      之后<b>每周第一次打开 App 时</b>，会自动把上一周的周报发给你，一周只发一次。</li>
+  </ul>
+  <p class="muted">邮件正文是纯文本的完整周报：每天完成几件的柱状条、分类分布、
+  每天的心情和随笔、本周所有感悟，都在里面。</p>
+</div>
+
+<div class="card butter">
+  <b>说清楚两件事：</b><br>
+  ① <b>不是服务器定时推送</b>，是你打开 App 时触发的。真正的定时推送需要服务器能读你的数据，
+  而你的数据是加密的，服务器读不了——所以只能由客户端解密后自己拼好再发。
+  好在这是个每天都会打开的 App，实际效果差不多。<br><br>
+  ② <b>周报正文这一段会经过服务器</b>，因为它要变成邮件，而邮件本来就是明文传输的。
+  你的完整数据依然只以密文形式存在云端。不想让任何内容经过服务器的话，就别开这个功能，
+  用「复制周报」自己发。
+</div>
+
+<div class="card matcha">
+  <b>不注册账号也完全能用。</b>数据一样好好地存在本地。
+  只是建议偶尔去「我的 → 导出我的全部数据」存一份 JSON 备份，
+  换手机时用「从文件恢复」导回来。
+</div>
+
+<h2><span class="n">6</span>这个文件夹里都有什么</h2>
+<div class="card files">
+  <div><span class="f">幸福小事.apk</span> — <span class="d">安卓安装包，已签名，6.9 MB</span></div>
+  <div><span class="f">幸福小事-备用包.apk</span> — <span class="d">调试版，上面那个装不上时用</span></div>
+  <div><span class="f">启动网页版.bat</span> — <span class="d">双击启动本地服务器，给手机连</span></div>
+  <div><span class="f">网页版/</span> — <span class="d">完整网页版，也可以直接双击里面的 index.html</span></div>
+  <div><span class="f">iOS-Xcode工程/</span> — <span class="d">拷到 Mac 上用 Xcode 打开就能出 ipa</span></div>
+  <div><span class="f">项目源码/</span> — <span class="d">全部源代码，想改随便改</span></div>
+  <div><span class="f">签名密钥（别删）/</span> — <span class="d">以后要更新 APK 必须用同一个密钥，弄丢了就只能卸载重装</span></div>
+</div>
+
+<h2><span class="n">7</span>想自己改内容</h2>
+<div class="card">
+  <p>100 件小事全都写在 <code>网页版/data.js</code> 里，用记事本就能改，格式一看就懂：</p>
+  <pre style="background:var(--paper2);padding:13px 15px;border-radius:12px;overflow-x:auto;font-size:12.5px;line-height:1.7"><code>{ id: 1, cat: 'morning', text: '睁眼后先别拿手机，躺着伸个大大的懒腰',
+  tip: '手机可以晚三分钟再见到你', type: 'work', weather: 'indoor', mins: 1 },</code></pre>
+  <p class="muted"><code>cat</code> 是分类、<code>tip</code> 是灰色小字、<code>type</code> 填 work（忙碌日）或 life（松弛日）、
+  <code>weather</code> 填 indoor 或 outdoor、<code>mins</code> 是大概几分钟。改完刷新页面就生效。</p>
+  <p class="muted">改完想重新打 APK：在<b>项目源码</b>目录下跑 <code>npx cap sync android</code>，
+  然后进 <code>android</code> 目录跑 <code>gradlew assembleRelease</code>。
+  注意路径里不能有中文，Gradle 会拒绝编译。</p>
+</div>
+
+<hr>
+<footer>
+  插画用 MiniMax 生成 · 界面手写 · 数据只属于你<br>
+  祝你今天过得松弛一点 🌿
+</footer>
+
+</div>
+</body>
+</html>

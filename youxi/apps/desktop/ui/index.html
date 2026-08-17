@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一句话生成 · 现场版</title>
+<link rel="stylesheet" href="style.css">
+<script>
+/* 内联，不依赖任何外部文件能否取到。用于判定 index.html 本身是否为最新版本，
+   以及 style.css / app.js 有没有真的被取到——桌面端没有 devtools，
+   窗口标题是唯一能从进程外读到的状态。 */
+window.addEventListener('DOMContentLoaded', function () {
+  var el = document.querySelector('.side');
+  var r = el ? el.getBoundingClientRect() : null;
+  var st = document.querySelector('.stage');
+  var sr = st ? st.getBoundingClientRect() : null;
+  var lines = [
+    'viewport   ' + window.innerWidth + ' x ' + window.innerHeight + '   dpr=' + window.devicePixelRatio,
+    'css        ' + (getComputedStyle(document.body).margin === '0px' ? 'style.css 已生效' : 'style.css 没加载'),
+    'stage      ' + (sr ? Math.round(sr.width) + ' x ' + Math.round(sr.height) + ' @left=' + Math.round(sr.left) : '节点不存在'),
+    'side       ' + (r ? Math.round(r.width) + ' x ' + Math.round(r.height) + ' @left=' + Math.round(r.left) : '节点不存在'),
+    'main       ' + getComputedStyle(document.querySelector('main')).display,
+    'tauri      ' + (window.__TAURI__ ? '注入成功' : '未注入'),
+  ].join('\n');
+  if (window.__TAURI__) window.__TAURI__.core.invoke('ui_diag', { payload: lines });
+});
+</script>
+</head>
+<body>
+
+<header>
+  <h1>一句话生成<span>ONE SENTENCE · LIVE</span></h1>
+  <div class="chips">
+    <span class="chip" id="chip-model">模型 …</span>
+    <select class="chip" id="voiceSel" title="真昼的音色"></select>
+    <span class="chip" id="chip-voice">语音 …</span>
+    <span class="chip" id="chip-creator" title="发布时归属到这个名字">创作者 —</span>
+    <button class="chip" id="btn-setting">设置</button>
+  </div>
+</header>
+
+<main>
+  <!-- 舞台：真昼（生成期间自动收窄成小窗，继续当引导员） -->
+  <div class="stage">
+    <video id="idle" src="assets/idle.mp4" loop muted playsinline autoplay></video>
+    <img class="mouth" id="mouthClosed" src="assets/mouth-closed.png" alt="">
+    <img class="mouth" id="mouthHalf" src="assets/mouth-half.png" alt="">
+    <img class="mouth" id="mouthOpen" src="assets/mouth-open.png" alt="">
+    <div class="veil"></div>
+    <div class="thinking" id="thinking">THINKING</div>
+    <div class="subtitle" id="subtitle"></div>
+  </div>
+
+  <!-- 右栏：访谈期是需求单，生成期是阶段进度 -->
+  <div class="side">
+    <div class="hd"><span id="side-title">需求单 · 实时</span><span class="grow"></span><span id="side-sub"></span></div>
+
+    <div id="req">
+      <div class="reqcard empty" id="reqcard">
+        <div class="reqhint" id="reqhint">跟真昼说说你想做个什么样的网站。<br>她问几个问题，这里就会一条一条长出来。</div>
+      </div>
+    </div>
+
+    <!-- 生成阶段面板 -->
+    <div class="stages" id="stages" style="display:none">
+      <div class="bar"><i id="barfill"></i></div>
+      <div class="stagelist" id="stagelist"></div>
+      <div class="metrics">
+        <span>用时 <b id="m-time">0:00</b></span>
+        <span>Token <b id="m-token">0</b></span>
+        <span id="m-regen"></span>
+      </div>
+      <div class="note" id="note" style="display:none"></div>
+    </div>
+
+    <div id="log"></div>
+
+    <div class="inputrow">
+      <textarea id="textin" placeholder="说点什么…" title="Enter 发送，Shift+Enter 换行" rows="1"></textarea>
+      <button id="send">发送</button>
+      <button id="stop" class="ghost">停止</button>
+    </div>
+    <div class="statusbar"><span id="status"></span><span id="lat"></span></div>
+
+    <div class="gobar" id="gobar">
+      <button id="go" disabled>就这样，开始做</button>
+    </div>
+
+    <div class="donebar" id="donebar">
+      <div class="row">
+        <button id="btn-open">在浏览器里全屏打开</button>
+        <button id="btn-regen" class="ghost">重做一版</button>
+      </div>
+      <div class="row">
+        <button id="btn-publish">推上线，分配网址</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 预览：127.0.0.1 静态服务，不是 file:// -->
+  <div class="preview" id="preview">
+    <div class="pvhead">
+      <span>本地预览</span>
+      <span class="url" id="pvurl">—</span>
+      <span class="grow"></span>
+      <button class="chip" id="btn-reload">刷新</button>
+    </div>
+    <div class="pvwrap">
+      <iframe id="pvframe" src="about:blank"></iframe>
+      <div class="pvwait" id="pvwait"><span></span>骨架马上就出来…</div>
+    </div>
+  </div>
+</main>
+
+<!-- 设置 -->
+<div class="modal" id="modal">
+  <div class="box">
+    <h2>设置</h2>
+    <p class="sub" id="cfgpath">配置文件 —</p>
+
+    <div class="field">
+      <label>创作者姓名（发布归属，必填）</label>
+      <input id="f-creator" placeholder="现场写自己的名字，最多 24 字">
+      <div class="hint">这个名字会被转成拼音当作专属网址前缀，比如「张三」→ zhangsan-1dy4s。</div>
+    </div>
+    <div class="field">
+      <label>模型密钥 API KEY</label>
+      <input id="f-key" placeholder="sk-…" autocomplete="off" spellcheck="false">
+      <div class="hint">只存在本机配置文件里，不会写进生成的网站。</div>
+    </div>
+    <div class="field">
+      <label>模型端点 API URL</label>
+      <input id="f-url" spellcheck="false">
+    </div>
+    <div class="field">
+      <label>语音密钥 TTS KEY（留空则沿用上面那把）</label>
+      <input id="f-ttskey" placeholder="MiniMax 的 key" autocomplete="off" spellcheck="false">
+      <div class="hint">对话可以换任意 Anthropic 兼容网关，但 T2A 只有 MiniMax 有。
+        对话换成 Kimi / 智谱之后，这里必须单独填 MiniMax 的 key，否则真昼不会说话。</div>
+    </div>
+    <div class="field">
+      <label>模型名</label>
+      <input id="f-model" spellcheck="false">
+    </div>
+    <div class="field">
+      <label>大厅地址（产物页脚的两个入口指向这里）</label>
+      <input id="f-hall" spellcheck="false">
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="btn-cancel">取消</button>
+      <button id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

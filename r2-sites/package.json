@@ -1,0 +1,16 @@
+{
+  "name": "r2-sites",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify:qr": "node scripts/verify-qr.mjs",
+    "verify:pinyin": "node scripts/verify-pinyin.mjs",
+    "verify:poster": "node scripts/preview-poster.mjs ./_preview",
+    "verify:all": "npm run verify:qr && npm run verify:pinyin",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0"
+  }
+}

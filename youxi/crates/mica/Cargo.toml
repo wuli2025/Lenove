@@ -1,0 +1,53 @@
+[package]
+name = "mica"
+version.workspace = true
+edition.workspace = true
+description = "MicaBase - AI agent task gateway (orchestrates Claude Code / Codex CLI + direct API)"
+
+[features]
+default = []
+server = ["dep:axum", "dep:tower-http"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+dashmap = "6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+futures-util = "0.3"
+bytes = "1"
+# publish 板块：R2（S3 兼容）走 AWS SigV4，手写签名只需这三个纯算法小 crate，
+# 不引 aws-sdk 全家桶（那会拖进几十个传递依赖）
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+dirs = "5"
+tokio-stream = { version = "0.1", features = ["sync"] }
+axum = { version = "0.8", optional = true }
+tower-http = { version = "0.6", features = ["trace", "cors"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_JobObjects",
+    "Win32_System_Threading",
+    "Win32_Security",
+] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[[bin]]
+name = "mica-server"
+required-features = ["server"]
+
+[[bin]]
+name = "mock-claude"

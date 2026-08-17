@@ -1,0 +1,2703 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="120 套内容完整、可直接使用的个人网站模板，覆盖 48 个视觉系统与 8 大职业方向。" />
+  <title>FORMA — 120 套个人网站模板库</title>
+  <style>
+    :root{--bg:#0b0b0b;--panel:#121212;--line:rgba(255,255,255,.13);--text:#f5f3ed;--muted:#8f8f89;--acid:#dfff57}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;color:var(--text);background:radial-gradient(circle at 70% -10%,rgba(137,119,255,.14),transparent 30%),var(--bg);font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    button,input{color:inherit;font:inherit}button{border:0;cursor:pointer}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--acid);outline-offset:3px}
+    .ambient{position:fixed;z-index:-1;width:420px;height:420px;border-radius:50%;filter:blur(140px);pointer-events:none;opacity:.09}.ambient-one{top:120px;right:-190px;background:#7568ff}.ambient-two{top:760px;left:-220px;background:var(--acid);opacity:.045}
+    .topbar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:72px;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(9,9,9,.88);backdrop-filter:blur(24px)}
+    .brand{display:inline-flex;align-items:center;justify-self:start;gap:10px;width:max-content;font-size:20px;font-weight:800;letter-spacing:-.055em}.brand em{margin:-12px 0 0 -8px;color:var(--acid);font-style:normal}.brand-mark{position:relative;display:inline-block;width:23px;height:23px}.brand-mark i{position:absolute;width:14px;height:18px;border-radius:50% 52% 46% 50%;transform-origin:60% 65%}.brand-mark i:nth-child(1){top:0;left:0;background:#ff845e;transform:rotate(-24deg)}.brand-mark i:nth-child(2){top:0;right:0;background:#9c8eff;transform:rotate(22deg)}.brand-mark i:nth-child(3){right:4px;bottom:-1px;background:var(--acid);transform:rotate(152deg);mix-blend-mode:screen}
+    .cover-nav{display:flex;align-items:center;justify-self:center;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}.cover-nav a{min-height:38px;padding:11px 15px;border-radius:10px;color:#8e8e89;font-size:11px;font-weight:650}.cover-nav a:hover,.cover-nav a.active{color:#f4f3ef;background:rgba(255,255,255,.08)}.top-actions{display:flex;align-items:center;justify-self:end;gap:8px}.top-actions a{padding:10px 13px;border:1px solid var(--line);border-radius:11px;color:#c9c8c2;font-size:10px}
+    .hero{max-width:1180px;margin:auto;padding:13vh 4vw 8vh;text-align:center}.eyebrow{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--acid);font-size:9px;font-weight:700;letter-spacing:.19em}.eyebrow i{width:28px;height:1px;background:currentColor}.hero h1{max-width:1050px;margin:28px auto 26px;font-size:clamp(58px,8.8vw,132px);font-weight:650;letter-spacing:-.082em;line-height:.84}.hero h1 em{color:#a99dff;font-family:Georgia,serif;font-weight:400}.hero-bottom{display:flex;align-items:center;flex-direction:column}.hero p{max-width:680px;margin:0;color:#9d9c96;font-size:14px;line-height:1.85}.command-bar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;width:min(760px,100%);min-height:62px;margin:38px auto 22px;padding:6px;border:1px solid rgba(255,255,255,.16);border-radius:17px;background:#131313;box-shadow:0 22px 70px rgba(0,0,0,.28)}.command-bar>span{padding:0 12px;color:#777;font-size:20px}.command-bar input{min-width:0;height:48px;border:0;outline:0;background:transparent;font-size:13px}.command-bar button{height:48px;padding:0 18px;border-radius:12px;color:#111;background:var(--acid);font-size:11px;font-weight:700}.hero-stats{display:flex;justify-content:center;gap:42px}.hero-stats div{display:flex;align-items:center;gap:8px}.hero-stats strong{font-size:18px;letter-spacing:-.04em}.hero-stats span{color:#777;font-size:9px}
+    .featured{max-width:1500px;margin:auto;padding:3vh 4vw 8vh}.section-title{display:flex;align-items:end;justify-content:space-between;margin-bottom:24px}.section-title>div span{color:#6f6f6a;font-size:9px;letter-spacing:.14em}.section-title h2{margin:9px 0 0;font-size:28px;letter-spacing:-.05em}.section-title p{margin:0;color:#777;font-size:11px}.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.feature-card{position:relative;min-height:510px;overflow:hidden;border:1px solid var(--line);border-radius:22px;background:#151515}.feature-image,.feature-shade{position:absolute;inset:0}.feature-image{background-image:var(--feature-image);background-position:center;background-size:cover;transition:transform .7s ease}.feature-shade{background:linear-gradient(0deg,rgba(0,0,0,.9),transparent 65%),linear-gradient(180deg,rgba(0,0,0,.38),transparent 35%)}.feature-card:hover .feature-image{transform:scale(1.035)}.feature-top{position:absolute;top:20px;right:20px;left:20px;display:flex;justify-content:space-between;color:#ddd;font-size:8px;letter-spacing:.12em}.feature-top span:last-child{padding:5px 7px;border:1px solid rgba(255,255,255,.32);border-radius:999px}.feature-title{position:absolute;right:22px;bottom:96px;left:22px}.feature-title small{font-size:8px;letter-spacing:.1em}.feature-title h2{margin:8px 0 0;font-size:clamp(38px,4vw,62px);letter-spacing:-.075em;line-height:.85}.feature-card footer{position:absolute;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-top:1px solid rgba(255,255,255,.16);color:#eee;background:rgba(8,8,8,.58);backdrop-filter:blur(12px)}.feature-card footer div{display:flex;flex-direction:column;gap:3px}.feature-card footer strong{font-size:11px}.feature-card footer span{color:#9b9a95;font-size:8px}.feature-card footer button{padding:10px 12px;border-radius:10px;color:#111;background:var(--acid);font-size:9px}
+    .tools{position:sticky;top:72px;z-index:20;display:flex;align-items:center;justify-content:center;padding:13px 4vw;border-block:1px solid var(--line);background:rgba(11,11,11,.94);backdrop-filter:blur(18px)}.filters{display:flex;gap:6px;max-width:100%;overflow:auto}.filters button{height:38px;padding:0 13px;border-radius:10px;color:#92918c;background:transparent;font-size:11px;white-space:nowrap}.filters button.active,.filters button:hover{color:#111;background:var(--acid)}
+    .library{max-width:1500px;margin:auto;padding:5vh 4vw 12vh}.library-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:28px}.library-head h2{margin:0;font-size:24px;letter-spacing:-.04em}.library-head span{color:#777;font-size:11px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    .template-card{overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--panel);transition:transform .25s,border-color .25s}.template-card:hover{border-color:rgba(255,255,255,.3);transform:translateY(-4px)}.template-card[hidden]{display:none}
+    .card-preview{position:relative;display:block;width:100%;height:280px;overflow:hidden;color:var(--card-fg);background:var(--card-bg);text-align:left}.card-number,.card-style{position:absolute;z-index:3;top:18px;font-size:9px;letter-spacing:.12em}.card-number{left:18px}.card-style{right:18px}.art-word{position:absolute;z-index:2;right:10px;bottom:-.1em;left:10px;overflow:hidden;font-size:clamp(52px,6vw,94px);font-weight:800;letter-spacing:-.1em;line-height:.76;white-space:nowrap}.shape{position:absolute;display:block}.shape-a{top:25%;left:16%;width:42%;aspect-ratio:1;border:1px solid currentColor;border-radius:50%}.shape-b{right:12%;bottom:13%;width:30%;aspect-ratio:1;background:var(--card-accent);mix-blend-mode:difference;transform:rotate(12deg)}.shape-c{top:48%;left:7%;width:72%;height:1px;background:currentColor;transform:rotate(-18deg)}.template-card:nth-child(3n+2) .shape-a{border-radius:0;transform:rotate(30deg)}.template-card:nth-child(3n+2) .shape-b{border-radius:50%}.template-card:nth-child(3n) .shape-a{width:60%;border-radius:50% 50% 0 0}.template-card:nth-child(4n) .shape-c{height:12px;background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 8px)}
+    .card-copy{padding:20px}.card-copy>div:first-child{display:flex;align-items:start;justify-content:space-between;gap:20px}.card-copy span{color:#73736e;font-size:9px;letter-spacing:.08em}.card-copy h2{margin:0;font-size:20px;letter-spacing:-.04em}.card-copy>p{margin:10px 0 22px;color:#aaa9a3;font-size:12px}.card-actions{display:flex;gap:8px}.card-actions button,.card-actions a{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;text-align:center;font-size:10px}.card-actions a{color:#151515;border-color:var(--acid);background:var(--acid)}
+    .empty{padding:80px 20px;color:#888;text-align:center}.customizer{display:grid;grid-template-columns:1.1fr .9fr;max-width:1500px;margin:0 auto 12vh;border:1px solid var(--line);border-radius:24px;background:#151515;overflow:hidden}.customizer-copy{padding:7vw}.customizer-copy span{color:#a99dff;font-size:9px;letter-spacing:.18em}.customizer-copy h2{margin:20px 0;font-size:clamp(40px,6vw,84px);letter-spacing:-.075em;line-height:.9}.customizer-copy p{max-width:520px;color:#96958f;font-size:13px;line-height:1.7}.customizer-copy a{display:inline-block;margin-top:24px;padding:14px 18px;border-radius:12px;color:#111;background:var(--acid);font-size:12px;font-weight:700}.customizer-art{position:relative;min-height:420px;background:#a99dff}.customizer-art::before{position:absolute;inset:12%;content:"FORMA";display:grid;place-items:center;border:1px solid #2d2355;border-radius:50%;color:#2d2355;font:800 clamp(60px,10vw,150px)/1 Inter,sans-serif;letter-spacing:-.1em;transform:rotate(-9deg)}.customizer-art::after{position:absolute;right:8%;bottom:7%;width:28%;aspect-ratio:1;content:"";border-radius:50%;background:var(--acid);mix-blend-mode:multiply}
+    .inside{max-width:1500px;margin:0 auto 12vh;padding:0 4vw}.inside-head{display:grid;grid-template-columns:1fr .55fr;align-items:end;gap:8vw;margin-bottom:35px;padding-top:70px;border-top:1px solid var(--line)}.inside-head span{color:var(--acid);font-size:9px;letter-spacing:.16em}.inside-head h2{margin:18px 0 0;font-size:clamp(42px,6vw,82px);letter-spacing:-.075em;line-height:.92}.inside-head p{margin:0;color:#8c8b86;font-size:13px;line-height:1.8}.module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.module-grid article{display:flex;flex-direction:column;min-height:190px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#111}.module-grid b{color:var(--acid);font:9px monospace}.module-grid h3{margin:auto 0 8px;font-size:18px;letter-spacing:-.035em}.module-grid p{margin:0;color:#777;font-size:10px;line-height:1.6}
+    .preview-layer{position:fixed;inset:0;z-index:80;display:none;background:rgba(0,0,0,.82);backdrop-filter:blur(12px)}.preview-layer.open{display:grid;place-items:center}.preview-shell{display:flex;flex-direction:column;width:min(94vw,1440px);height:92vh;border:1px solid #333;border-radius:18px;background:#111;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}.preview-bar{display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:0 16px;border-bottom:1px solid #292929}.preview-bar div{display:flex;align-items:center;gap:8px}.preview-bar button,.preview-bar a{padding:10px 13px;border:1px solid #333;border-radius:10px;background:#181818;font-size:11px}.preview-bar button:first-child{display:grid;place-items:center;width:36px;height:36px;padding:0;font-size:20px}.preview-bar a{color:#111;border-color:var(--acid);background:var(--acid)}.preview-shell iframe{flex:1;width:100%;border:0;background:#fff}
+    .site-footer{display:flex;justify-content:space-between;padding:28px 4vw;border-top:1px solid var(--line);color:#686863;font-size:10px}
+    @media(max-width:1050px){.cover-nav{display:none}.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{top:71px}.filters{padding-bottom:2px}.hero-stats{margin-top:15px}.customizer{margin-inline:4vw}.module-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:640px){.topbar{display:flex;justify-content:space-between;padding:0 18px}.top-actions a{padding:9px 10px}.hero{padding:80px 18px 55px}.hero h1{font-size:16vw}.hero p{font-size:12px}.command-bar{grid-template-columns:auto 1fr}.command-bar button{display:none}.hero-stats{flex-wrap:wrap;gap:12px 22px}.featured{padding:20px 18px 60px}.section-title p{display:none}.feature-grid{grid-template-columns:1fr}.feature-card{min-height:450px}.feature-card:last-child{display:block}.tools{top:71px;padding:11px 18px}.library{padding:35px 18px 80px}.grid{grid-template-columns:1fr}.card-preview{height:250px}.inside{margin-bottom:70px;padding:0 18px}.inside-head{grid-template-columns:1fr;gap:24px;padding-top:45px}.inside-head h2{font-size:13vw}.module-grid{grid-template-columns:1fr}.module-grid article{min-height:155px}.customizer{grid-template-columns:1fr;margin:0 18px 70px}.customizer-copy{padding:45px 24px}.customizer-art{min-height:260px}.preview-shell{width:100%;height:100%;border:0;border-radius:0}.preview-bar span{display:none}.site-footer{flex-direction:column;gap:8px;padding:24px 18px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#top"><span class="brand-mark"><i></i><i></i><i></i></span><span>FORMA</span><em>°</em></a>
+    <nav class="cover-nav" aria-label="主导航"><a class="active" href="#top">⌂ 模板广场</a><a href="#library">◇ 作品模板</a><a href="./可定制模板广场/index.html">＋ 开始创作</a></nav>
+    <div class="top-actions"><a href="./使用说明.txt" target="_blank">使用说明 ↗</a></div>
+  </header>
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow"><i></i> PERSONAL SITES, ELEVATED</div>
+      <h1>今天，想把自己<br />呈现成<em>什么样？</em></h1>
+      <div class="hero-bottom">
+        <p>120 套完整个人网站，汇集 48 个视觉系统。从摄影、设计、写作、开发到 AI、游戏、安全、嵌入式与求职作品集，选一个喜欢的方向，替换内容就能使用。</p>
+        <div class="command-bar"><span>⌕</span><input id="search" type="search" placeholder="搜索「摄影师」「产品设计」「律师」「极简」…" autocomplete="off" /><button type="button" id="searchAction">给我灵感 ↗</button></div>
+        <div class="hero-stats"><div><strong>120</strong><span>独立成品</span></div><div><strong>48</strong><span>视觉系统</span></div><div><strong>8</strong><span>职业方向</span></div></div>
+      </div>
+    </section>
+    <section class="featured" aria-labelledby="featuredTitle">
+      <div class="section-title"><div><span>01 / FEATURED</span><h2 id="featuredTitle">带作品展示的精选模板</h2></div><p>不是空封面，每套都有完整项目位置。</p></div>
+      <div class="feature-grid">
+        <article class="feature-card" style="--feature-image:url('./可定制模板广场/assets/editorial.jpg')">
+          <div class="feature-image"></div><div class="feature-shade"></div>
+          <div class="feature-top"><span>01 — EDITORIAL</span><span>RICH PORTFOLIO</span></div>
+          <div class="feature-title"><small>摄影师 &amp; 艺术指导</small><h2>NOIR ATELIER</h2></div>
+          <footer><div><strong>人物摄影</strong><span>含 4 个作品视觉封面</span></div><button type="button" data-preview="./独立模板/01-noir-人物摄影.html">预览作品 ↗</button></footer>
+        </article>
+        <article class="feature-card" style="--feature-image:url('./可定制模板广场/assets/interior.jpg')">
+          <div class="feature-image"></div><div class="feature-shade"></div>
+          <div class="feature-top"><span>02 — SPATIAL</span><span>RICH PORTFOLIO</span></div>
+          <div class="feature-title"><small>室内设计师 &amp; 空间策划</small><h2>ROOM / 08</h2></div>
+          <footer><div><strong>住宅室内</strong><span>含 4 个作品视觉封面</span></div><button type="button" data-preview="./独立模板/82-room08-住宅室内.html">预览作品 ↗</button></footer>
+        </article>
+        <article class="feature-card" style="--feature-image:url('./可定制模板广场/assets/dance.jpg')">
+          <div class="feature-image"></div><div class="feature-shade"></div>
+          <div class="feature-top"><span>03 — PERFORMANCE</span><span>RICH PORTFOLIO</span></div>
+          <div class="feature-title"><small>舞者 &amp; 独立编舞家</small><h2>KINETIC BODY</h2></div>
+          <footer><div><strong>当代舞</strong><span>含 4 个作品视觉封面</span></div><button type="button" data-preview="./独立模板/85-kinetic-当代舞.html">预览作品 ↗</button></footer>
+        </article>
+        <!-- FORMA TECH FEATURE -->
+        <article class="feature-card" style="--feature-image:linear-gradient(135deg,#0d0e0c 0 52%,#7057ff 52% 76%,#c8ff3d 76%)">
+          <div class="feature-image"></div><div class="feature-shade"></div>
+          <div class="feature-top"><span>04 — TECHNOLOGY</span><span>NEW COLLECTION</span></div>
+          <div class="feature-title"><small>AI 工程师 &amp; 产品构建者</small><h2>NEURAL NIGHT</h2></div>
+          <footer><div><strong>AI 算法</strong><span>含项目筛选、快捷导航与主题切换</span></div><button type="button" data-preview="./独立模板/109-neural-night-AI算法.html">预览动态站 ↗</button></footer>
+        </article></div>
+    </section>
+    <section class="tools" aria-label="模板筛选">
+      <div class="filters" id="filters">
+        <button class="active" type="button" data-filter="all">全部 120</button>
+        <button type="button" data-filter="design">设计创作</button>
+        <button type="button" data-filter="photo">影像记录</button>
+        <button type="button" data-filter="writing">文字研究</button>
+        <button type="button" data-filter="tech">技术开发</button>
+        <button type="button" data-filter="business">专业服务</button>
+        <button type="button" data-filter="creator">内容创作</button>
+        <button type="button" data-filter="lifestyle">生活方式</button>
+        <button type="button" data-filter="professional">教育法律</button>
+      </div>
+    </section>
+    <section class="library" id="library">
+      <div class="library-head"><h2>02 / 探索全部模板</h2><span id="resultCount">显示 120 套</span></div>
+      <div class="grid" id="grid">
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="noir atelier 人物摄影 摄影师 &amp; 艺术指导 暗黑编辑感"
+          style="--card-bg:#111111;--card-fg:#F3EFE5;--card-accent:#DFFF57"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/01-noir-人物摄影.html" aria-label="预览 NOIR ATELIER · 人物摄影">
+            <span class="card-number">01</span>
+            <span class="card-style">暗黑编辑感</span>
+            <span class="art-word">NOIR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>人物摄影</h2></div>
+            <p>摄影师 &amp; 艺术指导</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/01-noir-人物摄影.html">快速预览</button>
+              <a href="./独立模板/01-noir-人物摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="noir atelier 时尚导演 时尚影像导演 暗黑编辑感"
+          style="--card-bg:#111111;--card-fg:#F3EFE5;--card-accent:#FF5C35"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/02-noir-时尚导演.html" aria-label="预览 NOIR ATELIER · 时尚导演">
+            <span class="card-number">02</span>
+            <span class="card-style">暗黑编辑感</span>
+            <span class="art-word">NOIR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>时尚导演</h2></div>
+            <p>时尚影像导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/02-noir-时尚导演.html">快速预览</button>
+              <a href="./独立模板/02-noir-时尚导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="noir atelier 电影摄影 电影摄影师 暗黑编辑感"
+          style="--card-bg:#111111;--card-fg:#F3EFE5;--card-accent:#8FB8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/03-noir-电影摄影.html" aria-label="预览 NOIR ATELIER · 电影摄影">
+            <span class="card-number">03</span>
+            <span class="card-style">暗黑编辑感</span>
+            <span class="art-word">NOIR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>电影摄影</h2></div>
+            <p>电影摄影师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/03-noir-电影摄影.html">快速预览</button>
+              <a href="./独立模板/03-noir-电影摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="monolith 建筑设计 建筑师 &amp; 空间叙事者 建筑极简"
+          style="--card-bg:#D9D7D0;--card-fg:#171717;--card-accent:#E8E5DE"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/04-monolith-建筑设计.html" aria-label="预览 MONOLITH · 建筑设计">
+            <span class="card-number">04</span>
+            <span class="card-style">建筑极简</span>
+            <span class="art-word">MONOLITH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>建筑设计</h2></div>
+            <p>建筑师 &amp; 空间叙事者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/04-monolith-建筑设计.html">快速预览</button>
+              <a href="./独立模板/04-monolith-建筑设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="monolith 室内设计 室内与展陈设计师 建筑极简"
+          style="--card-bg:#D9D7D0;--card-fg:#171717;--card-accent:#EACB95"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/05-monolith-室内设计.html" aria-label="预览 MONOLITH · 室内设计">
+            <span class="card-number">05</span>
+            <span class="card-style">建筑极简</span>
+            <span class="art-word">MONOLITH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>室内设计</h2></div>
+            <p>室内与展陈设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/05-monolith-室内设计.html">快速预览</button>
+              <a href="./独立模板/05-monolith-室内设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="monolith 景观设计 景观建筑师 建筑极简"
+          style="--card-bg:#D9D7D0;--card-fg:#171717;--card-accent:#B9D8C2"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/06-monolith-景观设计.html" aria-label="预览 MONOLITH · 景观设计">
+            <span class="card-number">06</span>
+            <span class="card-style">建筑极简</span>
+            <span class="art-word">MONOLITH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>景观设计</h2></div>
+            <p>景观建筑师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/06-monolith-景观设计.html">快速预览</button>
+              <a href="./独立模板/06-monolith-景观设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="orbit studio 品牌设计 视觉设计师 &amp; 创意导演 高饱和创意"
+          style="--card-bg:#B8ADFF;--card-fg:#281D4A;--card-accent:#DFFF57"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/07-orbit-品牌设计.html" aria-label="预览 ORBIT STUDIO · 品牌设计">
+            <span class="card-number">07</span>
+            <span class="card-style">高饱和创意</span>
+            <span class="art-word">ORBIT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>品牌设计</h2></div>
+            <p>视觉设计师 &amp; 创意导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/07-orbit-品牌设计.html">快速预览</button>
+              <a href="./独立模板/07-orbit-品牌设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="orbit studio 平面设计 独立平面设计师 高饱和创意"
+          style="--card-bg:#B8ADFF;--card-fg:#281D4A;--card-accent:#FF6FD8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/08-orbit-平面设计.html" aria-label="预览 ORBIT STUDIO · 平面设计">
+            <span class="card-number">08</span>
+            <span class="card-style">高饱和创意</span>
+            <span class="art-word">ORBIT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>平面设计</h2></div>
+            <p>独立平面设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/08-orbit-平面设计.html">快速预览</button>
+              <a href="./独立模板/08-orbit-平面设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="orbit studio 插画创作 插画师 &amp; 图像作者 高饱和创意"
+          style="--card-bg:#B8ADFF;--card-fg:#281D4A;--card-accent:#FFF36B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/09-orbit-插画创作.html" aria-label="预览 ORBIT STUDIO · 插画创作">
+            <span class="card-number">09</span>
+            <span class="card-style">高饱和创意</span>
+            <span class="art-word">ORBIT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>插画创作</h2></div>
+            <p>插画师 &amp; 图像作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/09-orbit-插画创作.html">快速预览</button>
+              <a href="./独立模板/09-orbit-插画创作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="folio journal 文化写作 作家 &amp; 文化研究者 纸张杂志感"
+          style="--card-bg:#E9E2D3;--card-fg:#24211B;--card-accent:#8A2F22"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/10-folio-文化写作.html" aria-label="预览 FOLIO JOURNAL · 文化写作">
+            <span class="card-number">10</span>
+            <span class="card-style">纸张杂志感</span>
+            <span class="art-word">FOLIO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>文化写作</h2></div>
+            <p>作家 &amp; 文化研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/10-folio-文化写作.html">快速预览</button>
+              <a href="./独立模板/10-folio-文化写作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="folio journal 独立策展 独立策展人 &amp; 编辑 纸张杂志感"
+          style="--card-bg:#E9E2D3;--card-fg:#24211B;--card-accent:#315C48"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/11-folio-独立策展.html" aria-label="预览 FOLIO JOURNAL · 独立策展">
+            <span class="card-number">11</span>
+            <span class="card-style">纸张杂志感</span>
+            <span class="art-word">FOLIO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>独立策展</h2></div>
+            <p>独立策展人 &amp; 编辑</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/11-folio-独立策展.html">快速预览</button>
+              <a href="./独立模板/11-folio-独立策展.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="folio journal 学术研究 媒体研究者 &amp; 讲师 纸张杂志感"
+          style="--card-bg:#E9E2D3;--card-fg:#24211B;--card-accent:#5367A8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/12-folio-学术研究.html" aria-label="预览 FOLIO JOURNAL · 学术研究">
+            <span class="card-number">12</span>
+            <span class="card-style">纸张杂志感</span>
+            <span class="art-word">FOLIO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>学术研究</h2></div>
+            <p>媒体研究者 &amp; 讲师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/12-folio-学术研究.html">快速预览</button>
+              <a href="./独立模板/12-folio-学术研究.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="kite systems 产品工程 产品工程师 &amp; 独立开发者 瑞士网格"
+          style="--card-bg:#DFFF57;--card-fg:#11130D;--card-accent:#DFFF57"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/13-kite-产品工程.html" aria-label="预览 KITE SYSTEMS · 产品工程">
+            <span class="card-number">13</span>
+            <span class="card-style">瑞士网格</span>
+            <span class="art-word">KITE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>产品工程</h2></div>
+            <p>产品工程师 &amp; 独立开发者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/13-kite-产品工程.html">快速预览</button>
+              <a href="./独立模板/13-kite-产品工程.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="kite systems ai 开发 ai 应用开发者 瑞士网格"
+          style="--card-bg:#DFFF57;--card-fg:#11130D;--card-accent:#53D7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/14-kite-AI-开发.html" aria-label="预览 KITE SYSTEMS · AI 开发">
+            <span class="card-number">14</span>
+            <span class="card-style">瑞士网格</span>
+            <span class="art-word">KITE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>AI 开发</h2></div>
+            <p>AI 应用开发者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/14-kite-AI-开发.html">快速预览</button>
+              <a href="./独立模板/14-kite-AI-开发.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="kite systems 独立产品 indie hacker &amp; maker 瑞士网格"
+          style="--card-bg:#DFFF57;--card-fg:#11130D;--card-accent:#FF6535"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/15-kite-独立产品.html" aria-label="预览 KITE SYSTEMS · 独立产品">
+            <span class="card-number">15</span>
+            <span class="card-style">瑞士网格</span>
+            <span class="art-word">KITE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>独立产品</h2></div>
+            <p>Indie Hacker &amp; Maker</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/15-kite-独立产品.html">快速预览</button>
+              <a href="./独立模板/15-kite-独立产品.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="sora profile 品牌顾问 品牌顾问 &amp; 内容创作者 温柔个人品牌"
+          style="--card-bg:#B9DDEB;--card-fg:#143341;--card-accent:#FFF36B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/16-sora-品牌顾问.html" aria-label="预览 SORA PROFILE · 品牌顾问">
+            <span class="card-number">16</span>
+            <span class="card-style">温柔个人品牌</span>
+            <span class="art-word">SORA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>品牌顾问</h2></div>
+            <p>品牌顾问 &amp; 内容创作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/16-sora-品牌顾问.html">快速预览</button>
+              <a href="./独立模板/16-sora-品牌顾问.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="sora profile 生涯教练 职业教练 &amp; 引导师 温柔个人品牌"
+          style="--card-bg:#B9DDEB;--card-fg:#143341;--card-accent:#FF8F82"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/17-sora-生涯教练.html" aria-label="预览 SORA PROFILE · 生涯教练">
+            <span class="card-number">17</span>
+            <span class="card-style">温柔个人品牌</span>
+            <span class="art-word">SORA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>生涯教练</h2></div>
+            <p>职业教练 &amp; 引导师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/17-sora-生涯教练.html">快速预览</button>
+              <a href="./独立模板/17-sora-生涯教练.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="sora profile 营养咨询 注册营养师 &amp; 健康作者 温柔个人品牌"
+          style="--card-bg:#B9DDEB;--card-fg:#143341;--card-accent:#B6E36B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/18-sora-营养咨询.html" aria-label="预览 SORA PROFILE · 营养咨询">
+            <span class="card-number">18</span>
+            <span class="card-style">温柔个人品牌</span>
+            <span class="art-word">SORA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>营养咨询</h2></div>
+            <p>注册营养师 &amp; 健康作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/18-sora-营养咨询.html">快速预览</button>
+              <a href="./独立模板/18-sora-营养咨询.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="terra notes 旅行摄影 旅行摄影师 &amp; 记录者 电影纪实"
+          style="--card-bg:#7D4D2D;--card-fg:#FFF3DD;--card-accent:#F0A44B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/19-terra-旅行摄影.html" aria-label="预览 TERRA NOTES · 旅行摄影">
+            <span class="card-number">19</span>
+            <span class="card-style">电影纪实</span>
+            <span class="art-word">TERRA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>旅行摄影</h2></div>
+            <p>旅行摄影师 &amp; 记录者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/19-terra-旅行摄影.html">快速预览</button>
+              <a href="./独立模板/19-terra-旅行摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="terra notes 纪录片 纪录片导演 电影纪实"
+          style="--card-bg:#7D4D2D;--card-fg:#FFF3DD;--card-accent:#E3C070"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/20-terra-纪录片.html" aria-label="预览 TERRA NOTES · 纪录片">
+            <span class="card-number">20</span>
+            <span class="card-style">电影纪实</span>
+            <span class="art-word">TERRA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>纪录片</h2></div>
+            <p>纪录片导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/20-terra-纪录片.html">快速预览</button>
+              <a href="./独立模板/20-terra-纪录片.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="terra notes 户外写作 户外作者 &amp; 路线设计师 电影纪实"
+          style="--card-bg:#7D4D2D;--card-fg:#FFF3DD;--card-accent:#8FCB9B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/21-terra-户外写作.html" aria-label="预览 TERRA NOTES · 户外写作">
+            <span class="card-number">21</span>
+            <span class="card-style">电影纪实</span>
+            <span class="art-word">TERRA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>户外写作</h2></div>
+            <p>户外作者 &amp; 路线设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/21-terra-户外写作.html">快速预览</button>
+              <a href="./独立模板/21-terra-户外写作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="lumen ceramics 陶艺工作室 陶艺家 &amp; 物件设计师 自然手作"
+          style="--card-bg:#D6EFD7;--card-fg:#172A1C;--card-accent:#FF7254"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/22-lumen-陶艺工作室.html" aria-label="预览 LUMEN CERAMICS · 陶艺工作室">
+            <span class="card-number">22</span>
+            <span class="card-style">自然手作</span>
+            <span class="art-word">LUMEN</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>陶艺工作室</h2></div>
+            <p>陶艺家 &amp; 物件设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/22-lumen-陶艺工作室.html">快速预览</button>
+              <a href="./独立模板/22-lumen-陶艺工作室.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="lumen ceramics 花艺设计 花艺师 &amp; 植物造景师 自然手作"
+          style="--card-bg:#D6EFD7;--card-fg:#172A1C;--card-accent:#F28EAC"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/23-lumen-花艺设计.html" aria-label="预览 LUMEN CERAMICS · 花艺设计">
+            <span class="card-number">23</span>
+            <span class="card-style">自然手作</span>
+            <span class="art-word">LUMEN</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>花艺设计</h2></div>
+            <p>花艺师 &amp; 植物造景师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/23-lumen-花艺设计.html">快速预览</button>
+              <a href="./独立模板/23-lumen-花艺设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="lumen ceramics 家具设计 家具设计师 &amp; 木作师 自然手作"
+          style="--card-bg:#D6EFD7;--card-fg:#172A1C;--card-accent:#E2A75B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/24-lumen-家具设计.html" aria-label="预览 LUMEN CERAMICS · 家具设计">
+            <span class="card-number">24</span>
+            <span class="card-style">自然手作</span>
+            <span class="art-word">LUMEN</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>家具设计</h2></div>
+            <p>家具设计师 &amp; 木作师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/24-lumen-家具设计.html">快速预览</button>
+              <a href="./独立模板/24-lumen-家具设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="pulse lab 动态设计 动态设计师 &amp; 视觉实验者 实验动效"
+          style="--card-bg:#E93232;--card-fg:#FFFFFF;--card-accent:#7BFFB5"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/25-pulse-动态设计.html" aria-label="预览 PULSE LAB · 动态设计">
+            <span class="card-number">25</span>
+            <span class="card-style">实验动效</span>
+            <span class="art-word">PULSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>动态设计</h2></div>
+            <p>动态设计师 &amp; 视觉实验者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/25-pulse-动态设计.html">快速预览</button>
+              <a href="./独立模板/25-pulse-动态设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="pulse lab 三维艺术 3d artist &amp; art director 实验动效"
+          style="--card-bg:#E93232;--card-fg:#FFFFFF;--card-accent:#BFA7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/26-pulse-三维艺术.html" aria-label="预览 PULSE LAB · 三维艺术">
+            <span class="card-number">26</span>
+            <span class="card-style">实验动效</span>
+            <span class="art-word">PULSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>三维艺术</h2></div>
+            <p>3D Artist &amp; Art Director</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/26-pulse-三维艺术.html">快速预览</button>
+              <a href="./独立模板/26-pulse-三维艺术.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="pulse lab 新媒体艺术 新媒体艺术家 实验动效"
+          style="--card-bg:#E93232;--card-fg:#FFFFFF;--card-accent:#4DF6FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/27-pulse-新媒体艺术.html" aria-label="预览 PULSE LAB · 新媒体艺术">
+            <span class="card-number">27</span>
+            <span class="card-style">实验动效</span>
+            <span class="art-word">PULSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>新媒体艺术</h2></div>
+            <p>新媒体艺术家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/27-pulse-新媒体艺术.html">快速预览</button>
+              <a href="./独立模板/27-pulse-新媒体艺术.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="mise practice 战略咨询 战略顾问 &amp; 组织设计师 高端专业"
+          style="--card-bg:#181611;--card-fg:#EFE9DD;--card-accent:#EACB95"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/28-mise-战略咨询.html" aria-label="预览 MISE PRACTICE · 战略咨询">
+            <span class="card-number">28</span>
+            <span class="card-style">高端专业</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>战略咨询</h2></div>
+            <p>战略顾问 &amp; 组织设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/28-mise-战略咨询.html">快速预览</button>
+              <a href="./独立模板/28-mise-战略咨询.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="mise practice 创新咨询 服务设计师 &amp; 创新顾问 高端专业"
+          style="--card-bg:#181611;--card-fg:#EFE9DD;--card-accent:#B4D5C2"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/29-mise-创新咨询.html" aria-label="预览 MISE PRACTICE · 创新咨询">
+            <span class="card-number">29</span>
+            <span class="card-style">高端专业</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>创新咨询</h2></div>
+            <p>服务设计师 &amp; 创新顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/29-mise-创新咨询.html">快速预览</button>
+              <a href="./独立模板/29-mise-创新咨询.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="mise practice 法律顾问 商业律师 &amp; 创业法律顾问 高端专业"
+          style="--card-bg:#181611;--card-fg:#EFE9DD;--card-accent:#D8C7A5"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/30-mise-法律顾问.html" aria-label="预览 MISE PRACTICE · 法律顾问">
+            <span class="card-number">30</span>
+            <span class="card-style">高端专业</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>法律顾问</h2></div>
+            <p>商业律师 &amp; 创业法律顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/30-mise-法律顾问.html">快速预览</button>
+              <a href="./独立模板/30-mise-法律顾问.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="echo voice 播客主持 播客主 &amp; 内容制作人 声音与潮流"
+          style="--card-bg:#FFB59A;--card-fg:#371A17;--card-accent:#4C2FFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/31-echo-播客主持.html" aria-label="预览 ECHO VOICE · 播客主持">
+            <span class="card-number">31</span>
+            <span class="card-style">声音与潮流</span>
+            <span class="art-word">ECHO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>播客主持</h2></div>
+            <p>播客主 &amp; 内容制作人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/31-echo-播客主持.html">快速预览</button>
+              <a href="./独立模板/31-echo-播客主持.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="echo voice 独立音乐 独立音乐人 &amp; 制作人 声音与潮流"
+          style="--card-bg:#FFB59A;--card-fg:#371A17;--card-accent:#654CFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/32-echo-独立音乐.html" aria-label="预览 ECHO VOICE · 独立音乐">
+            <span class="card-number">32</span>
+            <span class="card-style">声音与潮流</span>
+            <span class="art-word">ECHO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>独立音乐</h2></div>
+            <p>独立音乐人 &amp; 制作人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/32-echo-独立音乐.html">快速预览</button>
+              <a href="./独立模板/32-echo-独立音乐.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="echo voice 声音表演 配音演员 &amp; 声音导演 声音与潮流"
+          style="--card-bg:#FFB59A;--card-fg:#371A17;--card-accent:#FF4F7B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/33-echo-声音表演.html" aria-label="预览 ECHO VOICE · 声音表演">
+            <span class="card-number">33</span>
+            <span class="card-style">声音与潮流</span>
+            <span class="art-word">ECHO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>声音表演</h2></div>
+            <p>配音演员 &amp; 声音导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/33-echo-声音表演.html">快速预览</button>
+              <a href="./独立模板/33-echo-声音表演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="coda / dev 前端工程 前端工程师 &amp; 开源作者 极客终端感"
+          style="--card-bg:#101010;--card-fg:#E8E9E5;--card-accent:#53D7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/34-coda-前端工程.html" aria-label="预览 CODA / DEV · 前端工程">
+            <span class="card-number">34</span>
+            <span class="card-style">极客终端感</span>
+            <span class="art-word">CODA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>前端工程</h2></div>
+            <p>前端工程师 &amp; 开源作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/34-coda-前端工程.html">快速预览</button>
+              <a href="./独立模板/34-coda-前端工程.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="coda / dev 数据科学 数据科学家 &amp; 研究工程师 极客终端感"
+          style="--card-bg:#101010;--card-fg:#E8E9E5;--card-accent:#A5FFCA"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/35-coda-数据科学.html" aria-label="预览 CODA / DEV · 数据科学">
+            <span class="card-number">35</span>
+            <span class="card-style">极客终端感</span>
+            <span class="art-word">CODA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>数据科学</h2></div>
+            <p>数据科学家 &amp; 研究工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/35-coda-数据科学.html">快速预览</button>
+              <a href="./独立模板/35-coda-数据科学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="coda / dev 安全研究 安全研究员 &amp; 工具作者 极客终端感"
+          style="--card-bg:#101010;--card-fg:#E8E9E5;--card-accent:#FF6B4A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/36-coda-安全研究.html" aria-label="预览 CODA / DEV · 安全研究">
+            <span class="card-number">36</span>
+            <span class="card-style">极客终端感</span>
+            <span class="art-word">CODA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>安全研究</h2></div>
+            <p>安全研究员 &amp; 工具作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/36-coda-安全研究.html">快速预览</button>
+              <a href="./独立模板/36-coda-安全研究.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="sonata 唱作音乐人 唱作人 &amp; 音乐制作人 唱片舞台感"
+          style="--card-bg:#090909;--card-fg:#F6F4E9;--card-accent:#F2FF5D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/37-sonata-唱作音乐人.html" aria-label="预览 SONATA · 唱作音乐人">
+            <span class="card-number">37</span>
+            <span class="card-style">唱片舞台感</span>
+            <span class="art-word">SONATA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>唱作音乐人</h2></div>
+            <p>唱作人 &amp; 音乐制作人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/37-sonata-唱作音乐人.html">快速预览</button>
+              <a href="./独立模板/37-sonata-唱作音乐人.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="sonata 独立乐队 独立摇滚乐队 唱片舞台感"
+          style="--card-bg:#090909;--card-fg:#F6F4E9;--card-accent:#FF5F45"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/38-sonata-独立乐队.html" aria-label="预览 SONATA · 独立乐队">
+            <span class="card-number">38</span>
+            <span class="card-style">唱片舞台感</span>
+            <span class="art-word">SONATA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>独立乐队</h2></div>
+            <p>独立摇滚乐队</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/38-sonata-独立乐队.html">快速预览</button>
+              <a href="./独立模板/38-sonata-独立乐队.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="sonata 电子制作 电子音乐制作人 &amp; dj 唱片舞台感"
+          style="--card-bg:#090909;--card-fg:#F6F4E9;--card-accent:#7C6BFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/39-sonata-电子制作.html" aria-label="预览 SONATA · 电子制作">
+            <span class="card-number">39</span>
+            <span class="card-style">唱片舞台感</span>
+            <span class="art-word">SONATA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>电子制作</h2></div>
+            <p>电子音乐制作人 &amp; DJ</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/39-sonata-电子制作.html">快速预览</button>
+              <a href="./独立模板/39-sonata-电子制作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="mise en place 当代料理 主厨 &amp; 风味研究者 风味编辑感"
+          style="--card-bg:#EFE5D5;--card-fg:#3F2018;--card-accent:#FF6B45"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/40-mise-en-place-当代料理.html" aria-label="预览 MISE EN PLACE · 当代料理">
+            <span class="card-number">40</span>
+            <span class="card-style">风味编辑感</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>当代料理</h2></div>
+            <p>主厨 &amp; 风味研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/40-mise-en-place-当代料理.html">快速预览</button>
+              <a href="./独立模板/40-mise-en-place-当代料理.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="mise en place 甜点创作 甜点主厨 &amp; 食物造型师 风味编辑感"
+          style="--card-bg:#EFE5D5;--card-fg:#3F2018;--card-accent:#F08EAA"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/41-mise-en-place-甜点创作.html" aria-label="预览 MISE EN PLACE · 甜点创作">
+            <span class="card-number">41</span>
+            <span class="card-style">风味编辑感</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>甜点创作</h2></div>
+            <p>甜点主厨 &amp; 食物造型师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/41-mise-en-place-甜点创作.html">快速预览</button>
+              <a href="./独立模板/41-mise-en-place-甜点创作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="mise en place 咖啡烘焙 咖啡烘焙师 &amp; 感官讲师 风味编辑感"
+          style="--card-bg:#EFE5D5;--card-fg:#3F2018;--card-accent:#D69A52"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/42-mise-en-place-咖啡烘焙.html" aria-label="预览 MISE EN PLACE · 咖啡烘焙">
+            <span class="card-number">42</span>
+            <span class="card-style">风味编辑感</span>
+            <span class="art-word">MISE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>咖啡烘焙</h2></div>
+            <p>咖啡烘焙师 &amp; 感官讲师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/42-mise-en-place-咖啡烘焙.html">快速预览</button>
+              <a href="./独立模板/42-mise-en-place-咖啡烘焙.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="aura practice 瑜伽教学 瑜伽导师 &amp; 身心教练 自然疗愈感"
+          style="--card-bg:#DFEEDA;--card-fg:#1D3C2E;--card-accent:#E8FFB8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/43-aura-瑜伽教学.html" aria-label="预览 AURA PRACTICE · 瑜伽教学">
+            <span class="card-number">43</span>
+            <span class="card-style">自然疗愈感</span>
+            <span class="art-word">AURA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>瑜伽教学</h2></div>
+            <p>瑜伽导师 &amp; 身心教练</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/43-aura-瑜伽教学.html">快速预览</button>
+              <a href="./独立模板/43-aura-瑜伽教学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="aura practice 心理咨询 心理咨询师 自然疗愈感"
+          style="--card-bg:#DFEEDA;--card-fg:#1D3C2E;--card-accent:#BFE4D1"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/44-aura-心理咨询.html" aria-label="预览 AURA PRACTICE · 心理咨询">
+            <span class="card-number">44</span>
+            <span class="card-style">自然疗愈感</span>
+            <span class="art-word">AURA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>心理咨询</h2></div>
+            <p>心理咨询师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/44-aura-心理咨询.html">快速预览</button>
+              <a href="./独立模板/44-aura-心理咨询.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="aura practice 冥想引导 正念导师 &amp; 声音疗愈师 自然疗愈感"
+          style="--card-bg:#DFEEDA;--card-fg:#1D3C2E;--card-accent:#C8D9FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/45-aura-冥想引导.html" aria-label="预览 AURA PRACTICE · 冥想引导">
+            <span class="card-number">45</span>
+            <span class="card-style">自然疗愈感</span>
+            <span class="art-word">AURA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>冥想引导</h2></div>
+            <p>正念导师 &amp; 声音疗愈师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/45-aura-冥想引导.html">快速预览</button>
+              <a href="./独立模板/45-aura-冥想引导.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="frame / 24 剧情导演 电影导演 &amp; 编剧 电影取景框"
+          style="--card-bg:#080808;--card-fg:#FFFFFF;--card-accent:#FF563D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/46-frame-剧情导演.html" aria-label="预览 FRAME / 24 · 剧情导演">
+            <span class="card-number">46</span>
+            <span class="card-style">电影取景框</span>
+            <span class="art-word">FRAME</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>剧情导演</h2></div>
+            <p>电影导演 &amp; 编剧</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/46-frame-剧情导演.html">快速预览</button>
+              <a href="./独立模板/46-frame-剧情导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="frame / 24 广告导演 商业影像导演 电影取景框"
+          style="--card-bg:#080808;--card-fg:#FFFFFF;--card-accent:#E8FF4D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/47-frame-广告导演.html" aria-label="预览 FRAME / 24 · 广告导演">
+            <span class="card-number">47</span>
+            <span class="card-style">电影取景框</span>
+            <span class="art-word">FRAME</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>广告导演</h2></div>
+            <p>商业影像导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/47-frame-广告导演.html">快速预览</button>
+              <a href="./独立模板/47-frame-广告导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="frame / 24 纪录导演 纪录片导演 &amp; 影像研究者 电影取景框"
+          style="--card-bg:#080808;--card-fg:#FFFFFF;--card-accent:#68D8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/48-frame-纪录导演.html" aria-label="预览 FRAME / 24 · 纪录导演">
+            <span class="card-number">48</span>
+            <span class="card-style">电影取景框</span>
+            <span class="art-word">FRAME</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>纪录导演</h2></div>
+            <p>纪录片导演 &amp; 影像研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/48-frame-纪录导演.html">快速预览</button>
+              <a href="./独立模板/48-frame-纪录导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="stage light 影视演员 演员 &amp; 舞台表演者 剧场聚光灯"
+          style="--card-bg:#0B0908;--card-fg:#F7EEE5;--card-accent:#FF8B4C"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/49-stage-影视演员.html" aria-label="预览 STAGE LIGHT · 影视演员">
+            <span class="card-number">49</span>
+            <span class="card-style">剧场聚光灯</span>
+            <span class="art-word">STAGE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>影视演员</h2></div>
+            <p>演员 &amp; 舞台表演者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/49-stage-影视演员.html">快速预览</button>
+              <a href="./独立模板/49-stage-影视演员.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="stage light 舞者编导 舞者 &amp; 编舞 剧场聚光灯"
+          style="--card-bg:#0B0908;--card-fg:#F7EEE5;--card-accent:#DFFF57"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/50-stage-舞者编导.html" aria-label="预览 STAGE LIGHT · 舞者编导">
+            <span class="card-number">50</span>
+            <span class="card-style">剧场聚光灯</span>
+            <span class="art-word">STAGE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>舞者编导</h2></div>
+            <p>舞者 &amp; 编舞</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/50-stage-舞者编导.html">快速预览</button>
+              <a href="./独立模板/50-stage-舞者编导.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="stage light 戏剧导演 戏剧导演 &amp; 剧场创作者 剧场聚光灯"
+          style="--card-bg:#0B0908;--card-fg:#F7EEE5;--card-accent:#B28CFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/51-stage-戏剧导演.html" aria-label="预览 STAGE LIGHT · 戏剧导演">
+            <span class="card-number">51</span>
+            <span class="card-style">剧场聚光灯</span>
+            <span class="art-word">STAGE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>戏剧导演</h2></div>
+            <p>戏剧导演 &amp; 剧场创作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/51-stage-戏剧导演.html">快速预览</button>
+              <a href="./独立模板/51-stage-戏剧导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="muse drawing 商业插画 插画师 &amp; 视觉艺术家 童趣艺术墙"
+          style="--card-bg:#FFD94E;--card-fg:#241D14;--card-accent:#3927FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/52-muse-商业插画.html" aria-label="预览 MUSE DRAWING · 商业插画">
+            <span class="card-number">52</span>
+            <span class="card-style">童趣艺术墙</span>
+            <span class="art-word">MUSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>商业插画</h2></div>
+            <p>插画师 &amp; 视觉艺术家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/52-muse-商业插画.html">快速预览</button>
+              <a href="./独立模板/52-muse-商业插画.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="muse drawing 漫画创作 漫画作者 &amp; 分镜师 童趣艺术墙"
+          style="--card-bg:#FFD94E;--card-fg:#241D14;--card-accent:#FF5C7A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/53-muse-漫画创作.html" aria-label="预览 MUSE DRAWING · 漫画创作">
+            <span class="card-number">53</span>
+            <span class="card-style">童趣艺术墙</span>
+            <span class="art-word">MUSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>漫画创作</h2></div>
+            <p>漫画作者 &amp; 分镜师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/53-muse-漫画创作.html">快速预览</button>
+              <a href="./独立模板/53-muse-漫画创作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="muse drawing 童书绘画 童书插画师 &amp; 绘本作者 童趣艺术墙"
+          style="--card-bg:#FFD94E;--card-fg:#241D14;--card-accent:#35B8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/54-muse-童书绘画.html" aria-label="预览 MUSE DRAWING · 童书绘画">
+            <span class="card-number">54</span>
+            <span class="card-style">童趣艺术墙</span>
+            <span class="art-word">MUSE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>童书绘画</h2></div>
+            <p>童书插画师 &amp; 绘本作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/54-muse-童书绘画.html">快速预览</button>
+              <a href="./独立模板/54-muse-童书绘画.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="atlas product 产品设计 产品设计师 &amp; 体验策略师 产品案例感"
+          style="--card-bg:#E6EBFF;--card-fg:#17204A;--card-accent:#5D7CFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/55-atlas-产品设计.html" aria-label="预览 ATLAS PRODUCT · 产品设计">
+            <span class="card-number">55</span>
+            <span class="card-style">产品案例感</span>
+            <span class="art-word">ATLAS</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>产品设计</h2></div>
+            <p>产品设计师 &amp; 体验策略师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/55-atlas-产品设计.html">快速预览</button>
+              <a href="./独立模板/55-atlas-产品设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="atlas product 服务设计 服务设计师 &amp; 用户研究员 产品案例感"
+          style="--card-bg:#E6EBFF;--card-fg:#17204A;--card-accent:#38BFA2"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/56-atlas-服务设计.html" aria-label="预览 ATLAS PRODUCT · 服务设计">
+            <span class="card-number">56</span>
+            <span class="card-style">产品案例感</span>
+            <span class="art-word">ATLAS</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>服务设计</h2></div>
+            <p>服务设计师 &amp; 用户研究员</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/56-atlas-服务设计.html">快速预览</button>
+              <a href="./独立模板/56-atlas-服务设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="atlas product ux 研究 ux researcher &amp; strategist 产品案例感"
+          style="--card-bg:#E6EBFF;--card-fg:#17204A;--card-accent:#6AA8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/57-atlas-UX-研究.html" aria-label="预览 ATLAS PRODUCT · UX 研究">
+            <span class="card-number">57</span>
+            <span class="card-style">产品案例感</span>
+            <span class="art-word">ATLAS</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>UX 研究</h2></div>
+            <p>UX Researcher &amp; Strategist</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/57-atlas-UX-研究.html">快速预览</button>
+              <a href="./独立模板/57-atlas-UX-研究.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="north advisory 战略顾问 独立战略顾问 高管顾问风"
+          style="--card-bg:#12203C;--card-fg:#F2F0E9;--card-accent:#C6FF61"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/58-north-战略顾问.html" aria-label="预览 NORTH ADVISORY · 战略顾问">
+            <span class="card-number">58</span>
+            <span class="card-style">高管顾问风</span>
+            <span class="art-word">NORTH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>战略顾问</h2></div>
+            <p>独立战略顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/58-north-战略顾问.html">快速预览</button>
+              <a href="./独立模板/58-north-战略顾问.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="north advisory 高管教练 高管教练 &amp; 组织顾问 高管顾问风"
+          style="--card-bg:#12203C;--card-fg:#F2F0E9;--card-accent:#F0D58A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/59-north-高管教练.html" aria-label="预览 NORTH ADVISORY · 高管教练">
+            <span class="card-number">59</span>
+            <span class="card-style">高管顾问风</span>
+            <span class="art-word">NORTH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>高管教练</h2></div>
+            <p>高管教练 &amp; 组织顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/59-north-高管教练.html">快速预览</button>
+              <a href="./独立模板/59-north-高管教练.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="north advisory 品牌战略 品牌战略顾问 高管顾问风"
+          style="--card-bg:#12203C;--card-fg:#F2F0E9;--card-accent:#7EE2FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/60-north-品牌战略.html" aria-label="预览 NORTH ADVISORY · 品牌战略">
+            <span class="card-number">60</span>
+            <span class="card-style">高管顾问风</span>
+            <span class="art-word">NORTH</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>品牌战略</h2></div>
+            <p>品牌战略顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/60-north-品牌战略.html">快速预览</button>
+              <a href="./独立模板/60-north-品牌战略.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="type / 17 字体设计 字体设计师 &amp; 平面设计师 字体实验场"
+          style="--card-bg:#F0EEE8;--card-fg:#111111;--card-accent:#FF3B30"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/61-type17-字体设计.html" aria-label="预览 TYPE / 17 · 字体设计">
+            <span class="card-number">61</span>
+            <span class="card-style">字体实验场</span>
+            <span class="art-word">TYPE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>字体设计</h2></div>
+            <p>字体设计师 &amp; 平面设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/61-type17-字体设计.html">快速预览</button>
+              <a href="./独立模板/61-type17-字体设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="type / 17 编辑设计 编辑设计师 &amp; 艺术指导 字体实验场"
+          style="--card-bg:#F0EEE8;--card-fg:#111111;--card-accent:#2055FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/62-type17-编辑设计.html" aria-label="预览 TYPE / 17 · 编辑设计">
+            <span class="card-number">62</span>
+            <span class="card-style">字体实验场</span>
+            <span class="art-word">TYPE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>编辑设计</h2></div>
+            <p>编辑设计师 &amp; 艺术指导</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/62-type17-编辑设计.html">快速预览</button>
+              <a href="./独立模板/62-type17-编辑设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="type / 17 信息设计 信息设计师 &amp; 数据叙事者 字体实验场"
+          style="--card-bg:#F0EEE8;--card-fg:#111111;--card-accent:#00A67A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/63-type17-信息设计.html" aria-label="预览 TYPE / 17 · 信息设计">
+            <span class="card-number">63</span>
+            <span class="card-style">字体实验场</span>
+            <span class="art-word">TYPE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>信息设计</h2></div>
+            <p>信息设计师 &amp; 数据叙事者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/63-type17-信息设计.html">快速预览</button>
+              <a href="./独立模板/63-type17-信息设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="polar research 数据科学 研究者 &amp; 数据科学家 研究数据感"
+          style="--card-bg:#DFF4FB;--card-fg:#113046;--card-accent:#79E8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/64-polar-数据科学.html" aria-label="预览 POLAR RESEARCH · 数据科学">
+            <span class="card-number">64</span>
+            <span class="card-style">研究数据感</span>
+            <span class="art-word">POLAR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>数据科学</h2></div>
+            <p>研究者 &amp; 数据科学家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/64-polar-数据科学.html">快速预览</button>
+              <a href="./独立模板/64-polar-数据科学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="polar research ai 研究 机器学习研究员 研究数据感"
+          style="--card-bg:#DFF4FB;--card-fg:#113046;--card-accent:#A4FFCB"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/65-polar-AI-研究.html" aria-label="预览 POLAR RESEARCH · AI 研究">
+            <span class="card-number">65</span>
+            <span class="card-style">研究数据感</span>
+            <span class="art-word">POLAR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>AI 研究</h2></div>
+            <p>机器学习研究员</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/65-polar-AI-研究.html">快速预览</button>
+              <a href="./独立模板/65-polar-AI-研究.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="polar research 计算社会科学 计算社会科学研究者 研究数据感"
+          style="--card-bg:#DFF4FB;--card-fg:#113046;--card-accent:#BCA8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/66-polar-计算社会科学.html" aria-label="预览 POLAR RESEARCH · 计算社会科学">
+            <span class="card-number">66</span>
+            <span class="card-style">研究数据感</span>
+            <span class="art-word">POLAR</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>计算社会科学</h2></div>
+            <p>计算社会科学研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/66-polar-计算社会科学.html">快速预览</button>
+              <a href="./独立模板/66-polar-计算社会科学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="letter / weekly 创作通讯 专栏作者 &amp; 通讯主理人 报刊通讯感"
+          style="--card-bg:#EEE7D9;--card-fg:#2A251F;--card-accent:#EF5A3C"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/67-letter-创作通讯.html" aria-label="预览 LETTER / WEEKLY · 创作通讯">
+            <span class="card-number">67</span>
+            <span class="card-style">报刊通讯感</span>
+            <span class="art-word">LETTER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>创作通讯</h2></div>
+            <p>专栏作者 &amp; 通讯主理人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/67-letter-创作通讯.html">快速预览</button>
+              <a href="./独立模板/67-letter-创作通讯.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="letter / weekly 知识管理 知识管理作者 &amp; 课程设计师 报刊通讯感"
+          style="--card-bg:#EEE7D9;--card-fg:#2A251F;--card-accent:#4B74FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/68-letter-知识管理.html" aria-label="预览 LETTER / WEEKLY · 知识管理">
+            <span class="card-number">68</span>
+            <span class="card-style">报刊通讯感</span>
+            <span class="art-word">LETTER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>知识管理</h2></div>
+            <p>知识管理作者 &amp; 课程设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/68-letter-知识管理.html">快速预览</button>
+              <a href="./独立模板/68-letter-知识管理.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="letter / weekly 商业专栏 商业作者 &amp; 趋势观察者 报刊通讯感"
+          style="--card-bg:#EEE7D9;--card-fg:#2A251F;--card-accent:#1F9A75"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/69-letter-商业专栏.html" aria-label="预览 LETTER / WEEKLY · 商业专栏">
+            <span class="card-number">69</span>
+            <span class="card-style">报刊通讯感</span>
+            <span class="art-word">LETTER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>商业专栏</h2></div>
+            <p>商业作者 &amp; 趋势观察者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/69-letter-商业专栏.html">快速预览</button>
+              <a href="./独立模板/69-letter-商业专栏.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="vela edit 时尚造型 造型师 &amp; 时尚编辑 时尚大片感"
+          style="--card-bg:#0B0B0B;--card-fg:#F2F0E9;--card-accent:#C9FF3D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/70-vela-时尚造型.html" aria-label="预览 VELA EDIT · 时尚造型">
+            <span class="card-number">70</span>
+            <span class="card-style">时尚大片感</span>
+            <span class="art-word">VELA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>时尚造型</h2></div>
+            <p>造型师 &amp; 时尚编辑</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/70-vela-时尚造型.html">快速预览</button>
+              <a href="./独立模板/70-vela-时尚造型.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="vela edit 形象顾问 个人造型顾问 &amp; 衣橱编辑 时尚大片感"
+          style="--card-bg:#0B0B0B;--card-fg:#F2F0E9;--card-accent:#FF8FA8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/71-vela-形象顾问.html" aria-label="预览 VELA EDIT · 形象顾问">
+            <span class="card-number">71</span>
+            <span class="card-style">时尚大片感</span>
+            <span class="art-word">VELA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>形象顾问</h2></div>
+            <p>个人造型顾问 &amp; 衣橱编辑</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/71-vela-形象顾问.html">快速预览</button>
+              <a href="./独立模板/71-vela-形象顾问.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="vela edit 彩妆创作 彩妆师 &amp; beauty artist 时尚大片感"
+          style="--card-bg:#0B0B0B;--card-fg:#F2F0E9;--card-accent:#8D73FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/72-vela-彩妆创作.html" aria-label="预览 VELA EDIT · 彩妆创作">
+            <span class="card-number">72</span>
+            <span class="card-style">时尚大片感</span>
+            <span class="art-word">VELA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>彩妆创作</h2></div>
+            <p>彩妆师 &amp; Beauty Artist</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/72-vela-彩妆创作.html">快速预览</button>
+              <a href="./独立模板/72-vela-彩妆创作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lecture notes 大学讲师 大学讲师 &amp; 课程创作者 课堂讲义感"
+          style="--card-bg:#122749;--card-fg:#F6F1E5;--card-accent:#FFEB55"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/73-lecture-大学讲师.html" aria-label="预览 LECTURE NOTES · 大学讲师">
+            <span class="card-number">73</span>
+            <span class="card-style">课堂讲义感</span>
+            <span class="art-word">LECTURE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>大学讲师</h2></div>
+            <p>大学讲师 &amp; 课程创作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/73-lecture-大学讲师.html">快速预览</button>
+              <a href="./独立模板/73-lecture-大学讲师.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lecture notes 独立教育 独立教育者 &amp; 学习设计师 课堂讲义感"
+          style="--card-bg:#122749;--card-fg:#F6F1E5;--card-accent:#75D7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/74-lecture-独立教育.html" aria-label="预览 LECTURE NOTES · 独立教育">
+            <span class="card-number">74</span>
+            <span class="card-style">课堂讲义感</span>
+            <span class="art-word">LECTURE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>独立教育</h2></div>
+            <p>独立教育者 &amp; 学习设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/74-lecture-独立教育.html">快速预览</button>
+              <a href="./独立模板/74-lecture-独立教育.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lecture notes 企业培训 领导力讲师 &amp; 引导师 课堂讲义感"
+          style="--card-bg:#122749;--card-fg:#F6F1E5;--card-accent:#B8FF72"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/75-lecture-企业培训.html" aria-label="预览 LECTURE NOTES · 企业培训">
+            <span class="card-number">75</span>
+            <span class="card-style">课堂讲义感</span>
+            <span class="art-word">LECTURE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>企业培训</h2></div>
+            <p>领导力讲师 &amp; 引导师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/75-lecture-企业培训.html">快速预览</button>
+              <a href="./独立模板/75-lecture-企业培训.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lex / counsel 创业法律 创业律师 &amp; 独立法律顾问 法律权威感"
+          style="--card-bg:#17130F;--card-fg:#F1E7D6;--card-accent:#D8B46A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/76-lex-创业法律.html" aria-label="预览 LEX / COUNSEL · 创业法律">
+            <span class="card-number">76</span>
+            <span class="card-style">法律权威感</span>
+            <span class="art-word">LEX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>创业法律</h2></div>
+            <p>创业律师 &amp; 独立法律顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/76-lex-创业法律.html">快速预览</button>
+              <a href="./独立模板/76-lex-创业法律.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lex / counsel 知识产权 知识产权律师 法律权威感"
+          style="--card-bg:#17130F;--card-fg:#F1E7D6;--card-accent:#8FB7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/77-lex-知识产权.html" aria-label="预览 LEX / COUNSEL · 知识产权">
+            <span class="card-number">77</span>
+            <span class="card-style">法律权威感</span>
+            <span class="art-word">LEX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>知识产权</h2></div>
+            <p>知识产权律师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/77-lex-知识产权.html">快速预览</button>
+              <a href="./独立模板/77-lex-知识产权.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="professional"
+          data-search="lex / counsel 家事法律 家事律师 &amp; 调解员 法律权威感"
+          style="--card-bg:#17130F;--card-fg:#F1E7D6;--card-accent:#E9C5B4"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/78-lex-家事法律.html" aria-label="预览 LEX / COUNSEL · 家事法律">
+            <span class="card-number">78</span>
+            <span class="card-style">法律权威感</span>
+            <span class="art-word">LEX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>教育法律</span><h2>家事法律</h2></div>
+            <p>家事律师 &amp; 调解员</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/78-lex-家事法律.html">快速预览</button>
+              <a href="./独立模板/78-lex-家事法律.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="founder mode 科技创业 连续创业者 &amp; 产品创始人 创始人宣言"
+          style="--card-bg:#F2F1EB;--card-fg:#121212;--card-accent:#FF6534"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/79-founder-科技创业.html" aria-label="预览 FOUNDER MODE · 科技创业">
+            <span class="card-number">79</span>
+            <span class="card-style">创始人宣言</span>
+            <span class="art-word">FOUNDER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>科技创业</h2></div>
+            <p>连续创业者 &amp; 产品创始人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/79-founder-科技创业.html">快速预览</button>
+              <a href="./独立模板/79-founder-科技创业.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="founder mode 消费品牌 消费品牌创始人 创始人宣言"
+          style="--card-bg:#F2F1EB;--card-fg:#121212;--card-accent:#FF8DA1"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/80-founder-消费品牌.html" aria-label="预览 FOUNDER MODE · 消费品牌">
+            <span class="card-number">80</span>
+            <span class="card-style">创始人宣言</span>
+            <span class="art-word">FOUNDER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>消费品牌</h2></div>
+            <p>消费品牌创始人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/80-founder-消费品牌.html">快速预览</button>
+              <a href="./独立模板/80-founder-消费品牌.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="business"
+          data-search="founder mode 社会创新 社会企业创始人 创始人宣言"
+          style="--card-bg:#F2F1EB;--card-fg:#121212;--card-accent:#52C88A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/81-founder-社会创新.html" aria-label="预览 FOUNDER MODE · 社会创新">
+            <span class="card-number">81</span>
+            <span class="card-style">创始人宣言</span>
+            <span class="art-word">FOUNDER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>专业服务</span><h2>社会创新</h2></div>
+            <p>社会企业创始人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/81-founder-社会创新.html">快速预览</button>
+              <a href="./独立模板/81-founder-社会创新.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="room / 08 住宅室内 室内设计师 &amp; 空间策划 室内编辑感"
+          style="--card-bg:#E9E0D3;--card-fg:#2E2821;--card-accent:#E5D3B3"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/82-room08-住宅室内.html" aria-label="预览 ROOM / 08 · 住宅室内">
+            <span class="card-number">82</span>
+            <span class="card-style">室内编辑感</span>
+            <span class="art-word">ROOM</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>住宅室内</h2></div>
+            <p>室内设计师 &amp; 空间策划</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/82-room08-住宅室内.html">快速预览</button>
+              <a href="./独立模板/82-room08-住宅室内.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="room / 08 软装陈设 软装设计师 &amp; 生活方式顾问 室内编辑感"
+          style="--card-bg:#E9E0D3;--card-fg:#2E2821;--card-accent:#D0B7FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/83-room08-软装陈设.html" aria-label="预览 ROOM / 08 · 软装陈设">
+            <span class="card-number">83</span>
+            <span class="card-style">室内编辑感</span>
+            <span class="art-word">ROOM</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>软装陈设</h2></div>
+            <p>软装设计师 &amp; 生活方式顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/83-room08-软装陈设.html">快速预览</button>
+              <a href="./独立模板/83-room08-软装陈设.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="design"
+          data-search="room / 08 商业空间 商业空间设计工作室 室内编辑感"
+          style="--card-bg:#E9E0D3;--card-fg:#2E2821;--card-accent:#F3A55F"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/84-room08-商业空间.html" aria-label="预览 ROOM / 08 · 商业空间">
+            <span class="card-number">84</span>
+            <span class="card-style">室内编辑感</span>
+            <span class="art-word">ROOM</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>设计创作</span><h2>商业空间</h2></div>
+            <p>商业空间设计工作室</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/84-room08-商业空间.html">快速预览</button>
+              <a href="./独立模板/84-room08-商业空间.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="kinetic body 当代舞 舞者 &amp; 独立编舞家 身体动态感"
+          style="--card-bg:#111111;--card-fg:#F5F4ED;--card-accent:#A8FF45"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/85-kinetic-当代舞.html" aria-label="预览 KINETIC BODY · 当代舞">
+            <span class="card-number">85</span>
+            <span class="card-style">身体动态感</span>
+            <span class="art-word">KINETIC</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>当代舞</h2></div>
+            <p>舞者 &amp; 独立编舞家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/85-kinetic-当代舞.html">快速预览</button>
+              <a href="./独立模板/85-kinetic-当代舞.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="kinetic body 动作导演 movement director &amp; choreographer 身体动态感"
+          style="--card-bg:#111111;--card-fg:#F5F4ED;--card-accent:#FF6B57"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/86-kinetic-动作导演.html" aria-label="预览 KINETIC BODY · 动作导演">
+            <span class="card-number">86</span>
+            <span class="card-style">身体动态感</span>
+            <span class="art-word">KINETIC</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>动作导演</h2></div>
+            <p>Movement Director &amp; Choreographer</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/86-kinetic-动作导演.html">快速预览</button>
+              <a href="./独立模板/86-kinetic-动作导演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="kinetic body 舞蹈教育 舞蹈教育者 &amp; 社区艺术家 身体动态感"
+          style="--card-bg:#111111;--card-fg:#F5F4ED;--card-accent:#74D8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/87-kinetic-舞蹈教育.html" aria-label="预览 KINETIC BODY · 舞蹈教育">
+            <span class="card-number">87</span>
+            <span class="card-style">身体动态感</span>
+            <span class="art-word">KINETIC</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>舞蹈教育</h2></div>
+            <p>舞蹈教育者 &amp; 社区艺术家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/87-kinetic-舞蹈教育.html">快速预览</button>
+              <a href="./独立模板/87-kinetic-舞蹈教育.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="botanica 花艺设计 花艺师 &amp; 植物设计师 自然植物感"
+          style="--card-bg:#DDE8D4;--card-fg:#1F3B2B;--card-accent:#FFB69B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/88-botanica-花艺设计.html" aria-label="预览 BOTANICA · 花艺设计">
+            <span class="card-number">88</span>
+            <span class="card-style">自然植物感</span>
+            <span class="art-word">BOTANICA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>花艺设计</h2></div>
+            <p>花艺师 &amp; 植物设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/88-botanica-花艺设计.html">快速预览</button>
+              <a href="./独立模板/88-botanica-花艺设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="botanica 植物装置 植物装置艺术家 自然植物感"
+          style="--card-bg:#DDE8D4;--card-fg:#1F3B2B;--card-accent:#B8E36F"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/89-botanica-植物装置.html" aria-label="预览 BOTANICA · 植物装置">
+            <span class="card-number">89</span>
+            <span class="card-style">自然植物感</span>
+            <span class="art-word">BOTANICA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>植物装置</h2></div>
+            <p>植物装置艺术家</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/89-botanica-植物装置.html">快速预览</button>
+              <a href="./独立模板/89-botanica-植物装置.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="lifestyle"
+          data-search="botanica 庭院设计 庭院设计师 &amp; 园艺顾问 自然植物感"
+          style="--card-bg:#DDE8D4;--card-fg:#1F3B2B;--card-accent:#8FCB9B"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/90-botanica-庭院设计.html" aria-label="预览 BOTANICA · 庭院设计">
+            <span class="card-number">90</span>
+            <span class="card-style">自然植物感</span>
+            <span class="art-word">BOTANICA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>生活方式</span><h2>庭院设计</h2></div>
+            <p>庭院设计师 &amp; 园艺顾问</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/90-botanica-庭院设计.html">快速预览</button>
+              <a href="./独立模板/90-botanica-庭院设计.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="object / 01 产品摄影 产品摄影师 &amp; 静物造型师 商业静物感"
+          style="--card-bg:#ECECEC;--card-fg:#121212;--card-accent:#2B59FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/91-object01-产品摄影.html" aria-label="预览 OBJECT / 01 · 产品摄影">
+            <span class="card-number">91</span>
+            <span class="card-style">商业静物感</span>
+            <span class="art-word">OBJECT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>产品摄影</h2></div>
+            <p>产品摄影师 &amp; 静物造型师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/91-object01-产品摄影.html">快速预览</button>
+              <a href="./独立模板/91-object01-产品摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="object / 01 食物摄影 食物摄影师 &amp; food stylist 商业静物感"
+          style="--card-bg:#ECECEC;--card-fg:#121212;--card-accent:#F27A43"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/92-object01-食物摄影.html" aria-label="预览 OBJECT / 01 · 食物摄影">
+            <span class="card-number">92</span>
+            <span class="card-style">商业静物感</span>
+            <span class="art-word">OBJECT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>食物摄影</h2></div>
+            <p>食物摄影师 &amp; Food Stylist</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/92-object01-食物摄影.html">快速预览</button>
+              <a href="./独立模板/92-object01-食物摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="photo"
+          data-search="object / 01 珠宝摄影 珠宝摄影师 &amp; 视觉导演 商业静物感"
+          style="--card-bg:#ECECEC;--card-fg:#121212;--card-accent:#D4B36E"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/93-object01-珠宝摄影.html" aria-label="预览 OBJECT / 01 · 珠宝摄影">
+            <span class="card-number">93</span>
+            <span class="card-style">商业静物感</span>
+            <span class="art-word">OBJECT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>影像记录</span><h2>珠宝摄影</h2></div>
+            <p>珠宝摄影师 &amp; 视觉导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/93-object01-珠宝摄影.html">快速预览</button>
+              <a href="./独立模板/93-object01-珠宝摄影.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="chroma / 3d 三维艺术 3d 艺术家 &amp; 数字导演 三维霓虹感"
+          style="--card-bg:#131026;--card-fg:#FFFFFF;--card-accent:#8B5CFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/94-chroma3d-三维艺术.html" aria-label="预览 CHROMA / 3D · 三维艺术">
+            <span class="card-number">94</span>
+            <span class="card-style">三维霓虹感</span>
+            <span class="art-word">CHROMA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>三维艺术</h2></div>
+            <p>3D 艺术家 &amp; 数字导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/94-chroma3d-三维艺术.html">快速预览</button>
+              <a href="./独立模板/94-chroma3d-三维艺术.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="chroma / 3d 动态 cgi cgi artist &amp; motion designer 三维霓虹感"
+          style="--card-bg:#131026;--card-fg:#FFFFFF;--card-accent:#51E6FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/95-chroma3d-动态-CGI.html" aria-label="预览 CHROMA / 3D · 动态 CGI">
+            <span class="card-number">95</span>
+            <span class="card-style">三维霓虹感</span>
+            <span class="art-word">CHROMA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>动态 CGI</h2></div>
+            <p>CGI Artist &amp; Motion Designer</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/95-chroma3d-动态-CGI.html">快速预览</button>
+              <a href="./独立模板/95-chroma3d-动态-CGI.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="chroma / 3d 虚拟时尚 数字服装设计师 三维霓虹感"
+          style="--card-bg:#131026;--card-fg:#FFFFFF;--card-accent:#FF65B8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/96-chroma3d-虚拟时尚.html" aria-label="预览 CHROMA / 3D · 虚拟时尚">
+            <span class="card-number">96</span>
+            <span class="card-style">三维霓虹感</span>
+            <span class="art-word">CHROMA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>虚拟时尚</h2></div>
+            <p>数字服装设计师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/96-chroma3d-虚拟时尚.html">快速预览</button>
+              <a href="./独立模板/96-chroma3d-虚拟时尚.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="helix lab 生物技术 生物技术研究者 &amp; 科学作者 生命科学感"
+          style="--card-bg:#DDF7F3;--card-fg:#113D3B;--card-accent:#00D8C7"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/97-helix-生物技术.html" aria-label="预览 HELIX LAB · 生物技术">
+            <span class="card-number">97</span>
+            <span class="card-style">生命科学感</span>
+            <span class="art-word">HELIX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>生物技术</h2></div>
+            <p>生物技术研究者 &amp; 科学作者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/97-helix-生物技术.html">快速预览</button>
+              <a href="./独立模板/97-helix-生物技术.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="helix lab 神经科学 认知神经科学研究者 生命科学感"
+          style="--card-bg:#DDF7F3;--card-fg:#113D3B;--card-accent:#7BA8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/98-helix-神经科学.html" aria-label="预览 HELIX LAB · 神经科学">
+            <span class="card-number">98</span>
+            <span class="card-style">生命科学感</span>
+            <span class="art-word">HELIX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>神经科学</h2></div>
+            <p>认知神经科学研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/98-helix-神经科学.html">快速预览</button>
+              <a href="./独立模板/98-helix-神经科学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="helix lab 科学传播 科学传播者 &amp; 研究编辑 生命科学感"
+          style="--card-bg:#DDF7F3;--card-fg:#113D3B;--card-accent:#B8F05A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/99-helix-科学传播.html" aria-label="预览 HELIX LAB · 科学传播">
+            <span class="card-number">99</span>
+            <span class="card-style">生命科学感</span>
+            <span class="art-word">HELIX</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>科学传播</h2></div>
+            <p>科学传播者 &amp; 研究编辑</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/99-helix-科学传播.html">快速预览</button>
+              <a href="./独立模板/99-helix-科学传播.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="maker / ship 独立开发 独立开发者 &amp; 产品主理人 独立产品感"
+          style="--card-bg:#101010;--card-fg:#F1F0E9;--card-accent:#FF7A3D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/100-maker-独立开发.html" aria-label="预览 MAKER / SHIP · 独立开发">
+            <span class="card-number">100</span>
+            <span class="card-style">独立产品感</span>
+            <span class="art-word">MAKER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>独立开发</h2></div>
+            <p>独立开发者 &amp; 产品主理人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/100-maker-独立开发.html">快速预览</button>
+              <a href="./独立模板/100-maker-独立开发.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="maker / ship 移动应用 独立 app 设计开发者 独立产品感"
+          style="--card-bg:#101010;--card-fg:#F1F0E9;--card-accent:#56C8FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/101-maker-移动应用.html" aria-label="预览 MAKER / SHIP · 移动应用">
+            <span class="card-number">101</span>
+            <span class="card-style">独立产品感</span>
+            <span class="art-word">MAKER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>移动应用</h2></div>
+            <p>独立 App 设计开发者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/101-maker-移动应用.html">快速预览</button>
+              <a href="./独立模板/101-maker-移动应用.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="maker / ship 硬件创客 hardware maker &amp; engineer 独立产品感"
+          style="--card-bg:#101010;--card-fg:#F1F0E9;--card-accent:#C7FF4A"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/102-maker-硬件创客.html" aria-label="预览 MAKER / SHIP · 硬件创客">
+            <span class="card-number">102</span>
+            <span class="card-style">独立产品感</span>
+            <span class="art-word">MAKER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>硬件创客</h2></div>
+            <p>Hardware Maker &amp; Engineer</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/102-maker-硬件创客.html">快速预览</button>
+              <a href="./独立模板/102-maker-硬件创客.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="voice room 配音表演 配音演员 &amp; 声音导演 声音录音室"
+          style="--card-bg:#21132A;--card-fg:#FFF0FA;--card-accent:#F75FB4"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/103-voice-配音表演.html" aria-label="预览 VOICE ROOM · 配音表演">
+            <span class="card-number">103</span>
+            <span class="card-style">声音录音室</span>
+            <span class="art-word">VOICE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>配音表演</h2></div>
+            <p>配音演员 &amp; 声音导演</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/103-voice-配音表演.html">快速预览</button>
+              <a href="./独立模板/103-voice-配音表演.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="voice room 播客制作 播客制作人 &amp; 主持人 声音录音室"
+          style="--card-bg:#21132A;--card-fg:#FFF0FA;--card-accent:#7F72FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/104-voice-播客制作.html" aria-label="预览 VOICE ROOM · 播客制作">
+            <span class="card-number">104</span>
+            <span class="card-style">声音录音室</span>
+            <span class="art-word">VOICE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>播客制作</h2></div>
+            <p>播客制作人 &amp; 主持人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/104-voice-播客制作.html">快速预览</button>
+              <a href="./独立模板/104-voice-播客制作.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="creator"
+          data-search="voice room 有声阅读 有声书演播者 声音录音室"
+          style="--card-bg:#21132A;--card-fg:#FFF0FA;--card-accent:#FF9A62"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/105-voice-有声阅读.html" aria-label="预览 VOICE ROOM · 有声阅读">
+            <span class="card-number">105</span>
+            <span class="card-style">声音录音室</span>
+            <span class="art-word">VOICE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>内容创作</span><h2>有声阅读</h2></div>
+            <p>有声书演播者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/105-voice-有声阅读.html">快速预览</button>
+              <a href="./独立模板/105-voice-有声阅读.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="curatorial 独立策展 独立策展人 &amp; 文化研究者 展览档案感"
+          style="--card-bg:#EEEAE2;--card-fg:#211F1A;--card-accent:#E94335"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/106-curatorial-独立策展.html" aria-label="预览 CURATORIAL · 独立策展">
+            <span class="card-number">106</span>
+            <span class="card-style">展览档案感</span>
+            <span class="art-word">CURATORIAL</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>独立策展</h2></div>
+            <p>独立策展人 &amp; 文化研究者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/106-curatorial-独立策展.html">快速预览</button>
+              <a href="./独立模板/106-curatorial-独立策展.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="curatorial 艺术研究 艺术研究者 &amp; 编辑 展览档案感"
+          style="--card-bg:#EEEAE2;--card-fg:#211F1A;--card-accent:#456ED8"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/107-curatorial-艺术研究.html" aria-label="预览 CURATORIAL · 艺术研究">
+            <span class="card-number">107</span>
+            <span class="card-style">展览档案感</span>
+            <span class="art-word">CURATORIAL</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>艺术研究</h2></div>
+            <p>艺术研究者 &amp; 编辑</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/107-curatorial-艺术研究.html">快速预览</button>
+              <a href="./独立模板/107-curatorial-艺术研究.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="template-card"
+          data-category="writing"
+          data-search="curatorial 博物馆教育 博物馆教育策划人 展览档案感"
+          style="--card-bg:#EEEAE2;--card-fg:#211F1A;--card-accent:#65B989"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/108-curatorial-博物馆教育.html" aria-label="预览 CURATORIAL · 博物馆教育">
+            <span class="card-number">108</span>
+            <span class="card-style">展览档案感</span>
+            <span class="art-word">CURATORIAL</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>文字研究</span><h2>博物馆教育</h2></div>
+            <p>博物馆教育策划人</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/108-curatorial-博物馆教育.html">快速预览</button>
+              <a href="./独立模板/108-curatorial-博物馆教育.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>
+        <!-- FORMA TECH COLLECTION START -->
+        <article
+          class="template-card"
+          data-category="tech"
+          data-search="neural night ai 算法 ai 工程师 &amp; 产品构建者 ai 人工智能 算法 机器学习 大模型 python 霓虹 学生 计算机 霓虹智能系统"
+          style="--card-bg:#0D0E0C;--card-fg:#F2F1E8;--card-accent:#C8FF3D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/109-neural-night-AI算法.html" aria-label="预览 NEURAL NIGHT · AI 算法">
+            <span class="card-number">109</span>
+            <span class="card-style">霓虹智能系统</span>
+            <span class="art-word">NEURAL</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>AI 算法</h2></div>
+            <p>AI 工程师 &amp; 产品构建者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/109-neural-night-AI算法.html">快速预览</button>
+              <a href="./独立模板/109-neural-night-AI算法.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="terminal green 后端系统 后端 &amp; 系统工程师 后端 系统 devops 服务 架构 性能 终端 绿色 学生 计算机 终端命令行"
+          style="--card-bg:#07100A;--card-fg:#AAF7BD;--card-accent:#5CFF80"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/110-terminal-green-后端系统.html" aria-label="预览 TERMINAL GREEN · 后端系统">
+            <span class="card-number">110</span>
+            <span class="card-style">终端命令行</span>
+            <span class="art-word">TERMINAL</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>后端系统</h2></div>
+            <p>后端 &amp; 系统工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/110-terminal-green-后端系统.html">快速预览</button>
+              <a href="./独立模板/110-terminal-green-后端系统.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="glass orbit 全栈创意 全栈创意开发者 全栈 前端 后端 创意开发 玻璃 交互 react web 学生 计算机 玻璃轨道"
+          style="--card-bg:#E8E5FF;--card-fg:#17143E;--card-accent:#5E49FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/111-glass-orbit-全栈创意.html" aria-label="预览 GLASS ORBIT · 全栈创意">
+            <span class="card-number">111</span>
+            <span class="card-style">玻璃轨道</span>
+            <span class="art-word">ORBIT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>全栈创意</h2></div>
+            <p>全栈创意开发者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/111-glass-orbit-全栈创意.html">快速预览</button>
+              <a href="./独立模板/111-glass-orbit-全栈创意.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="editorial lab 科研学术 计算机学生 &amp; 研究助理 科研 学术 论文 研究 算法 实验室 申请 编辑 学生 计算机 学术编辑部"
+          style="--card-bg:#F0EADF;--card-fg:#1B1814;--card-accent:#DB3D2D"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/112-editorial-lab-科研学术.html" aria-label="预览 EDITORIAL LAB · 科研学术">
+            <span class="card-number">112</span>
+            <span class="card-style">学术编辑部</span>
+            <span class="art-word">LAB / 04</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>科研学术</h2></div>
+            <p>计算机学生 &amp; 研究助理</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/112-editorial-lab-科研学术.html">快速预览</button>
+              <a href="./独立模板/112-editorial-lab-科研学术.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="pixel arcade 游戏图形 玩法 &amp; 图形程序员 游戏 图形学 渲染 玩法 像素 unity unreal 创意编码 学生 计算机 像素街机"
+          style="--card-bg:#120E2A;--card-fg:#FFF8D8;--card-accent:#58FFDE"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/113-pixel-arcade-游戏图形.html" aria-label="预览 PIXEL ARCADE · 游戏图形">
+            <span class="card-number">113</span>
+            <span class="card-style">像素街机</span>
+            <span class="art-word">ARCADE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>游戏图形</h2></div>
+            <p>玩法 &amp; 图形程序员</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/113-pixel-arcade-游戏图形.html">快速预览</button>
+              <a href="./独立模板/113-pixel-arcade-游戏图形.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="data spectrum 数据科学 数据科学家 &amp; 分析工程师 数据科学 数据分析 可视化 指标 python sql 看板 学生 计算机 数据光谱"
+          style="--card-bg:#EDF4FB;--card-fg:#0B244D;--card-accent:#2F68FF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/114-data-spectrum-数据科学.html" aria-label="预览 DATA SPECTRUM · 数据科学">
+            <span class="card-number">114</span>
+            <span class="card-style">数据光谱</span>
+            <span class="art-word">DATA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>数据科学</h2></div>
+            <p>数据科学家 &amp; 分析工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/114-data-spectrum-数据科学.html">快速预览</button>
+              <a href="./独立模板/114-data-spectrum-数据科学.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="cipher grid 网络安全 安全工程师 &amp; ctf 选手 网络安全 安全工程 ctf 攻防 web 安全 供应链 黑客 学生 计算机 安全扫描网格"
+          style="--card-bg:#050805;--card-fg:#DFFF46;--card-accent:#DFFF46"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/115-cipher-grid-网络安全.html" aria-label="预览 CIPHER GRID · 网络安全">
+            <span class="card-number">115</span>
+            <span class="card-style">安全扫描网格</span>
+            <span class="art-word">CIPHER</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>网络安全</h2></div>
+            <p>安全工程师 &amp; CTF 选手</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/115-cipher-grid-网络安全.html">快速预览</button>
+              <a href="./独立模板/115-cipher-grid-网络安全.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="soft bento 前端产品 前端 &amp; 产品工程师 前端 产品工程 用户体验 ux ui bento react 交互 学生 计算机 柔和便当格"
+          style="--card-bg:#F5EFE5;--card-fg:#24304B;--card-accent:#6551DB"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/116-soft-bento-前端产品.html" aria-label="预览 SOFT BENTO · 前端产品">
+            <span class="card-number">116</span>
+            <span class="card-style">柔和便当格</span>
+            <span class="art-word">BENTO</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>前端产品</h2></div>
+            <p>前端 &amp; 产品工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/116-soft-bento-前端产品.html">快速预览</button>
+              <a href="./独立模板/116-soft-bento-前端产品.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="blueprint core 嵌入式 iot 嵌入式 &amp; iot 工程师 嵌入式 iot 硬件 固件 传感器 低功耗 蓝图 学生 计算机 工程蓝图"
+          style="--card-bg:#0E3A86;--card-fg:#F5F8FF;--card-accent:#FFFFFF"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/117-blueprint-core-嵌入式IoT.html" aria-label="预览 BLUEPRINT CORE · 嵌入式 IoT">
+            <span class="card-number">117</span>
+            <span class="card-style">工程蓝图</span>
+            <span class="art-word">CORE</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>嵌入式 IoT</h2></div>
+            <p>嵌入式 &amp; IoT 工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/117-blueprint-core-嵌入式IoT.html">快速预览</button>
+              <a href="./独立模板/117-blueprint-core-嵌入式IoT.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="aurora mesh 移动交互 移动端 &amp; 创意技术开发者 移动端 ios android app 交互 创意技术 极光 隐私 学生 计算机 极光网格"
+          style="--card-bg:#100D1E;--card-fg:#F7F4FF;--card-accent:#56F3CB"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/118-aurora-mesh-移动交互.html" aria-label="预览 AURORA MESH · 移动交互">
+            <span class="card-number">118</span>
+            <span class="card-style">极光网格</span>
+            <span class="art-word">AURORA</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>移动交互</h2></div>
+            <p>移动端 &amp; 创意技术开发者</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/118-aurora-mesh-移动交互.html">快速预览</button>
+              <a href="./独立模板/118-aurora-mesh-移动交互.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="brutal commit 开源工具 开源 &amp; 工具链工程师 开源 工具链 工程 cli github 独立开发 粗野 学生 计算机 粗野提交"
+          style="--card-bg:#FFDF38;--card-fg:#111111;--card-accent:#FF5135"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/119-brutal-commit-开源工具.html" aria-label="预览 BRUTAL COMMIT · 开源工具">
+            <span class="card-number">119</span>
+            <span class="card-style">粗野提交</span>
+            <span class="art-word">COMMIT</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>开源工具</h2></div>
+            <p>开源 &amp; 工具链工程师</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/119-brutal-commit-开源工具.html">快速预览</button>
+              <a href="./独立模板/119-brutal-commit-开源工具.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <article
+          class="template-card"
+          data-category="tech"
+          data-search="ink resume 求职简历 软件工程专业学生 求职 实习 简历 软件工程 学生 校招 极简 黑白 计算机 纸墨简历"
+          style="--card-bg:#F8F7F2;--card-fg:#101010;--card-accent:#101010"
+        >
+          <button class="card-preview" type="button" data-preview="./独立模板/120-ink-resume-求职简历.html" aria-label="预览 INK RESUME · 求职简历">
+            <span class="card-number">120</span>
+            <span class="card-style">纸墨简历</span>
+            <span class="art-word">INK</span>
+            <i class="shape shape-a"></i><i class="shape shape-b"></i><i class="shape shape-c"></i>
+          </button>
+          <div class="card-copy">
+            <div><span>技术开发</span><h2>求职简历</h2></div>
+            <p>软件工程专业学生</p>
+            <div class="card-actions">
+              <button type="button" data-preview="./独立模板/120-ink-resume-求职简历.html">快速预览</button>
+              <a href="./独立模板/120-ink-resume-求职简历.html" target="_blank">打开模板 ↗</a>
+            </div>
+          </div>
+        </article>        <!-- FORMA TECH COLLECTION END -->
+      </div>
+      <div class="empty" id="empty" hidden>没有找到这个方向，换个关键词试试。</div>
+    </section>
+    <section class="inside">
+      <div class="inside-head">
+        <div><span>MORE THAN A HERO PAGE</span><h2>每一套，都已经<br />替你把内容想完整。</h2></div>
+        <p>每个个人站都包含完整职业叙事。新增的 12 套技术作品集还带项目筛选、主题切换、快捷导航、滚动入场、卡片倾斜与复制邮箱等交互。</p>
+      </div>
+      <div class="module-grid">
+        <article><b>01</b><h3>个人定位</h3><p>名字、身份、核心介绍与明确行动入口。</p></article>
+        <article><b>02</b><h3>关于与能力</h3><p>完整职业介绍、方法与三类核心能力。</p></article>
+        <article><b>03</b><h3>职业数据</h3><p>项目、经验、客户与成果数字展示。</p></article>
+        <article><b>04</b><h3>代表作品</h3><p>四个项目，包含年份、类型与过程说明。</p></article>
+        <article><b>05</b><h3>服务项目</h3><p>清楚说明合作内容、流程与交付方向。</p></article>
+        <article><b>06</b><h3>经历与评价</h3><p>职业时间线、客户反馈与可信度信息。</p></article>
+        <article><b>07</b><h3>文章动态</h3><p>三篇有真实标题和摘要的内容入口。</p></article>
+        <article><b>08</b><h3>完整联系区</h3><p>邮箱、地点、社交链接与合作状态。</p></article>
+        <!-- FORMA TECH MODULES -->
+        <article><b>09</b><h3>项目筛选</h3><p>按项目类型即时筛选，并支持 / 键快速聚焦。</p></article>
+        <article><b>10</b><h3>快捷导航</h3><p>Ctrl / Command + K 打开命令面板。</p></article>
+        <article><b>11</b><h3>主题切换</h3><p>每套技术模板都有独立的反差显示模式。</p></article>
+        <article><b>12</b><h3>动态与无障碍</h3><p>滚动入场、卡片倾斜、移动菜单与减少动态适配。</p></article>
+      </div>
+    </section>
+    <section class="customizer">
+      <div class="customizer-copy">
+        <span>WANT TO MAKE IT YOURS?</span>
+        <h2>想先改名字<br />再下载？</h2>
+        <p>前 108 套可在可定制模板广场实时更换姓名、身份、介绍与强调色；第 109–120 套可直接下载，搜索 PORTFOLIO_CONFIG 一次替换完整作品内容。</p>
+        <a href="./可定制模板广场/index.html">进入可定制模板广场 ↗</a>
+      </div>
+      <div class="customizer-art" aria-hidden="true"></div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>FORMA PERSONAL SITE LIBRARY · 2026</span><span>模板内容均可自行替换</span></footer>
+  <div class="preview-layer" id="previewLayer" aria-hidden="true">
+    <section class="preview-shell" role="dialog" aria-modal="true" aria-label="模板预览">
+      <header class="preview-bar">
+        <div><button type="button" id="closePreview" aria-label="关闭">×</button><span>模板实时预览</span></div>
+        <div><a id="openFull" href="#" target="_blank">新窗口打开 ↗</a></div>
+      </header>
+      <iframe id="previewFrame" title="个人网站模板预览"></iframe>
+    </section>
+  </div>
+  <script>
+    const cards = [...document.querySelectorAll(".template-card")];
+    const filterButtons = [...document.querySelectorAll("[data-filter]")];
+    const search = document.querySelector("#search");
+    const resultCount = document.querySelector("#resultCount");
+    const empty = document.querySelector("#empty");
+    const layer = document.querySelector("#previewLayer");
+    const frame = document.querySelector("#previewFrame");
+    const openFull = document.querySelector("#openFull");
+    let activeFilter = "all";
+    function update() {
+      const query = search.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach((card) => {
+        const matchesFilter = activeFilter === "all" || card.dataset.category === activeFilter;
+        const matchesSearch = !query || card.dataset.search.includes(query);
+        card.hidden = !(matchesFilter && matchesSearch);
+        if (!card.hidden) visible += 1;
+      });
+      resultCount.textContent = "显示 " + visible + " 套";
+      empty.hidden = visible !== 0;
+    }
+    filterButtons.forEach((button) => button.addEventListener("click", () => {
+      activeFilter = button.dataset.filter;
+      filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+      update();
+    }));
+    search.addEventListener("input", update);
+    document.querySelector("#searchAction").addEventListener("click", () => {
+      const visibleCards = cards.filter((card) => !card.hidden);
+      const chosen = visibleCards[Math.floor(Math.random() * visibleCards.length)] || cards[0];
+      const previewButton = chosen && chosen.querySelector("[data-preview]");
+      if (previewButton) openPreview(previewButton.dataset.preview);
+    });
+    function openPreview(path) {
+      frame.src = path;
+      openFull.href = path;
+      layer.classList.add("open");
+      layer.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      document.querySelector("#closePreview").focus();
+    }
+    function closePreview() {
+      layer.classList.remove("open");
+      layer.setAttribute("aria-hidden", "true");
+      frame.removeAttribute("src");
+      document.body.style.overflow = "";
+    }
+    document.querySelectorAll("[data-preview]").forEach((button) => button.addEventListener("click", () => openPreview(button.dataset.preview)));
+    document.querySelector("#closePreview").addEventListener("click", closePreview);
+    layer.addEventListener("click", (event) => { if (event.target === layer) closePreview(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape" && layer.classList.contains("open")) closePreview(); });
+  </script>
+</body>
+</html>

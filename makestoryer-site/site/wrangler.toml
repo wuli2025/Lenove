@@ -1,0 +1,12 @@
+name = "makestoryer-site"
+pages_build_output_dir = "."
+compatibility_date = "2026-08-14"
+
+# 生产环境
+[env.production]
+name = "makestoryer-site"
+route = "makestory.cloud/*"
+
+# 开发环境
+[env.dev]
+name = "makestoryer-site-dev"

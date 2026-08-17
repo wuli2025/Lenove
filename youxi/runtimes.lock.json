@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "comment": "CLI 运行时版本锁：CI 与首启按此清单拉取校验（scripts/fetch-runtimes.ps1）。禁止 latest。",
+  "runtimes": {
+    "codex": {
+      "version": "0.0.0-pin-me",
+      "bundled": true,
+      "sources": [
+        "https://github.com/openai/codex/releases/download/rust-v{version}/codex-{target}.zst"
+      ],
+      "sha256": { "x86_64-pc-windows-msvc": "PIN_ME", "x86_64-unknown-linux-musl": "PIN_ME" }
+    },
+    "claude": {
+      "version": "0.0.0-pin-me",
+      "bundled": false,
+      "sources": [
+        "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{version}/{target}/claude"
+      ],
+      "sha256": { "x86_64-pc-windows-msvc": "PIN_ME", "x86_64-unknown-linux-musl": "PIN_ME" }
+    }
+  }
+}

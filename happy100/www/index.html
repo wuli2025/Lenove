@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>幸福小事</title>
+<meta name="theme-color" content="#FBF6EE" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="幸福小事" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="art/icon-180.png" />
+<link rel="icon" href="art/icon-192.png" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- 彩纸屑 / 特效层 -->
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div id="app">
+
+<!-- ══════════════════ 今天 ══════════════════ -->
+<section class="screen is-active" id="screen-today">
+
+  <header class="hero">
+    <div class="hero-art" aria-hidden="true"></div>
+
+    <div class="hero-top">
+      <div class="hero-date">
+        <span class="hero-weekday" id="hero-weekday">星期一</span>
+        <h1 class="hero-day" id="hero-day">8月3日</h1>
+      </div>
+      <button class="icon-btn" id="btn-settings" aria-label="设置">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M19.4 13a7.7 7.7 0 000-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 00-1.8-1L14.9 3h-4l-.4 2.5a7.6 7.6 0 00-1.8 1l-2.3-1-2 3.4L6.6 11a7.7 7.7 0 000 2l-2 1.5 2 3.4 2.3-1c.55.42 1.16.76 1.8 1l.4 2.6h4l.4-2.5c.64-.25 1.25-.59 1.8-1l2.3 1 2-3.4-2.2-1.6z"/></svg>
+      </button>
+    </div>
+
+    <!-- 每日一句 -->
+    <div class="quote-note" id="quote-note">
+      <svg class="quote-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7c-2.8 0-5 2.2-5 5s2.2 5 5 5c.6 0 1-.1 1.5-.3C10 19 8.3 20.5 6 21l.6 1.7C10.6 21.5 14 18 14 12.5V7H9zm11 0c-2.8 0-5 2.2-5 5s2.2 5 5 5c.6 0 1-.1 1.5-.3-.5 2.3-2.2 3.8-4.5 4.3l.6 1.7C21.6 21.5 25 18 25 12.5V7h-5z"/></svg>
+      <p id="quote-text">今天不用变得更好，保持原样也很好。</p>
+    </div>
+
+    <!-- 进度 -->
+    <div class="progress-card">
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring-bg" cx="60" cy="60" r="50"/>
+          <circle class="ring-fg" cx="60" cy="60" r="50" id="ring-fg"/>
+        </svg>
+        <div class="ring-center">
+          <b id="done-count">0</b>
+          <span id="total-count">/ 100</span>
+        </div>
+      </div>
+      <div class="progress-side">
+        <div class="progress-title" id="progress-title">今天才刚开始</div>
+        <div class="progress-sub" id="progress-sub">随便挑一件，做了就算</div>
+        <div class="chip-row">
+          <span class="mini-chip"><i>🔥</i><b id="chip-streak">0</b> 天连续</span>
+          <span class="mini-chip"><i>🍬</i><b id="chip-points">0</b> 糖果</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今日模式 -->
+    <div class="mode-row">
+      <div class="seg" id="seg-day">
+        <button data-day="work" class="seg-btn">忙碌的一天</button>
+        <button data-day="rest" class="seg-btn">松弛的一天</button>
+        <span class="seg-thumb"></span>
+      </div>
+      <div class="weather-pick" id="weather-pick">
+        <button data-weather="sunny"  class="wbtn" title="晴天">☀️</button>
+        <button data-weather="cloudy" class="wbtn" title="多云">⛅</button>
+        <button data-weather="rainy"  class="wbtn" title="下雨">🌧️</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="cat-strip" id="cat-strip" aria-label="分类"></nav>
+
+  <main class="task-list" id="task-list"></main>
+
+  <div class="list-foot" id="list-foot"></div>
+</section>
+
+<!-- ══════════════════ 记录 ══════════════════ -->
+<section class="screen" id="screen-journal">
+  <header class="page-head">
+    <h2>心情自留地</h2>
+    <p>今天过得怎么样？想写就写，不想写就算了。</p>
+  </header>
+
+  <div class="paper-card mood-editor">
+    <div class="mood-row" id="mood-row"></div>
+
+    <div class="note-wrap">
+      <textarea id="mood-input" rows="5" placeholder="今天有什么想说的吗…&#10;开心的、烦的、突然想到的，都可以写在这里。"></textarea>
+      <div class="note-tools">
+        <button class="ghost-btn" id="btn-voice"><svg viewBox="0 0 24 24" class="ico"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z"/><path d="M18 12a6 6 0 01-12 0H4a8 8 0 007 7.9V22h2v-2.1A8 8 0 0020 12h-2z"/></svg>说给它听</button>
+        <span class="note-count" id="note-count">0 字</span>
+      </div>
+      <div class="voice-hint" id="voice-hint" hidden></div>
+
+      <!-- 三个入口都用 <label> 包着 input：点 label 是浏览器原生的激活方式，
+           比 JS 去 click() 一个 display:none 的 input 靠谱得多（后者在 iOS 上根本不弹） -->
+      <div class="attach-row">
+        <label class="ghost-btn attach-btn">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm1.6 12.4h12.8l-4-5.3-3.1 4-2.2-2.6-3.5 3.9zM8 10.5a1.6 1.6 0 100-3.2 1.6 1.6 0 000 3.2z"/></svg>
+          相册
+          <input type="file" id="file-media" accept="image/*,video/*" multiple />
+        </label>
+        <label class="ghost-btn attach-btn">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M20 5h-3.2l-1.5-2H8.7L7.2 5H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2zm-8 12.5a5 5 0 110-10 5 5 0 010 10z"/></svg>
+          拍摄
+          <input type="file" id="file-shot" accept="image/*,video/*" capture="environment" />
+        </label>
+        <button class="ghost-btn attach-btn" id="btn-record">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z"/><path d="M18 12a6 6 0 01-12 0H4a8 8 0 007 7.9V22h2v-2.1A8 8 0 0020 12h-2z"/></svg>
+          <span id="rec-label">录一段</span>
+        </button>
+      </div>
+      <div class="rec-hint" id="rec-hint" hidden></div>
+
+      <div class="media-strip" id="media-strip" hidden></div>
+      <p class="strip-tip" id="strip-tip" hidden></p>
+      <p class="media-note">照片会压小一点再存，视频和录音最大 25MB。都在你手机上加密好才传上云，服务器打不开。</p>
+    </div>
+
+    <button class="primary-btn" id="btn-save-mood">
+      <span>把今天存起来</span>
+      <svg viewBox="0 0 24 24" class="ico"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+    </button>
+  </div>
+
+  <div class="section-title">
+    <h3>写过的日子</h3>
+    <span class="pill" id="journal-count">0 篇</span>
+  </div>
+  <div class="journal-list" id="journal-list"></div>
+</section>
+
+<!-- ══════════════════ 报告 ══════════════════ -->
+<section class="screen" id="screen-report">
+  <header class="page-head">
+    <h2>你的小事报告</h2>
+    <p>每天和每周，自动帮你整理好。</p>
+  </header>
+
+  <div class="seg seg-wide" id="seg-report">
+    <button data-rep="daily" class="seg-btn">今日日报</button>
+    <button data-rep="weekly" class="seg-btn">本周周报</button>
+    <span class="seg-thumb"></span>
+  </div>
+
+  <div id="report-body"></div>
+</section>
+
+<!-- ══════════════════ 我的 ══════════════════ -->
+<section class="screen" id="screen-me">
+  <header class="page-head">
+    <h2>我的小窝</h2>
+    <p>你一路走过来的痕迹都在这里。</p>
+  </header>
+
+  <!-- 用户中心 -->
+  <div class="user-card" id="user-card"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card s1"><b id="st-days">0</b><span>坚持天数</span></div>
+    <div class="stat-card s2"><b id="st-tasks">0</b><span>累计小事</span></div>
+    <div class="stat-card s3"><b id="st-streak">0</b><span>连续打卡</span></div>
+    <div class="stat-card s4"><b id="st-points">0</b><span>收集糖果</span></div>
+  </div>
+
+  <div class="section-title">
+    <h3>留给你的 12 件</h3>
+    <button class="ghost-btn sm" id="btn-add-custom">+ 加一件</button>
+  </div>
+  <p class="section-note">我们准备了 88 件，剩下的 <b id="slot-left">12</b> 个位置是你的 —— 写下只属于你的小事。</p>
+  <div class="custom-list" id="custom-list"></div>
+
+  <div class="section-title"><h3>徽章墙</h3></div>
+  <div class="badge-wall" id="badge-wall"></div>
+
+  <div class="section-title">
+    <h3>数据同步</h3>
+    <span class="pill" id="sync-status">未开启</span>
+  </div>
+  <div class="paper-card" id="sync-card"></div>
+
+  <div class="section-title"><h3>数据</h3></div>
+  <div class="paper-card row-card">
+    <button class="row-btn" id="btn-export"><span>📤 导出我的全部数据</span><i>›</i></button>
+    <button class="row-btn" id="btn-import"><span>📥 从文件恢复</span><i>›</i></button>
+    <button class="row-btn danger" id="btn-clear"><span>🗑 清空所有记录</span><i>›</i></button>
+    <input type="file" id="file-import" accept="application/json" hidden />
+  </div>
+
+  <p class="foot-sign">用心做给自己的一个小工具 · v1.0</p>
+</section>
+
+<!-- ══════════════════ 底部导航 ══════════════════ -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab is-active" data-screen="today">
+    <svg viewBox="0 0 24 24" class="ico"><path d="M12 3l9 8h-2.5v9h-5v-6h-3v6h-5v-9H3z"/></svg><span>今天</span>
+  </button>
+  <button class="tab" data-screen="journal">
+    <svg viewBox="0 0 24 24" class="ico"><path d="M6 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3V4a1 1 0 011-1zm2 4v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg><span>记录</span>
+  </button>
+  <button class="tab" data-screen="report">
+    <svg viewBox="0 0 24 24" class="ico"><path d="M4 20h3v-7H4v7zm6.5 0h3V4h-3v16zM17 20h3v-11h-3v11z"/></svg><span>报告</span>
+  </button>
+  <button class="tab" data-screen="me">
+    <svg viewBox="0 0 24 24" class="ico"><path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5z"/></svg><span>我的</span>
+  </button>
+</nav>
+
+<!-- ══════════════════ 弹窗 ══════════════════ -->
+
+<!-- 里程碑奖励 -->
+<div class="modal" id="modal-reward" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box reward-box">
+    <div class="reward-art"><img src="art/celebrate.jpg" alt="" /></div>
+    <div class="reward-badge" id="reward-icon">🌱</div>
+    <h3 id="reward-title">开了个头</h3>
+    <p id="reward-desc">第一件完成啦</p>
+    <div class="reward-points">+<b id="reward-points">3</b> 颗糖</div>
+    <button class="primary-btn" data-close>好耶 🎉</button>
+  </div>
+</div>
+
+<!-- 写感悟 -->
+<div class="modal" id="modal-note" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box sheet">
+    <div class="sheet-grip"></div>
+    <h3 id="note-task-title">写点感悟</h3>
+    <p class="sheet-sub">做完之后有什么感觉吗？想写就写，不写也完全没关系。</p>
+    <textarea id="note-input" rows="4" placeholder="比如：今天的云像棉花糖…"></textarea>
+    <div class="sheet-actions">
+      <button class="ghost-btn" id="note-skip">这次跳过</button>
+      <button class="primary-btn" id="note-save">存下来</button>
+    </div>
+  </div>
+</div>
+
+<!-- 看照片 / 放视频 -->
+<div class="modal media-modal" id="modal-media" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box mv-box">
+    <button class="mv-close" data-close aria-label="关掉">×</button>
+    <div class="mv-stage" id="mv-stage"></div>
+    <div class="mv-bar">
+      <button class="mv-nav" id="mv-prev" aria-label="上一个">‹</button>
+      <span class="mv-meta" id="mv-meta"></span>
+      <button class="mv-nav" id="mv-next" aria-label="下一个">›</button>
+    </div>
+    <div class="mv-acts">
+      <button class="ghost-btn" id="mv-save">⬇ 存到本机</button>
+      <button class="ghost-btn mv-danger" id="mv-del">🗑 删掉</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加自定义小事 -->
+<div class="modal" id="modal-custom" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box sheet">
+    <div class="sheet-grip"></div>
+    <h3>加一件你自己的小事</h3>
+    <p class="sheet-sub">什么都行，只要做完会让你舒服一点。</p>
+    <input type="text" id="custom-text" maxlength="40" placeholder="比如：给阳台的花换个位置" />
+    <label class="field-label">放进哪一类？</label>
+    <div class="cat-choose" id="cat-choose"></div>
+    <div class="sheet-actions">
+      <button class="ghost-btn" data-close>算了</button>
+      <button class="primary-btn" id="custom-save">加进去</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 账号（全屏） ══════════════════ -->
+<div class="modal auth-modal" id="modal-auth" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box auth-shell">
+
+    <!-- 背景装饰 -->
+    <div class="auth-deco" aria-hidden="true">
+      <svg class="deco-sun" viewBox="0 0 120 120"><circle cx="60" cy="60" r="30"/><g class="rays"><path d="M60 4v16M60 100v16M4 60h16M100 60h16M20 20l11 11M89 89l11 11M100 20L89 31M31 89L20 100"/></g></svg>
+      <svg class="deco-leaf" viewBox="0 0 120 90"><path d="M6 84C6 40 40 12 108 6c-6 62-46 82-102 78z"/><path class="vein" d="M96 18C68 34 40 54 20 80"/></svg>
+    </div>
+
+    <div class="auth-inner">
+
+      <!-- 顶栏 -->
+      <div class="auth-top">
+        <button class="auth-icon-btn" id="auth-back" hidden aria-label="返回">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M15.4 4.6L13.98 3.2 5.2 12l8.78 8.8 1.42-1.4L8 12z"/></svg>
+        </button>
+        <span class="auth-top-gap"></span>
+        <button class="auth-icon-btn" data-close aria-label="关闭">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z" transform="translate(2.6)"/></svg>
+        </button>
+      </div>
+
+      <!-- 品牌 -->
+      <div class="auth-brand">
+        <div class="auth-mark"><img src="art/icon-192.png" alt="" width="72" height="72" /></div>
+        <h2 class="auth-title" id="auth-title">欢迎回来</h2>
+        <p class="auth-tag" id="auth-tag">登录之后，写下的每件小事都跟着你走</p>
+      </div>
+
+      <!-- 卡片 -->
+      <div class="auth-card">
+
+        <!-- 登录 / 注册 切换 -->
+        <div class="auth-seg" id="auth-seg" data-i="0">
+          <button class="auth-seg-btn is-on" data-goto="login">登录</button>
+          <button class="auth-seg-btn" data-goto="register">注册</button>
+          <span class="auth-seg-thumb"></span>
+        </div>
+
+        <!-- ───────── 登录 ───────── -->
+        <div class="auth-view" data-view="login">
+          <div class="f-field">
+            <input type="email" id="auth-login-email" inputmode="email" autocomplete="username" placeholder=" " />
+            <label for="auth-login-email">邮箱</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 015.5 4h13A2.5 2.5 0 0121 6.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-11zm2.2-.5l6.8 5.1L18.8 6H5.2zM19 8.1l-6.4 4.8a1 1 0 01-1.2 0L5 8.1v9.4c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V8.1z"/></svg>
+          </div>
+
+          <div class="f-field has-eye">
+            <input type="password" id="auth-login-pw" autocomplete="current-password" placeholder=" " />
+            <label for="auth-login-pw">密码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 015 5v3h.5A2.5 2.5 0 0120 12.5v7A2.5 2.5 0 0117.5 22h-11A2.5 2.5 0 014 19.5v-7A2.5 2.5 0 016.5 10H7V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v3h6V7a3 3 0 00-3-3zm0 10a1.6 1.6 0 00-.8 3v1.6a.8.8 0 001.6 0V17a1.6 1.6 0 00-.8-3z"/></svg>
+            <button class="f-eye" type="button" data-eye="auth-login-pw" aria-label="显示密码"></button>
+          </div>
+
+          <div class="f-row">
+            <label class="f-check">
+              <input type="checkbox" id="auth-login-remember" checked />
+              <i class="tick-box"></i><span>记住我</span>
+            </label>
+            <button class="auth-link" data-goto="recover">忘记密码？</button>
+          </div>
+
+          <div class="auth-err" id="auth-login-err" hidden></div>
+          <button class="primary-btn auth-go" id="auth-login-go"><span>登录</span></button>
+          <p class="auth-switch">还没有账号？<button data-goto="register">注册一个</button></p>
+        </div>
+
+        <!-- ───────── 注册 ───────── -->
+        <div class="auth-view" data-view="register" hidden>
+          <div class="f-field">
+            <input type="email" id="auth-reg-email" inputmode="email" autocomplete="username" placeholder=" " />
+            <label for="auth-reg-email">邮箱</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 015.5 4h13A2.5 2.5 0 0121 6.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-11zm2.2-.5l6.8 5.1L18.8 6H5.2zM19 8.1l-6.4 4.8a1 1 0 01-1.2 0L5 8.1v9.4c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V8.1z"/></svg>
+          </div>
+
+          <div class="f-field has-eye">
+            <input type="password" id="auth-reg-pw" autocomplete="new-password" placeholder=" " />
+            <label for="auth-reg-pw">设一个密码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 015 5v3h.5A2.5 2.5 0 0120 12.5v7A2.5 2.5 0 0117.5 22h-11A2.5 2.5 0 014 19.5v-7A2.5 2.5 0 016.5 10H7V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v3h6V7a3 3 0 00-3-3zm0 10a1.6 1.6 0 00-.8 3v1.6a.8.8 0 001.6 0V17a1.6 1.6 0 00-.8-3z"/></svg>
+            <button class="f-eye" type="button" data-eye="auth-reg-pw" aria-label="显示密码"></button>
+          </div>
+
+          <div class="pw-meter" id="auth-pw-meter"><i></i><i></i><i></i><i></i></div>
+          <div class="pw-hint" id="auth-pw-hint"></div>
+
+          <div class="f-field has-eye">
+            <input type="password" id="auth-reg-pw2" autocomplete="new-password" placeholder=" " />
+            <label for="auth-reg-pw2">再打一遍</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 16.2L5 12l-1.4 1.4 5.6 5.6L20.4 7.8 19 6.4z"/></svg>
+            <button class="f-eye" type="button" data-eye="auth-reg-pw2" aria-label="显示密码"></button>
+          </div>
+
+          <div class="f-row">
+            <label class="f-check">
+              <input type="checkbox" id="auth-reg-remember" checked />
+              <i class="tick-box"></i><span>记住我</span>
+            </label>
+          </div>
+
+          <div class="auth-err" id="auth-reg-err" hidden></div>
+          <button class="primary-btn auth-go" id="auth-reg-go"><span>创建账号</span></button>
+          <p class="auth-note">邮箱只当你的名字用，不会收到任何邮件，也没有验证环节 —— 整个过程不经过任何邮件服务。</p>
+          <p class="auth-switch">已经有账号了？<button data-goto="login">去登录</button></p>
+        </div>
+
+        <!-- ───────── 恢复码登录 ───────── -->
+        <div class="auth-view" data-view="recover" hidden>
+          <div class="f-field">
+            <input type="text" id="auth-rec-code" autocapitalize="characters" spellcheck="false"
+                   autocomplete="off" class="mono" placeholder=" " />
+            <label for="auth-rec-code">恢复码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3a7 7 0 00-6.7 9.1L2 17.4V22h4.6l1.6-1.6V18h2.4l1.6-1.6v-2.1A7 7 0 1014 3zm2.6 3a1.8 1.8 0 110 3.6 1.8 1.8 0 010-3.6z"/></svg>
+          </div>
+          <p class="auth-note">注册时给过你一串 20 位的恢复码。它和密码是两把独立的钥匙，开的是同一个盒子。</p>
+          <div class="auth-err" id="auth-rec-err" hidden></div>
+          <button class="primary-btn auth-go" id="auth-rec-go"><span>用它进去</span></button>
+          <p class="auth-switch">想起密码了？<button data-goto="login">回去登录</button></p>
+        </div>
+
+        <!-- ───────── 重设密码 ───────── -->
+        <div class="auth-view" data-view="setpass" hidden>
+          <div class="f-field">
+            <input type="email" id="auth-sp-email" inputmode="email" placeholder=" " />
+            <label for="auth-sp-email">邮箱</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 015.5 4h13A2.5 2.5 0 0121 6.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-11zm2.2-.5l6.8 5.1L18.8 6H5.2zM19 8.1l-6.4 4.8a1 1 0 01-1.2 0L5 8.1v9.4c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V8.1z"/></svg>
+          </div>
+          <div class="f-field has-eye">
+            <input type="password" id="auth-sp-pw" autocomplete="new-password" placeholder=" " />
+            <label for="auth-sp-pw">新密码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 015 5v3h.5A2.5 2.5 0 0120 12.5v7A2.5 2.5 0 0117.5 22h-11A2.5 2.5 0 014 19.5v-7A2.5 2.5 0 016.5 10H7V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v3h6V7a3 3 0 00-3-3zm0 10a1.6 1.6 0 00-.8 3v1.6a.8.8 0 001.6 0V17a1.6 1.6 0 00-.8-3z"/></svg>
+            <button class="f-eye" type="button" data-eye="auth-sp-pw" aria-label="显示密码"></button>
+          </div>
+          <div class="f-field has-eye">
+            <input type="password" id="auth-sp-pw2" autocomplete="new-password" placeholder=" " />
+            <label for="auth-sp-pw2">再打一遍</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 16.2L5 12l-1.4 1.4 5.6 5.6L20.4 7.8 19 6.4z"/></svg>
+            <button class="f-eye" type="button" data-eye="auth-sp-pw2" aria-label="显示密码"></button>
+          </div>
+          <p class="auth-note">数据是用密码加密的，换密码等于换一把新锁 —— 盒子里的东西一件都不会少。</p>
+          <div class="auth-err" id="auth-sp-err" hidden></div>
+          <button class="primary-btn auth-go" id="auth-sp-go"><span>保存新密码</span></button>
+          <p class="auth-switch"><button id="auth-sp-skip">以后再说</button></p>
+        </div>
+
+        <!-- ───────── 恢复码展示 ───────── -->
+        <div class="auth-view" data-view="showcode" hidden>
+          <div class="code-hero">
+            <div class="code-hero-ico">🎫</div>
+            <p>这是你忘记密码时<b>唯一</b>的进门方式。我们没有备份 —— 服务器上只有加密后的密文，连开发者都打不开。</p>
+          </div>
+          <div class="sync-code" id="auth-code-box"></div>
+          <div class="code-actions">
+            <button class="ghost-btn" id="auth-code-copy">📋 复制</button>
+            <button class="ghost-btn" id="auth-code-mail">✉️ 发到我邮箱</button>
+          </div>
+          <p class="auth-note">「发到我邮箱」会打开你自己的邮件 App 并填好内容，<b>不经过任何服务器</b>，点发送就存进你邮箱了。</p>
+          <label class="switch-row">
+            <span>我已经保存好了</span>
+            <input type="checkbox" id="auth-code-ack" />
+            <i class="switch"></i>
+          </label>
+          <button class="primary-btn auth-go" id="auth-code-done" disabled><span>开始用吧</span></button>
+        </div>
+
+        <!-- ───────── 账号管理 ───────── -->
+        <div class="auth-view" data-view="manage" hidden>
+          <div class="mgr-head">
+            <div class="mgr-avatar" id="mgr-avatar">🌻</div>
+            <div class="mgr-info">
+              <b id="mgr-nick">还没起名字</b>
+              <span id="mgr-email">—</span>
+              <span id="mgr-since"></span>
+            </div>
+          </div>
+
+          <label class="field-label">头像</label>
+          <div class="avatar-pick" id="avatar-pick"></div>
+
+          <div class="f-field" style="margin-top:14px">
+            <input type="text" id="mgr-nick-input" maxlength="16" placeholder=" " />
+            <label for="mgr-nick-input">昵称</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5z"/></svg>
+          </div>
+          <button class="ghost-btn wide" id="mgr-save-profile">保存资料</button>
+
+          <label class="field-label">账号安全</label>
+          <div class="mgr-rows">
+            <button class="row-btn" id="mgr-pw"><span>🔑 修改密码</span><i>›</i></button>
+            <button class="row-btn" id="mgr-email-btn"><span>✉️ 更换邮箱</span><i>›</i></button>
+            <button class="row-btn" id="mgr-rec"><span>🎫 重置恢复码</span><i>›</i></button>
+          </div>
+
+          <label class="field-label">这台设备</label>
+          <div class="mgr-rows">
+            <button class="row-btn" id="mgr-sync"><span>🔄 立即同步</span><i>›</i></button>
+            <button class="row-btn" id="mgr-logout"><span>🚪 退出登录（数据保留）</span><i>›</i></button>
+            <button class="row-btn danger" id="mgr-delete"><span>💀 注销账号并删除云端数据</span><i>›</i></button>
+          </div>
+
+          <div class="auth-err" id="mgr-err" hidden></div>
+          <button class="primary-btn auth-go" data-close style="margin-top:18px"><span>完成</span></button>
+        </div>
+
+        <!-- ───────── 更换邮箱 ───────── -->
+        <div class="auth-view" data-view="chemail" hidden>
+          <div class="f-field">
+            <input type="email" id="ce-email" inputmode="email" placeholder=" " />
+            <label for="ce-email">新邮箱</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 015.5 4h13A2.5 2.5 0 0121 6.5v11a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-11zm2.2-.5l6.8 5.1L18.8 6H5.2zM19 8.1l-6.4 4.8a1 1 0 01-1.2 0L5 8.1v9.4c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V8.1z"/></svg>
+          </div>
+          <div class="f-field has-eye">
+            <input type="password" id="ce-pw" autocomplete="current-password" placeholder=" " />
+            <label for="ce-pw">当前密码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 015 5v3h.5A2.5 2.5 0 0120 12.5v7A2.5 2.5 0 0117.5 22h-11A2.5 2.5 0 014 19.5v-7A2.5 2.5 0 016.5 10H7V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v3h6V7a3 3 0 00-3-3zm0 10a1.6 1.6 0 00-.8 3v1.6a.8.8 0 001.6 0V17a1.6 1.6 0 00-.8-3z"/></svg>
+            <button class="f-eye" type="button" data-eye="ce-pw" aria-label="显示密码"></button>
+          </div>
+          <p class="auth-note">换邮箱要重算你的账号定位，所以需要再输一次当前密码确认是你本人。</p>
+          <div class="auth-err" id="ce-err" hidden></div>
+          <button class="primary-btn auth-go" id="ce-go"><span>换绑</span></button>
+          <p class="auth-switch"><button data-goto="manage">返回</button></p>
+        </div>
+
+        <!-- ───────── 注销账号 ───────── -->
+        <div class="auth-view" data-view="delacct" hidden>
+          <div class="danger-note">
+            这会把<b>云端的全部数据永久删除</b>：所有打卡记录、心情、感悟，以及你的账号本身。
+            删了就找不回来了，恢复码也救不了。<br><br>
+            这台设备上的本地数据会保留，但不再同步。建议先去「导出我的全部数据」存一份。
+          </div>
+          <div class="f-field has-eye" style="margin-top:16px">
+            <input type="password" id="del-pw" autocomplete="current-password" placeholder=" " />
+            <label for="del-pw">当前密码</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 015 5v3h.5A2.5 2.5 0 0120 12.5v7A2.5 2.5 0 0117.5 22h-11A2.5 2.5 0 014 19.5v-7A2.5 2.5 0 016.5 10H7V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v3h6V7a3 3 0 00-3-3zm0 10a1.6 1.6 0 00-.8 3v1.6a.8.8 0 001.6 0V17a1.6 1.6 0 00-.8-3z"/></svg>
+            <button class="f-eye" type="button" data-eye="del-pw" aria-label="显示密码"></button>
+          </div>
+          <div class="f-field">
+            <input type="text" id="del-confirm" placeholder=" " />
+            <label for="del-confirm">输入「删除我的账号」</label>
+            <svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11.2A2 2 0 0115 22H9a2 2 0 01-2-1.8L6 9z"/></svg>
+          </div>
+          <div class="auth-err" id="del-err" hidden></div>
+          <button class="primary-btn danger-btn auth-go" id="del-go"><span>永久删除</span></button>
+          <p class="auth-switch"><button data-goto="manage">我再想想</button></p>
+        </div>
+
+      </div><!-- /.auth-card -->
+
+      <p class="auth-trust">
+        <svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 2l8 3.2v6c0 5-3.4 9.4-8 10.8-4.6-1.4-8-5.8-8-10.8v-6L12 2zm0 6a2 2 0 00-1 3.7V14a1 1 0 002 0v-2.3A2 2 0 0012 8z"/></svg>
+        端到端加密 · 服务器只存密文
+      </p>
+
+    </div><!-- /.auth-inner -->
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="modal" id="modal-settings" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-box sheet">
+    <div class="sheet-grip"></div>
+    <h3>一点点设置</h3>
+
+    <label class="field-label">哪几天是要上班/上学的？</label>
+    <div class="wd-row" id="wd-row"></div>
+
+    <label class="field-label">每天什么时候提醒你？</label>
+    <input type="time" id="remind-time" value="20:30" />
+    <label class="switch-row">
+      <span>开启每日提醒</span>
+      <input type="checkbox" id="remind-on" />
+      <i class="switch"></i>
+    </label>
+
+    <label class="switch-row">
+      <span>完成时播放小特效</span>
+      <input type="checkbox" id="fx-on" checked />
+      <i class="switch"></i>
+    </label>
+
+    <label class="switch-row">
+      <span>每周把周报发到我邮箱</span>
+      <input type="checkbox" id="weekly-mail" />
+      <i class="switch"></i>
+    </label>
+    <input type="email" id="mail-to" inputmode="email" placeholder="收周报的邮箱" />
+    <p class="set-note">每周第一次打开 App 时，自动把上一周的周报发给你。
+      需要先注册账号。周报正文会经过服务器（因为要变成邮件），你的完整数据依然是加密的。
+      照片和视频是加密存的，服务器解不开，所以邮件里只报个数，要看还是回 App 里翻。</p>
+
+    <div class="sheet-actions">
+      <button class="ghost-btn" data-close>取消</button>
+      <button class="primary-btn" id="settings-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+</div><!-- /#app -->
+
+<script src="data.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

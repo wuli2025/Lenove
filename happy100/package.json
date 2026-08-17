@@ -1,0 +1,21 @@
+{
+  "name": "happy-little-things",
+  "version": "1.0.0",
+  "private": true,
+  "description": "幸福小事 - 让生活更幸福的 100 件小事",
+  "scripts": {
+    "serve": "npx --yes http-server www -p 5178 -c-1",
+    "sync": "npx cap sync",
+    "apk": "cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.4.0"
+  }
+}

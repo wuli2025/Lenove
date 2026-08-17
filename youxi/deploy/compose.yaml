@@ -1,0 +1,19 @@
+# MicaBase 单机部署（PRD 6.3：无共享状态，横向扩容靠上游网关会话粘滞）
+services:
+  micabase:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: micabase:latest
+    ports:
+      - "1440:1440"
+    volumes:
+      - mica-data:/data
+    environment:
+      MICA_CLI_SLOTS: "16"
+      MICA_QUEUE_CAP: "1000"
+      RUST_LOG: "info"
+    restart: unless-stopped
+
+volumes:
+  mica-data:

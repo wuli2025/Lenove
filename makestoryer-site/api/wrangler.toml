@@ -1,0 +1,30 @@
+name = "makestoryer-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-14"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 数据库
+[[d1_databases]]
+binding = "DB"
+database_name = "makestoryer-auth"
+database_id = "makestoryer-auth-db"
+
+# KV 命名空间（存 PA1 签名密钥）
+[[kv_namespaces]]
+binding = "KV"
+id = "makestoryer-pa1-keys"
+
+# 环境变量
+[vars]
+SIGNUP_OPEN = "1"  # 开放注册（首次登录即注册）
+
+# 生产环境（部署到 api.makestory.cloud）
+[env.production]
+name = "makestoryer-api"
+route = "api.makestory.cloud/*"
+vars = { SIGNUP_OPEN = "1" }
+
+# 开发环境（本地测试）
+[env.dev]
+name = "makestoryer-api-dev"
+vars = { SIGNUP_OPEN = "1" }

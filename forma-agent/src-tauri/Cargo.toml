@@ -1,0 +1,33 @@
+# FORMA Agent 桌面壳 —— 自成 workspace，绝不并入 youxi 的 workspace。
+# youxi 只作为「路径依赖的库」被引入，源码一行不改。
+[workspace]
+
+[package]
+name = "forma-agent"
+version = "0.1.0"
+edition = "2021"
+description = "FORMA 个人网站创作 Agent —— FORMA 模板前端 + MicaBase(youxi) 后端"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# 后端：youxi/MicaBase。开 server feature 拿到 axum 路由（供应商管理 / 环境医生 / 任务网关）
+mica = { path = "../../youxi/crates/mica", features = ["server"] }
+
+tauri = { version = "2", features = [] }
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+
+[features]
+# tauri 默认 custom-protocol，打包时由 tauri-cli 打开
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+lto = "thin"
+strip = true

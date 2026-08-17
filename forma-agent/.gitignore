@@ -1,0 +1,5 @@
+src-tauri/target/
+src-tauri/gen/
+src-tauri/forma-icon.png
+node_modules/
+*.log

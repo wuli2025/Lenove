@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>张三 · 个人中心 · 一句话生成</title>
+<meta name="description" content="张三 的作品与专属网址">
+<meta property="og:title" content="张三 · 个人中心 · 一句话生成">
+<meta property="og:description" content="张三 的作品与专属网址">
+<style>
+:root{
+  --bg:#070b12; --bg2:#0b111b;
+  --text:#e8f0f6; --muted:#8fa3b6; --muted-light:#a9bccb; --dim:#5f7488;
+  --acid:#66d9e8; --gold:#f0d08a;
+  --line:rgba(217,226,234,.10); --line-strong:rgba(102,217,232,.34);
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",-apple-system,"Segoe UI",sans-serif; --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;line-height:1.7}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+
+/* ── 顶栏（结构与尺寸沿用 FORMA） ── */
+.topbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;min-height:72px;padding:0 28px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(24px)}
+.brand{display:inline-flex;align-items:center;justify-self:start;gap:10px;width:fit-content;
+  font-size:20px;font-weight:700;letter-spacing:-.05em}
+.brand em{margin:-12px 0 0 -8px;color:var(--acid);font-style:normal}
+.brand-mark{position:relative;display:inline-block;width:23px;height:23px}
+.brand-mark i{position:absolute;width:14px;height:18px;border-radius:50% 52% 46% 50%;transform-origin:60% 65%}
+.brand-mark i:nth-child(1){top:0;left:0;background:#66d9e8;transform:rotate(-24deg)}
+.brand-mark i:nth-child(2){top:0;right:0;background:#b58ae0;transform:rotate(22deg)}
+.brand-mark i:nth-child(3){right:4px;bottom:-1px;background:#f0d08a;transform:rotate(152deg);mix-blend-mode:screen}
+.main-nav{display:flex;align-items:center;justify-self:center;gap:4px;padding:4px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.main-nav a{display:flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:10px;
+  color:var(--muted);font-size:13px;font-weight:600;transition:180ms ease}
+.main-nav a:hover,.main-nav a.active{color:var(--text);background:rgba(255,255,255,.08)}
+.main-nav span{font-size:15px}
+.nav-actions{display:flex;align-items:center;justify-self:end;gap:10px}
+.tagline{font-size:12px;color:var(--dim);letter-spacing:.04em}
+.avatar-button{display:flex;align-items:center;justify-content:center;width:40px;height:40px;
+  border:1px solid transparent;border-radius:12px;overflow:hidden;
+  color:#04070d;background:linear-gradient(135deg,#66d9e8,#b58ae0);
+  font-size:13px;font-weight:800;letter-spacing:.04em;transition:180ms ease}
+.avatar-button img{width:100%;height:100%;object-fit:cover}
+.avatar-button.anon{background:rgba(255,255,255,.025);border-color:var(--line);color:var(--muted-light);
+  width:auto;padding:0 14px;font-size:12px;font-weight:600;letter-spacing:0}
+.avatar-button:hover{border-color:var(--line-strong);filter:brightness(1.06)}
+.avatar-button.active{outline:2px solid var(--acid);outline-offset:2px}
+
+@media(max-width:900px){
+  .topbar{grid-template-columns:auto 1fr auto;min-height:64px;padding:0 16px}
+  .brand{font-size:16px}
+  .brand-mark{transform:scale(.85)}
+  .main-nav{border:0;background:transparent}
+  .main-nav a{padding:0 10px}
+  .desktop-only{display:none}
+}
+body{background-image:radial-gradient(900px 520px at 80% -10%,rgba(102,217,232,.10),transparent 62%)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 90px}
+
+/* ── 未登录：登录卡 ── */
+.gate{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.gate-card{width:100%;max-width:412px;border:1px solid var(--line);border-radius:16px;
+  background:rgba(12,19,30,.76);padding:34px 30px 28px}
+.gate-card h1{font-size:23px;font-weight:750;letter-spacing:.01em;margin-bottom:8px}
+.gate-card .lead{color:var(--muted);font-size:13.5px;line-height:1.8;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--dim);margin-bottom:7px;letter-spacing:.04em}
+.field input{width:100%;height:44px;padding:0 14px;border-radius:10px;color:var(--text);font-size:14px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);outline:none;font-family:inherit}
+.field input:focus{border-color:var(--line-strong);background:rgba(255,255,255,.05)}
+.field input[readonly]{color:var(--muted);background:rgba(255,255,255,.015)}
+#code{font-family:var(--mono);font-size:20px;letter-spacing:.42em;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 18px;
+  border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);
+  font-size:13.5px;font-weight:600;cursor:pointer;transition:160ms ease;font-family:inherit}
+.btn:hover{border-color:var(--line-strong)}
+.btn.primary{background:var(--acid);border-color:var(--acid);color:#04070d;font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.btn.sm{height:32px;padding:0 12px;font-size:12px;border-radius:8px}
+.msg{min-height:20px;margin-top:12px;font-size:12.5px;line-height:1.7;color:var(--gold)}
+.msg.ok{color:var(--acid)}
+.hint{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--dim);line-height:1.9}
+.step{display:none}.step.on{display:block}
+.back{background:0;border:0;color:var(--dim);font:inherit;font-size:12px;cursor:pointer;padding:0;margin-top:12px}
+.back:hover{color:var(--muted)}
+
+/* ── 已登录：横幅 + 资料卡 + 作品陈列 ── */
+.banner{height:178px;margin-top:20px;border-radius:16px;border:1px solid var(--line);
+  background:radial-gradient(130% 190% at 16% -10%,#123244,#0c1622 56%,#070b12 100%);position:relative;overflow:hidden}
+.banner::after{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(217,226,234,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(217,226,234,.05) 1px,transparent 1px);
+  background-size:34px 34px;mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent)}
+.lay{display:grid;grid-template-columns:308px 1fr;gap:24px;align-items:start;margin-top:18px}
+.card{border:1px solid var(--line);border-radius:16px;background:rgba(12,19,30,.82);
+  padding:26px 22px 22px;text-align:center;position:sticky;top:92px;margin-top:-112px}
+.ava{width:112px;height:112px;border-radius:50%;margin:0 auto 15px;overflow:hidden;display:grid;place-items:center;
+  font-size:40px;font-weight:800;color:#04070d;background:linear-gradient(140deg,#66d9e8,#b58ae0 62%,#f0d08a);
+  box-shadow:0 0 0 4px rgba(7,11,18,.85)}
+.ava img{width:100%;height:100%;object-fit:cover}
+.card h2{font-size:20px;font-weight:700;word-break:break-all;margin-bottom:6px}
+.card .mail{font-family:var(--mono);font-size:11.5px;color:var(--dim);word-break:break-all}
+.stats{display:flex;margin:20px 0 18px}
+.stats>div{flex:1;position:relative}
+.stats>div+div::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:1px;background:var(--line)}
+.stats b{display:block;font-size:19px;font-weight:750;font-family:var(--mono);color:var(--acid)}
+.stats span{display:block;font-size:11.5px;color:var(--dim);margin-top:4px}
+.acts{display:flex;flex-direction:column;gap:9px}
+.acts .btn{width:100%}
+.edit{margin-top:4px;text-align:left;display:none}
+.edit.on{display:block}
+.col{min-width:0}
+.sec-hd{display:flex;align-items:baseline;gap:11px;margin:0 0 14px}
+.sec-hd h3{font-size:17px;font-weight:650;letter-spacing:.02em}
+.sec-hd .cnt{font-size:12px;color:var(--dim)}
+.sec{margin-bottom:34px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.w{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(12,19,30,.72);
+  transition:border-color .18s,transform .18s}
+.w:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.w .th{aspect-ratio:16/10;background:#0b111b;border-bottom:1px solid var(--line);overflow:hidden;display:block;position:relative}
+.w .th img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.w .th .ph{width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:rgba(7,11,18,.62)}
+.w .in{padding:12px 14px 14px}
+.w .t{font-size:14.5px;font-weight:650;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w .sub{font-size:12px;color:var(--dim);height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w .mt{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.w .hits{font-family:var(--mono);color:var(--gold)}
+.w .off{margin-left:auto;border:1px solid rgba(240,208,138,.4);border-radius:5px;padding:1px 7px;color:var(--gold)}
+.w .links{display:flex;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.w .links a{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:4px 9px}
+.w .links a:hover{color:var(--text);border-color:var(--line-strong)}
+.urls{border:1px solid var(--line);border-radius:12px;background:rgba(12,19,30,.6);overflow:hidden}
+.u{display:flex;align-items:center;gap:12px;padding:12px 15px;border-top:1px solid var(--line)}
+.u:first-child{border-top:0}
+.u .nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34%}
+.u code{font-family:var(--mono);font-size:11.5px;color:var(--acid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u .btn{margin-left:auto;flex:none}
+.empty{border:1px dashed rgba(102,217,232,.26);border-radius:14px;padding:44px 24px;text-align:center;
+  background:rgba(102,217,232,.035)}
+.empty b{display:block;font-size:16px;margin-bottom:9px}
+.empty span{color:var(--muted);font-size:13px;line-height:1.9}
+.note{font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:12px}
+@media(max-width:1000px){
+  .lay{grid-template-columns:1fr}
+  .card{position:static;margin-top:-86px}
+  .grid{grid-template-columns:1fr}
+}</style>
+</head><body>
+<header class="topbar">
+  <a class="brand" href="/" aria-label="一句话生成 首页">
+    <span class="brand-mark"><i></i><i></i><i></i></span>
+    <span>一句话生成</span><em>°</em>
+  </a>
+  <nav class="main-nav" aria-label="主导航">
+    <a class="" href="/"><span>⌂</span> 创作</a><a class="" href="/hall"><span>◇</span> 大厅</a>
+  </nav>
+  <div class="nav-actions">
+    <span class="tagline desktop-only">说一句话，就有一个网站</span>
+    <a class="avatar-button active"
+       href="/me" aria-label="个人中心" title="张三 · 个人中心">
+      <span>张</span>
+    </a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="banner"></div>
+  <div class="lay">
+    <aside class="card">
+      <!-- 头像先用首字母渐变块；上传位留着，等 R2 头像前缀和裁剪定了再接 -->
+      <div class="ava" id="ava">张</div>
+      <h2 id="uname">张三</h2>
+      <div class="mail">zhangsan@example.com</div>
+
+      <div class="stats">
+        <div><b id="stWorks">–</b><span>作品</span></div>
+        <div><b id="stHits">–</b><span>被点开</span></div>
+        <div><b id="stDays">–</b><span>加入天数</span></div>
+      </div>
+
+      <div class="acts">
+        <button class="btn" id="editBtn">编辑资料</button>
+        <button class="btn" id="logout">退出登录</button>
+      </div>
+
+      <div class="edit" id="editBox">
+        <div class="field" style="margin-top:14px">
+          <label for="nameInput">昵称（1–24 字）</label>
+          <input id="nameInput" maxlength="24" value="张三">
+        </div>
+        <div class="field">
+          <label for="mailRo">邮箱（不可修改）</label>
+          <input id="mailRo" readonly value="zhangsan@example.com">
+        </div>
+        <button class="btn primary wide sm" id="saveName" style="height:38px">保存</button>
+        <div class="msg" id="pmsg"></div>
+      </div>
+    </aside>
+
+    <div class="col">
+      <section class="sec">
+        <div class="sec-hd"><h3>我的作品</h3><span class="cnt" id="wcnt">加载中…</span></div>
+        <div id="works"><div class="empty"><b>正在读取</b><span>稍等一下。</span></div></div>
+        <div class="note" id="matchNote"></div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-hd"><h3>我的网址</h3><span class="cnt">发给谁都能直接打开</span></div>
+        <div id="urls"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>window.__ACCENTS__=[{"a":"#66d9e8","b":"#4a9fd4","name":"cyan"},{"a":"#b58ae0","b":"#7a6ad0","name":"violet"},{"a":"#6ad39a","b":"#3f9f8a","name":"jade"},{"a":"#f0d08a","b":"#d09a4e","name":"gold"},{"a":"#e8965a","b":"#d0603f","name":"amber"},{"a":"#e2789b","b":"#b8548a","name":"rose"}];window.__PRELOAD__={"ok":true,"matchedBy":"creator-name","user":{"id":"u7f3x9a2","email":"zhangsan@example.com","name":"张三","avatar":null,"created_at":1785577945456},"stats":{"works":4,"hits":13028,"days":12},"works":[{"id":"demo0001","slug":"zhangsan-1","creator":"张三","title":"我家猫的十八年回忆录","tagline":"用一句话给橘子做了个纪念馆","cover":null,"poster":null,"accent":1,"hits":12840,"status":"public","created_at":1786611145456,"siteUrl":"https://r2t-9f3x.llmwiki.cloud/u/zhangsan-1/","posterUrl":"https://r2t-9f3x.llmwiki.cloud/p/demo0001","coverUrl":null},{"id":"demo0002","slug":"zhangsan-2","creator":"张三","title":"给女儿做的成长时间线，从出生一直排到上小学","tagline":"把六年里散落在各处的照片和小事按时间排好，一页看完","cover":null,"poster":null,"accent":2,"hits":74,"status":"public","created_at":1786607545456,"siteUrl":"https://r2t-9f3x.llmwiki.cloud/u/zhangsan-2/","posterUrl":"https://r2t-9f3x.llmwiki.cloud/p/demo0002","coverUrl":null},{"id":"demo0003","slug":"zhangsan-3","creator":"张三","title":"摄影集","tagline":"","cover":null,"poster":null,"accent":3,"hits":111,"status":"public","created_at":1786603945456,"siteUrl":"https://r2t-9f3x.llmwiki.cloud/u/zhangsan-3/","posterUrl":"https://r2t-9f3x.llmwiki.cloud/p/demo0003","coverUrl":null},{"id":"demo0004","slug":"zhangsan-4","creator":"张三","title":"这个作品被下架了","tagline":"一句话说清这个网站在做什么","cover":null,"poster":null,"accent":4,"hits":3,"status":"hidden","created_at":1786600345456,"siteUrl":"https://r2t-9f3x.llmwiki.cloud/u/zhangsan-4/","posterUrl":"https://r2t-9f3x.llmwiki.cloud/p/demo0004","coverUrl":null}]};
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt=(n)=>n>=10000?(n/10000).toFixed(1)+'w':String(n);
+const AC=window.__ACCENTS__;
+
+function card(w){
+  const a=AC[(w.accent||0)%AC.length];
+  const th=w.coverUrl
+    ? '<img src="'+esc(w.coverUrl)+'" alt="" loading="lazy">'
+    : '<div class="ph" style="background:linear-gradient(140deg,'+a.a+','+a.b+')">'+esc((w.title||'?').trim().slice(0,1))+'</div>';
+  return '<div class="w">'
+    +'<a class="th" href="'+esc(w.siteUrl)+'" target="_blank" rel="noopener">'+th+'</a>'
+    +'<div class="in">'
+      +'<div class="t">'+esc(w.title)+'</div>'
+      +'<div class="sub">'+esc(w.tagline||'　')+'</div>'
+      +'<div class="mt"><span class="hits">'+fmt(w.hits||0)+'</span><span>次点开</span>'
+        +(w.status!=='public'?'<span class="off">已下架</span>':'')+'</div>'
+      +'<div class="links">'
+        +'<a href="'+esc(w.siteUrl)+'" target="_blank" rel="noopener">专属网址</a>'
+        +'<a href="'+esc(w.posterUrl)+'" target="_blank" rel="noopener">分享海报</a>'
+      +'</div>'
+    +'</div></div>';
+}
+
+function urlRow(w){
+  return '<div class="u"><span class="nm">'+esc(w.title)+'</span>'
+    +'<code>/u/'+esc(w.slug)+'/</code>'
+    +'<button class="btn sm" data-copy="'+esc(w.siteUrl)+'">复制</button></div>';
+}
+
+function render(d){
+  const ws=d.works||[];
+  $('#stWorks').textContent=ws.length;
+  $('#stHits').textContent=fmt(d.stats?d.stats.hits:0);
+  $('#stDays').textContent=d.stats?d.stats.days:'–';
+  $('#wcnt').textContent=ws.length?(ws.length+' 个'):'还没有';
+  $('#works').innerHTML=ws.length
+    ? '<div class="grid">'+ws.map(card).join('')+'</div>'
+    : '<div class="empty"><b>还没有作品</b><span>回首页说一句你想要什么样的网站，十分钟后它就会出现在这里。</span></div>';
+  $('#urls').innerHTML=ws.length
+    ? '<div class="urls">'+ws.map(urlRow).join('')+'</div>'
+    : '<div class="empty"><b>暂无网址</b><span>发布第一个作品后，这里会列出它的专属网址。</span></div>';
+  $('#matchNote').textContent=d.matchedBy==='creator-name'
+    ? '作品目前按「创作者姓名 = 昵称」匹配（临时方案）。如果这里少了作品，多半是发布时填的姓名和当前昵称不一致。'
+    : '';
+}
+
+document.addEventListener('click',async (e)=>{
+  const b=e.target.closest('[data-copy]');
+  if(!b)return;
+  try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='已复制';setTimeout(()=>b.textContent='复制',1400)}catch(err){}
+});
+
+$('#editBtn').onclick=()=>$('#editBox').classList.toggle('on');
+$('#saveName').onclick=async()=>{
+  const m=$('#pmsg');const v=$('#nameInput').value.trim();
+  m.className='msg';m.textContent='保存中…';
+  const r=await fetch('/api/auth/profile',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:v}),credentials:'same-origin'});
+  let d={};try{d=await r.json()}catch(err){}
+  if(!r.ok||!d.ok){m.textContent=d.error||'保存失败';return}
+  m.className='msg ok';m.textContent=d.notice||'已保存';
+  $('#uname').textContent=d.user.name;
+  if(!$('#ava').querySelector('img'))$('#ava').textContent=(d.user.name||'?').trim().slice(0,1).toUpperCase();
+  load();
+};
+$('#logout').onclick=async()=>{
+  await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});
+  location.href='/';
+};
+
+async function load(){
+  try{
+    const r=await fetch('/api/me/works',{credentials:'same-origin'});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw new Error(d.error||'读取失败');
+    render(d);
+  }catch(e){
+    $('#wcnt').textContent='读取失败';
+    $('#works').innerHTML='<div class="empty"><b>没读到作品</b><span>'+esc(e.message)+'<br>刷新一下试试。</span></div>';
+  }
+}
+// 预览脚本会预置 __PRELOAD__，走同一套 render，截图和线上一致
+if(window.__PRELOAD__)render(window.__PRELOAD__);else load();
+</script>
+</body></html>

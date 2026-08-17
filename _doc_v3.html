@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一句话生成 · 规划书 V3（MicaBase 基座版）</title>
+<style>
+:root{
+  --bg:#070b12; --card:rgba(12,19,30,.72);
+  --line:rgba(102,217,232,.16); --line2:rgba(217,226,234,.09);
+  --tx:#d9e2ea; --tx2:#8fa3b6; --tx3:#5f7488;
+  --cy:#66d9e8; --gr:#6ad39a; --rd:#e2656b; --am:#f0d08a; --pu:#b58ae0; --or:#e8965a;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15px;line-height:1.85;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(1100px 620px at 78% -8%,rgba(102,217,232,.10),transparent 62%),
+             radial-gradient(760px 480px at 4% 12%,rgba(181,138,224,.07),transparent 60%)}
+a{color:var(--cy);text-decoration:none}
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px);
+  background:linear-gradient(180deg,rgba(7,11,18,.94),rgba(7,11,18,.80));border-bottom:1px solid var(--line2)}
+.hd{max-width:1200px;margin:0 auto;padding:13px 30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hd .logo{font-weight:700;font-size:16px;white-space:nowrap}
+.hd .logo span{font-family:var(--mono);font-size:10.5px;color:var(--cy);letter-spacing:.22em;margin-left:9px}
+nav{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
+nav a{font-size:12.5px;color:var(--tx2);padding:5px 8px;border-radius:5px;white-space:nowrap}
+nav a:hover{color:var(--cy);background:rgba(102,217,232,.09)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 30px 120px}
+.hero{padding:74px 0 50px;border-bottom:1px solid var(--line2)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.30em;color:var(--cy);margin-bottom:20px}
+h1.big{font-size:48px;line-height:1.28;margin:0 0 22px;font-weight:800}
+h1.big em{font-style:normal;color:var(--cy);text-shadow:0 0 44px rgba(102,217,232,.35)}
+.lead{font-size:17px;color:var(--tx2);max-width:880px;line-height:1.95}
+.meta{margin-top:32px;display:flex;gap:9px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:11.5px;color:var(--tx2);border:1px solid var(--line2);border-radius:4px;padding:5px 11px;background:rgba(11,17,27,.6)}
+.pill.cy{color:var(--cy);border-color:rgba(102,217,232,.3)}
+.pill.am{color:var(--am);border-color:rgba(240,208,138,.3)}
+.pill.rd{color:var(--rd);border-color:rgba(226,101,107,.3)}
+.pill.gr{color:var(--gr);border-color:rgba(106,211,154,.3)}
+.pill.pu{color:var(--pu);border-color:rgba(181,138,224,.3)}
+section{padding:62px 0;border-bottom:1px solid var(--line2)}
+.sn{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--tx3);margin-bottom:13px}
+h2{font-size:29px;margin:0 0 12px;font-weight:700}
+h2 .zh{color:var(--cy)}
+.sdesc{color:var(--tx2);max-width:900px;margin-bottom:34px}
+h3{font-size:18px;margin:40px 0 14px;font-weight:650}
+h3:first-of-type{margin-top:0}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin-bottom:8px}
+code{font-family:var(--mono);font-size:12.5px;background:rgba(102,217,232,.09);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--cy)}
+strong{color:#fff;font-weight:650}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:22px 22px 20px}
+.card.cy{border-color:rgba(102,217,232,.22);background:linear-gradient(180deg,rgba(102,217,232,.07),rgba(12,19,30,.7))}
+.card.gr{border-color:rgba(106,211,154,.22);background:linear-gradient(180deg,rgba(106,211,154,.06),rgba(12,19,30,.7))}
+.card.rd{border-color:rgba(226,101,107,.26);background:linear-gradient(180deg,rgba(226,101,107,.07),rgba(12,19,30,.7))}
+.card.am{border-color:rgba(240,208,138,.24);background:linear-gradient(180deg,rgba(240,208,138,.06),rgba(12,19,30,.7))}
+.card.pu{border-color:rgba(181,138,224,.24);background:linear-gradient(180deg,rgba(181,138,224,.07),rgba(12,19,30,.7))}
+.card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--tx3);margin-bottom:11px}
+.card h5{margin:0 0 9px;font-size:16.5px;font-weight:650}
+.card p:last-child{margin-bottom:0}
+.card .num{font-size:32px;font-weight:800;color:var(--cy);line-height:1;margin-bottom:9px}
+.card.am .num{color:var(--am)}.card.rd .num{color:var(--rd)}.card.gr .num{color:var(--gr)}.card.pu .num{color:var(--pu)}
+.small{font-size:13.5px;color:var(--tx2);line-height:1.8}
+.tw{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line2);border-radius:11px;background:rgba(12,19,30,.55)}
+table{width:100%;border-collapse:collapse;font-size:13.6px;min-width:680px}
+th{text-align:left;padding:13px 16px;font-weight:600;color:var(--cy);font-size:12.5px;background:rgba(102,217,232,.07);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.7}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(102,217,232,.035)}
+td.c,th.c{text-align:center}
+td.m{font-family:var(--mono);font-size:12.5px;color:var(--tx2)}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;border-radius:3px;padding:2px 7px;border:1px solid;white-space:nowrap}
+.t-p0{color:var(--rd);border-color:rgba(226,101,107,.42);background:rgba(226,101,107,.09)}
+.t-p1{color:var(--am);border-color:rgba(240,208,138,.4);background:rgba(240,208,138,.08)}
+.t-p2{color:var(--tx3);border-color:var(--line2)}
+.t-ok{color:var(--gr);border-color:rgba(106,211,154,.4);background:rgba(106,211,154,.08)}
+.t-new{color:var(--cy);border-color:rgba(102,217,232,.4);background:rgba(102,217,232,.08)}
+.t-cut{color:var(--pu);border-color:rgba(181,138,224,.4);background:rgba(181,138,224,.08)}
+.t-port{color:var(--or);border-color:rgba(232,150,90,.42);background:rgba(232,150,90,.09)}
+.note{border-left:3px solid var(--cy);background:rgba(102,217,232,.055);padding:16px 20px;border-radius:0 9px 9px 0;margin:0 0 20px;font-size:14.2px}
+.note.warn{border-color:var(--am);background:rgba(240,208,138,.055)}
+.note.bad{border-color:var(--rd);background:rgba(226,101,107,.06)}
+.note.good{border-color:var(--gr);background:rgba(106,211,154,.055)}
+.note .t{font-weight:650;margin-bottom:6px;display:block;color:var(--cy)}
+.note.warn .t{color:var(--am)}.note.bad .t{color:var(--rd)}.note.good .t{color:var(--gr)}
+.note p:last-child{margin-bottom:0}
+.flow{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px}
+.fnode{flex:1;min-width:148px;background:rgba(12,19,30,.7);border:1px solid var(--line);border-radius:9px;padding:16px 15px}
+.fnode .i{font-family:var(--mono);font-size:10px;color:var(--cy);letter-spacing:.18em;margin-bottom:8px}
+.fnode .t{font-weight:650;font-size:14.5px;margin-bottom:5px}
+.fnode .d{font-size:12.5px;color:var(--tx2);line-height:1.65}
+.arch{border:1px solid var(--line2);border-radius:12px;overflow:hidden;margin-bottom:22px}
+.layer{padding:20px 24px;border-bottom:1px solid var(--line2);display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.layer:last-child{border-bottom:none}
+.layer .lb{flex:0 0 178px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--cy);padding-top:4px}
+.layer .lb b{display:block;font-family:var(--sans);font-size:15px;color:var(--tx);letter-spacing:0;margin-top:5px;font-weight:650}
+.layer .lb i{display:block;font-style:normal;font-size:11px;color:var(--tx3);margin-top:3px;letter-spacing:0}
+.layer .lc{flex:1;min-width:280px;display:flex;gap:10px;flex-wrap:wrap}
+.box{flex:1;min-width:152px;border:1px solid var(--line2);border-radius:8px;padding:13px 15px;background:rgba(8,13,22,.6);font-size:13px;line-height:1.62}
+.box b{display:block;font-size:14px;margin-bottom:4px;color:var(--tx)}
+.box span{color:var(--tx2);font-size:12.4px}
+.box.port{border-color:rgba(232,150,90,.3);background:linear-gradient(180deg,rgba(232,150,90,.08),rgba(8,13,22,.6))}
+.box.keep{border-color:rgba(106,211,154,.28);background:linear-gradient(180deg,rgba(106,211,154,.07),rgba(8,13,22,.6))}
+.box.new{border-color:rgba(102,217,232,.28);background:linear-gradient(180deg,rgba(102,217,232,.07),rgba(8,13,22,.6))}
+.l-ui{background:linear-gradient(90deg,rgba(102,217,232,.09),rgba(12,19,30,.4))}
+.l-core{background:linear-gradient(90deg,rgba(181,138,224,.09),rgba(12,19,30,.4))}
+.l-run{background:linear-gradient(90deg,rgba(232,150,90,.08),rgba(12,19,30,.4))}
+.l-cloud{background:linear-gradient(90deg,rgba(106,211,154,.08),rgba(12,19,30,.4))}
+.arrow{text-align:center;font-family:var(--mono);font-size:11px;color:var(--tx3);padding:9px 0;letter-spacing:.2em;border-bottom:1px solid var(--line2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--tx2);margin-bottom:16px}
+.legend i{font-style:normal;display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+/* 设置页 mock */
+.mock{border:1px solid var(--line);border-radius:12px;background:rgba(6,10,17,.85);padding:0;margin-bottom:22px;overflow:hidden}
+.mock .mbar{display:flex;gap:2px;padding:14px 18px 0;border-bottom:1px solid var(--line2);background:rgba(102,217,232,.04)}
+.mock .mtab{font-size:13.5px;color:var(--tx3);padding:9px 18px;border-radius:7px 7px 0 0;border:1px solid transparent}
+.mock .mtab.on{color:var(--cy);background:rgba(6,10,17,.9);border-color:var(--line2);border-bottom-color:transparent;font-weight:650}
+.mock .mbody{padding:20px 22px}
+.row2{display:flex;align-items:center;gap:14px;padding:13px 15px;border:1px solid var(--line2);border-radius:9px;margin-bottom:9px;background:rgba(12,19,30,.6);font-size:13.5px}
+.row2 .dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.row2 .nm{font-weight:650;min-width:104px}
+.row2 .pt{font-family:var(--mono);font-size:11.5px;color:var(--tx3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row2 .st{font-size:12px;color:var(--tx2)}
+.row2 .btn{font-size:12px;color:var(--cy);border:1px solid rgba(102,217,232,.3);border-radius:6px;padding:4px 12px;background:rgba(102,217,232,.07)}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;margin-left:auto}
+.seg span{font-size:12px;padding:5px 13px;color:var(--tx3)}
+.seg span.on{background:var(--cy);color:#04070d;font-weight:650}
+footer{padding:44px 0 0;color:var(--tx3);font-size:12.5px;font-family:var(--mono);line-height:1.9}
+.posters{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.poster{border:1px solid var(--line2);border-radius:11px;overflow:hidden;background:rgba(12,19,30,.6)}
+.poster img{width:100%;display:block}
+.poster .cap{padding:13px 16px;font-size:13px;color:var(--tx2);border-top:1px solid var(--line2)}
+.poster .cap b{display:block;color:var(--tx);font-size:14px;margin-bottom:3px;font-weight:650}
+.gantt{border:1px solid var(--line2);border-radius:11px;overflow:hidden;background:rgba(12,19,30,.55);margin-bottom:20px}
+.grow{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--line2)}
+.grow:last-child{border-bottom:none}
+.grow .gl{padding:11px 16px;font-size:13.2px;border-right:1px solid var(--line2)}
+.grow .gl small{display:block;color:var(--tx3);font-size:11.5px;font-family:var(--mono)}
+.gbar{position:relative;display:grid;grid-template-columns:repeat(7,1fr);align-items:center;min-height:44px}
+.gbar .cell{border-right:1px solid rgba(217,226,234,.05);height:100%}
+.gbar .cell:last-child{border-right:none}
+.gbar .b{position:absolute;top:50%;transform:translateY(-50%);height:21px;border-radius:4px;font-family:var(--mono);font-size:10px;display:flex;align-items:center;padding:0 8px;color:#04070d;font-weight:700;white-space:nowrap;overflow:hidden}
+.ghead{background:rgba(102,217,232,.07)}
+.ghead .gl{color:var(--cy);font-family:var(--mono);font-size:11.5px}
+.ghead .gbar .cell{font-family:var(--mono);font-size:11px;color:var(--tx2);display:flex;align-items:center;justify-content:center;padding:9px 0}
+@media(max-width:900px){
+  .wrap,.hd{padding-left:18px;padding-right:18px}
+  h1.big{font-size:31px}h2{font-size:23px}
+  .g2,.g3,.g4,.posters{grid-template-columns:1fr}
+  .grow{grid-template-columns:1fr}
+  .grow .gl{border-right:none;border-bottom:1px solid var(--line2)}
+  nav{display:none}
+}
+@media print{body{background:#fff;color:#111}body::before{display:none}header{position:static}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<header><div class="hd">
+  <div class="logo">一句话生成 · 规划书<span>V3 · MICABASE 基座版</span></div>
+  <nav>
+    <a href="#s0">变了什么</a><a href="#s1">底座盘点</a><a href="#s2">移植清单</a><a href="#s3">架构</a>
+    <a href="#s4">引擎策略</a><a href="#s5">设置页</a><a href="#s6">主链路</a><a href="#s7">分发实测</a>
+    <a href="#s8">服务端</a><a href="#s8b">分享海报</a><a href="#s9">排期</a><a href="#s10">风险</a><a href="#s11">物料</a>
+  </nav>
+</div></header>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="eyebrow">V 3　/　以 M i c a B a s e 为 基 座 　·　T a u r i ＋ R u s t ＋ C l a u d e   C o d e   C L I</div>
+  <h1 class="big">不再从零起壳，<br><em>把已经跑通的三件事搬到一个基座上</em></h1>
+  <p class="lead">
+    V3 的根本变化是<strong>换了地基</strong>：不再新建工程，而是以 <code>youxi/</code> 里的
+    <strong>MicaBase（米糕基座）</strong>——一个已经成型的纯 Rust 任务网关——作为底座，
+    把 <code>polaris-app</code> 里三块久经实战的能力整体移植进「设置」：
+    <strong>环境医生</strong>、<strong>cc-switch 供应商切换</strong>、<strong>技能库</strong>。
+    形态仍是 Tauri 桌面端，后端 Rust 调 Claude Code CLI。
+  </p>
+  <p class="lead" style="margin-top:18px">
+    <strong style="color:var(--gr)">本版不止是规划——服务端已经写完并部署上线了。</strong>
+    大厅、点击统计、分享海报、二维码、姓名与专属网址，都在 <code>r2t-9f3x.llmwiki.cloud</code> 上跑着，
+    带实测结果（见第 08、08B 节）。桌面端按契约接上就能同步大厅数据。
+  </p>
+  <div class="meta">
+    <span class="pill pu">基座：MicaBase / crates/mica</span>
+    <span class="pill">前端：Tauri 2 + Vue</span>
+    <span class="pill cy">后端：Rust → Claude Code CLI</span>
+    <span class="pill am">生图：MiniMax API</span>
+    <span class="pill gr">服务端：已上线并实测</span>
+    <span class="pill gr">海报二维码：真解码验证 127/127</span>
+    <span class="pill rd">8/17 内测　8/18 展示</span>
+  </div>
+</div>
+
+<!-- S0 -->
+<section id="s0">
+  <div class="sn">S E C T I O N　0 0</div>
+  <h2>V3 相对 V2，<span class="zh">变了三件事</span></h2>
+  <p class="sdesc">V2 讨论的是「本地生成 + 云端上线」的产品形态，那部分结论继续有效。V3 换的是实现路径。</p>
+  <div class="grid g3">
+    <div class="card pu"><div class="k">变 化 一 　 地 基</div><h5>不再新起工程，落在 MicaBase 上</h5>
+      <p class="small">V2 写的是「复用你们已有的 Rust 客户端底座」，当时没具体到哪个。现在明确了：
+      <strong><code>youxi/</code> 就是 MicaBase</strong>，六模块分层已经成型、边界有脚本强制、
+      SSE 流式与任务生命周期都跑通了，<code>apps/desktop</code> 正好是留白的 Tauri 壳。</p></div>
+    <div class="card" style="border-color:rgba(232,150,90,.28);background:linear-gradient(180deg,rgba(232,150,90,.07),rgba(12,19,30,.7))">
+      <div class="k">变 化 二 　 移 植</div><h5>三块能力整体搬过来，不重写</h5>
+      <p class="small">polaris-app 里的环境医生、cc-switch 供应商切换、技能库，
+      加起来<strong>后端约 450 KB、前端约 180 KB</strong> 的实战代码。
+      这些不是"参考实现"，是已经处理过安装冲突、代理串台、PATH 污染的东西。<strong>重写等于把坑重踩一遍。</strong></p></div>
+    <div class="card gr"><div class="k">变 化 三 　 引 擎</div><h5>去掉强制分流，生图交给 MiniMax</h5>
+      <p class="small">MicaBase 现在强制「长文本永不落 codex」。V3 按你的决定<strong>取消这套强制路由</strong>：
+      文本走 Claude Code CLI，生图直接调 MiniMax API（少一个必装依赖），
+      <strong>codex CLI 保留为可选后端引擎</strong>，需要时能顶上。</p></div>
+  </div>
+</section>
+
+<!-- S1 底座盘点 -->
+<section id="s1">
+  <div class="sn">S E C T I O N　0 1</div>
+  <h2>底座盘点：<span class="zh">MicaBase 现在有什么</span></h2>
+  <p class="sdesc">以下全部来自对 <code>D:\polaris\个人网站创作平台\youxi</code> 的实际通读，不是设想。</p>
+
+  <h3>模块分层（<code>check-boundaries.ps1</code> 编译期强制）</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:15%">模块</th><th class="c" style="width:9%">体量</th><th style="width:40%">职责</th><th>V3 里怎么用</th></tr></thead>
+    <tbody>
+      <tr><td><code>core</code></td><td class="c m">9.2 KB</td><td>错误类型、EngineId、ResolvedRuntime 等基础定义</td><td>原样保留，新增类型往这里加</td></tr>
+      <tr><td><code>runtime</code></td><td class="c m">21 KB</td><td>db / job / paths / registry / atomic —— 落库与任务持久化</td><td>原样保留，作品与生成任务复用这套</td></tr>
+      <tr><td><code>provider</code></td><td class="c m">16.6 KB</td><td>store / presets / probe / binding —— <strong>网关自己调 API 用哪家</strong></td><td class="c"><span class="tag t-p1">要与移植件区分</span></td></tr>
+      <tr><td><code>engine</code></td><td class="c m">67.6 KB</td><td>cli.rs(26.6) 起 CLI 子进程、scheduler.rs(27.2) 调度与路由、api.rs、batcher、bus</td><td><strong>主战场</strong>，改路由策略、接生成流水线</td></tr>
+      <tr><td><code>doctor</code></td><td class="c m">6.9 KB</td><td>三级解析 <code>env → runtimes/ → PATH</code>，<code>checkup()</code> 出组件报告</td><td class="c"><span class="tag t-port">被移植件替换</span></td></tr>
+      <tr><td><code>server</code></td><td class="c m">15.3 KB</td><td>axum 路由 + SSE（<code>Last-Event-ID</code> 续传）</td><td>保留，桌面端与它并行存在</td></tr>
+      <tr><td><code>apps/desktop</code></td><td class="c m">占位</td><td>只有一份 README，写清了 Tauri 落地的 4 步</td><td class="c"><span class="tag t-new">本期填实</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">依赖方向被脚本钉死：<code>server → engine → provider → runtime → core</code>，<code>doctor → runtime → core</code>。
+  移植时不能破坏这个方向，否则 <code>check-boundaries</code> 直接拦下。</p>
+
+  <h3>已经跑通的 API 面</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:10%">方法</th><th style="width:26%">路径</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="m">POST</td><td class="m">/v1/tasks</td><td>提交任务（202；队列满 429 + Retry-After）</td></tr>
+      <tr><td class="m">GET</td><td class="m">/v1/tasks/{id}/events</td><td><strong>SSE 事件流，支持 Last-Event-ID 续传</strong> —— 生成过程演出直接吃这个</td></tr>
+      <tr><td class="m">POST</td><td class="m">/v1/tasks/{id}/cancel · pause · resume</td><td>实时控制，回执走 SSE</td></tr>
+      <tr><td class="m">PATCH</td><td class="m">/v1/tasks/{id}</td><td>排队中调参</td></tr>
+      <tr><td class="m">GET</td><td class="m">/healthz · /metrics</td><td>健康检查 + Prometheus 文本指标</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note good">
+    <span class="t">apps/desktop 的 README 已经把路铺好了</span>
+    <p>它明确写了四条：① <code>cargo tauri init</code>（Tauri 2），本 crate 加入 workspace；
+    ② 依赖 <code>mica</code> 但<strong>不开 <code>server</code> feature</strong>（tauri 与 axum 互不渗透，由编译闸拦截）；
+    ③ <strong>Tauri command 与 REST 同名同参</strong>，内部走同一条 ctrl 通道；
+    ④ 事件出口接 <code>task:stream</code> emit，<strong>payload 与 SSE 同构</strong>。
+    这意味着桌面端和服务器端天然共用一套业务逻辑，前端只换传输层——这条设计要严格守住。</p>
+  </div>
+</section>
+
+<!-- S2 移植清单 -->
+<section id="s2">
+  <div class="sn">S E C T I O N　0 2</div>
+  <h2>移植清单：<span class="zh">从 polaris-app 搬什么</span></h2>
+  <p class="sdesc">
+    三块能力，来源都是 <code>polaris-app/src-tauri/crates/polaris-kernel/</code> 与 <code>polaris-app/src/components/</code>。
+    下面的体量数字是实际统计的。
+  </p>
+
+  <h3>① 环境医生 —— 后端 146 KB ＋ 前端 40 KB</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:17%">文件</th><th class="c" style="width:9%">体量</th><th>做什么 · 为什么值钱</th></tr></thead>
+    <tbody>
+      <tr><td class="m">install.rs</td><td class="c m">51.7 KB</td><td>一键安装 claude / node / pwsh / uv，<strong>走国内 npmmirror 与 R2 多源</strong>，带流式日志与取消。官方脚本只作境外兜底。</td></tr>
+      <tr><td class="m">verify.rs</td><td class="c m">49.8 KB</td><td><strong>深度校验</strong>：检测安装冲突（本机是否有多份 Claude Code）＋ 真发一次最小请求实测能否跑通。这是"真正可用"的唯一硬证据。</td></tr>
+      <tr><td class="m">probe.rs</td><td class="c m">27.9 KB</td><td><code>resolve_claude_exe()</code>、<code>harden_child_env()</code>、<code>merge_no_proxy()</code> —— 子进程环境加固与代理处理。</td></tr>
+      <tr><td class="m">path.rs</td><td class="c m">19.2 KB</td><td><code>prime_path_for_claude()</code>、PATH 修复。解决"装了但不在 PATH"。</td></tr>
+      <tr><td class="m">update.rs</td><td class="c m">9.5 KB</td><td>Claude Code 版本检查 + 一键更新（国内镜像）。</td></tr>
+      <tr><td class="m">bundled.rs</td><td class="c m">8.4 KB</td><td><strong>随安装包内置 Python / Git Bash / uv</strong> —— 免安装、免管理员。干净 Windows 也能直接跑。</td></tr>
+      <tr><td class="m">check.rs / types.rs</td><td class="c m">15.7 KB</td><td><code>env_check() → EnvReport</code>、各类报告结构体。</td></tr>
+      <tr><td class="m">autopilot.rs</td><td class="c m">7.8 KB</td><td>后台自动补齐环境。</td></tr>
+      <tr><td class="m">uv_cache.rs</td><td class="c m">3.2 KB</td><td>uv 缓存占用查看与一键清理（放任会涨到数 GB）。</td></tr>
+      <tr><td class="m">EnvDoctor.vue</td><td class="c m">40 KB</td><td>UI：<strong>gate 模式</strong>（首次启动拦截，检测通过后再不打扰）与<strong>panel 模式</strong>（侧栏随时复检）双形态。</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note warn">
+    <span class="t">与 MicaBase 现有 doctor 的关系</span>
+    <p>MicaBase 自带的 <code>doctor/mod.rs</code> 只有 6.9 KB，做的是三级解析 + 组件体检，
+    <strong>能力是移植件的真子集</strong>。处理方式：保留 MicaBase 的 <code>resolve()</code> 作为引擎侧的运行时解析（engine 依赖它），
+    把安装 / 校验 / 更新 / 内置运行时这些<strong>增量能力挂上去</strong>，不要两套并存互相打架。</p>
+  </div>
+
+  <h3>② cc-switch 供应商切换 —— 后端 192 KB ＋ 前端 91 KB</h3>
+  <p>这就是你说的「API 切换里面的」那套。<code>provider/mod.rs</code> 头部原话：<strong>「剥离自 cc-switch 的 Claude 供应商能力」</strong>。</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:17%">文件</th><th class="c" style="width:9%">体量</th><th>做什么</th></tr></thead>
+    <tbody>
+      <tr><td class="m">store.rs</td><td class="c m">97.9 KB</td><td>供应商增删改查、切换、路由目标解析。每个供应商携带一份完整 <code>settings_config</code>。</td></tr>
+      <tr><td class="m">usage.rs</td><td class="c m">20.9 KB</td><td><strong>用量看板</strong>：读 <code>~/.claude/projects/**/*.jsonl</code>（ccusage 思路）聚合 token，按内置定价表估成本，今日/周/月/年 + 14 天趋势。<strong>零额外网络、零额外依赖。</strong></td></tr>
+      <tr><td class="m">claude_login.rs</td><td class="c m">20.3 KB</td><td>Claude 官方登录流程。</td></tr>
+      <tr><td class="m">codex_login.rs</td><td class="c m">19.2 KB</td><td>Codex 授权委托官方 <code>codex</code> CLI。</td></tr>
+      <tr><td class="m">image_store.rs</td><td class="c m">18.9 KB</td><td><strong>生图供应商坞，独立于聊天那张表</strong>（文件头明确写了别合并）。V3 的 MiniMax 生图正好落这里。</td></tr>
+      <tr><td class="m">oauth_loopback.rs</td><td class="c m">10.4 KB</td><td>本地回环 OAuth 回调。</td></tr>
+      <tr><td class="m">ProviderDock.vue<br>AddProviderModal.vue</td><td class="c m">66.1 KB<br>24.7 KB</td><td>供应商坞主界面 + 新增供应商弹窗。</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note bad">
+    <span class="t">这套里最值钱的一条设计：隔离 / 联动两档</span>
+    <p>默认是<strong>隔离</strong>：切换供应商<strong>只写本进程 env</strong>，spawn 出来的 <code>claude</code> 子进程继承它
+    （实测进程 env 优先于 <code>settings.json</code>），<strong>用户自己终端里的 <code>claude</code> 完全不受影响</strong>。
+    这根治了「应用里切到 MiniMax，把外部 CLI 一起带跑」的串台事故。<br><br>
+    <strong>联动</strong>档才额外把配置合并写进 <code>~/.claude/settings.json</code>（只接管自己管的键，首次改动前留 <code>.polaris.bak</code> 备份）。<br><br>
+    这是那种<strong>不踩一次绝对想不到要做</strong>的设计。V3 必须原样继承，别简化成"直接改 settings.json"。</p>
+  </div>
+
+  <div class="note warn">
+    <span class="t">⚠ 一处必须先定夺的冲突</span>
+    <p>MicaBase 有自己的 <code>provider/</code>（16.6 KB），polaris-kernel 也有一套（192 KB），<strong>两者语义不同不能覆盖</strong>：
+    <br>· MicaBase 的：<strong>网关自己发 HTTP 调 API 时</strong>用哪家供应商
+    <br>· polaris-kernel 的：<strong>本机 claude CLI 子进程</strong>用哪家供应商跑
+    <br>建议改名区分——前者留 <code>provider</code>，后者进来叫 <code>cc_provider</code>（或 <code>cli_provider</code>）。
+    <strong>盲目合并会出非常难查的串台 bug。</strong></p>
+  </div>
+
+  <h3>③ 技能库 —— 后端 110 KB ＋ 前端 23.5 KB</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:17%">文件</th><th class="c" style="width:9%">体量</th><th>做什么</th></tr></thead>
+    <tbody>
+      <tr><td class="m">catalog.rs</td><td class="c m">30.5 KB</td><td>技能目录与检索。</td></tr>
+      <tr><td class="m">templates.rs</td><td class="c m">20.4 KB</td><td>内置技能模板。</td></tr>
+      <tr><td class="m">seed.rs</td><td class="c m">18 KB</td><td>首次启动种入默认技能。</td></tr>
+      <tr><td class="m">intent.rs</td><td class="c m">17.6 KB</td><td>意图识别 → 自动挑技能。</td></tr>
+      <tr><td class="m">commands.rs / store.rs</td><td class="c m">22.7 KB</td><td>CRUD 与持久化。</td></tr>
+      <tr><td class="m">SkillCenter.vue<br>stores/skills.ts</td><td class="c m">23.5 KB<br>2.9 KB</td><td>技能中心 UI；启停状态、默认技能只种一次（用户关掉的不会被重新打开）。</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">导入来源已支持：本地 <code>.md</code> / <code>.zip</code> / 目录、远程 URL、<strong>git 仓库整套技能合集</strong>
+  （用系统自带 git/curl/tar，不新增 Rust 依赖）。无 frontmatter 的 SKILL.md 降级处理，兼容 Anthropic / obra 风格。</p>
+
+  <h3>移植总量</h3>
+  <div class="grid g4">
+    <div class="card" style="border-color:rgba(232,150,90,.26)"><div class="num" style="color:var(--or)">448 KB</div><div class="k">后 端 R u s t</div><p class="small">doctor 146 + provider 192 + skills 110</p></div>
+    <div class="card cy"><div class="num">155 KB</div><div class="k">前 端 V u e</div><p class="small">EnvDoctor 40 + ProviderDock 66 + AddProvider 25 + SkillCenter 23.5</p></div>
+    <div class="card gr"><div class="num">3</div><div class="k">设 置 页 T a b</div><p class="small">环境 · API 供应商 · 技能</p></div>
+    <div class="card am"><div class="num">1</div><div class="k">须 先 定 夺</div><p class="small">provider 命名冲突</p></div>
+  </div>
+
+  <div class="note">
+    <span class="t">这决定了前端必须用 Vue</span>
+    <p>要搬的 155 KB 前端全是 <code>.vue</code> 单文件组件。换任何别的框架，这部分等于全部重写，
+    而它们承载的正是最琐碎、最难一次写对的交互（安装流式日志、冲突提示、供应商表单校验）。
+    <strong>建议 V3 前端直接定 Vue 3 + Tauri 2</strong>，与 polaris-app 保持一致，移植成本最低。</p>
+  </div>
+</section>
+
+<!-- S3 架构 -->
+<section id="s3">
+  <div class="sn">S E C T I O N　0 3</div>
+  <h2>架构：<span class="zh">四层</span></h2>
+  <div class="legend">
+    <span><i style="background:rgba(106,211,154,.5)"></i>MicaBase 原有，保留</span>
+    <span><i style="background:rgba(232,150,90,.55)"></i>从 polaris-app 移植</span>
+    <span><i style="background:rgba(102,217,232,.5)"></i>本期新建</span>
+  </div>
+
+  <div class="arch">
+    <div class="layer l-ui">
+      <div class="lb">L A Y E R　1<b>Tauri 桌面壳</b><i>apps/desktop · Vue 3</i></div>
+      <div class="lc">
+        <div class="box new"><b>生成工作台</b><span>对话提需求 → 生成演出 → 本地预览 → 一键上线</span></div>
+        <div class="box port"><b>设置 · 环境</b><span>EnvDoctor.vue，gate + panel 双形态</span></div>
+        <div class="box port"><b>设置 · API 供应商</b><span>ProviderDock + AddProviderModal</span></div>
+        <div class="box port"><b>设置 · 技能</b><span>SkillCenter + skills store</span></div>
+      </div>
+    </div>
+    <div class="arrow">↓ 　 T a u r i   c o m m a n d（与 REST 同名同参）·  事件走 task:stream 　 ↓</div>
+    <div class="layer l-core">
+      <div class="lb">L A Y E R　2<b>MicaBase 核心</b><i>crates/mica</i></div>
+      <div class="lc">
+        <div class="box keep"><b>engine</b><span>cli.rs 起子进程 · scheduler 调度 · bus 事件总线</span></div>
+        <div class="box keep"><b>runtime</b><span>db / job / paths / registry —— 任务与作品落库</span></div>
+        <div class="box port"><b>doctor（增强）</b><span>保留 resolve()，挂上 install / verify / update / bundled</span></div>
+        <div class="box port"><b>cc_provider</b><span>移植件，管 CLI 子进程用哪家；与原 provider 并存</span></div>
+        <div class="box port"><b>skills</b><span>catalog / intent / seed / templates</span></div>
+      </div>
+    </div>
+    <div class="arrow">↓ 　 R u s t   s p a w n   子 进 程 　 ↓</div>
+    <div class="layer l-run">
+      <div class="lb">L A Y E R　3<b>本机运行时</b><i>子进程 · 本地服务</i></div>
+      <div class="lc">
+        <div class="box keep"><b>Claude Code CLI</b><span>文本与生成主通道，stream-json 流式回传</span></div>
+        <div class="box new"><b>MiniMax API</b><span>生图，直调 HTTP，不依赖本机 CLI</span></div>
+        <div class="box keep"><b>Codex CLI（可选）</b><span>保留为备用后端引擎，不装不影响主链路</span></div>
+        <div class="box new"><b>本地预览服务</b><span>127.0.0.1 静态服务，产物秒开、断网可演</span></div>
+      </div>
+    </div>
+    <div class="arrow">↓ 　 生 成 完 成 后 推 送 产 物 　 ↓</div>
+    <div class="layer l-cloud">
+      <div class="lb">L A Y E R　4<b>云端</b><i>已实测跑通</i></div>
+      <div class="lc">
+        <div class="box gr" style="border-color:rgba(106,211,154,.28)"><b>Cloudflare Worker + R2</b><span>子路径分发，运行时 PUT 即上线，无需重部署</span></div>
+        <div class="box new"><b>海外服务器</b><span>邮箱登录 · 个人中心 · 大厅 · 点击统计</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note good">
+    <span class="t">一个可以直接抄的现成方案</span>
+    <p>polaris-kernel 已经解决了「同一份 Rust 代码既要跑 Tauri 桌面、又要跑 headless 服务」的问题——
+    用 <code>#[cfg(feature = "desktop")] use tauri::AppHandle</code> 搭配自建的 <code>crate::host::AppHandle</code> 影子类型。
+    MicaBase 恰好有一模一样的双形态需求（<code>mica-server</code> ＋ <code>apps/desktop</code>），
+    <strong>这个模式随移植一起带过来，省掉一轮设计。</strong></p>
+  </div>
+</section>
+
+<!-- S4 引擎策略 -->
+<section id="s4">
+  <div class="sn">S E C T I O N　0 4</div>
+  <h2>引擎策略：<span class="zh">按你的决定改</span></h2>
+  <p class="sdesc">MicaBase 现在按 kind 强制路由，且「长文本永不落 codex」。V3 取消强制，改成下面这样。</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:13%">任务类型</th><th style="width:20%">V3 走哪</th><th style="width:26%">原 MicaBase 行为</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>文本 / 生成</strong></td><td><strong>Claude Code CLI</strong></td><td>text 可走 api / claude，codex 被强制改路</td>
+        <td>主通道。供应商由 cc-switch 决定（官方 / MiniMax / 中转），<strong>切换只影响本应用</strong>。</td></tr>
+      <tr><td><strong>生图</strong></td><td><strong>MiniMax API 直调</strong></td><td>强制改路 codex（内置 GPT-image）</td>
+        <td class="c"><span class="tag t-new">本期改动</span> 少一个必装依赖。落在移植过来的 <code>image_store.rs</code> 生图供应商坞里。</td></tr>
+      <tr><td><strong>工具循环</strong></td><td>Claude Code CLI，<br>codex CLI 可选</td><td>三者皆可</td>
+        <td>codex <strong>保留为可选后端引擎</strong>，装了就能选，没装不影响主链路。</td></tr>
+      <tr><td class="c" colspan="2"><strong>强制 rerouted 机制</strong></td><td>提交时按 kind 强制改路</td>
+        <td class="c"><span class="tag t-cut">取消</span> 改为「配置优先 + 不可用时降级」，响应里保留 <code>engine</code> 字段说明实际落到哪。</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note warn">
+    <span class="t">取消强制路由要补一道保护</span>
+    <p>原来那条「长文本永不落 codex」是有道理的——它防的是把昂贵/不合适的任务打到错误引擎上。
+    取消之后要用<strong>预算闸</strong>补位：单次生成的 Token 上限、单人频率、券余额（见 V2 第 07 节的四道闸）。
+    <strong>路由不再兜底，预算就必须兜底。</strong></p>
+  </div>
+</section>
+
+<!-- S5 设置页 -->
+<section id="s5">
+  <div class="sn">S E C T I O N　0 5</div>
+  <h2>设置页：<span class="zh">三个 Tab 长这样</span></h2>
+  <p class="sdesc">你要求的三样东西全部落在这里。下面是结构示意。</p>
+
+  <div class="mock">
+    <div class="mbar">
+      <span class="mtab on">环境</span><span class="mtab">API 供应商</span><span class="mtab">技能</span><span class="mtab">关于</span>
+    </div>
+    <div class="mbody">
+      <div class="row2"><span class="dot" style="background:var(--gr)"></span><span class="nm">Claude Code</span>
+        <span class="pt">C:\Users\…\npm\claude.cmd　v2.x</span><span class="st">已就绪</span><span class="btn">检查更新</span></div>
+      <div class="row2"><span class="dot" style="background:var(--gr)"></span><span class="nm">Node.js</span>
+        <span class="pt">C:\Program Files\nodejs\node.exe　v24</span><span class="st">已就绪</span></div>
+      <div class="row2"><span class="dot" style="background:var(--cy)"></span><span class="nm">Python</span>
+        <span class="pt">随应用内置 · 免安装免管理员</span><span class="st">已内置</span></div>
+      <div class="row2"><span class="dot" style="background:var(--cy)"></span><span class="nm">Git Bash</span>
+        <span class="pt">随应用内置</span><span class="st">已内置</span></div>
+      <div class="row2"><span class="dot" style="background:var(--tx3)"></span><span class="nm">uv</span>
+        <span class="pt">未安装（可选加速器，不影响使用）</span><span class="st">可选</span><span class="btn">可选安装</span></div>
+      <div class="row2" style="border-color:rgba(240,208,138,.3);background:rgba(240,208,138,.05)">
+        <span class="dot" style="background:var(--am)"></span><span class="nm">深度检测</span>
+        <span class="pt">检测安装冲突 · 真发一次最小请求验证能否跑通</span><span class="btn">开始检测</span></div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card port" style="border-color:rgba(232,150,90,.26)"><div class="k">T A B  1</div><h5>环境</h5>
+      <p class="small">组件状态一览 + 一键安装/更新（国内镜像）+ <strong>深度检测</strong>（冲突 + 实跑）+ uv 缓存清理。
+      首次启动走 <strong>gate 模式</strong>拦一次，通过后再不打扰；之后随时从这里复检。</p></div>
+    <div class="card port" style="border-color:rgba(232,150,90,.26)"><div class="k">T A B  2</div><h5>API 供应商（cc-switch）</h5>
+      <p class="small">供应商列表 + 一键切换 + 新增（表单校验）+ <strong>隔离/联动开关</strong> + <strong>用量看板</strong>
+      （今日/周/月/年 + 14 天趋势 + 成本估算）。生图供应商单列一块。</p></div>
+    <div class="card port" style="border-color:rgba(232,150,90,.26)"><div class="k">T A B  3</div><h5>技能</h5>
+      <p class="small">我的技能 / 市场精选双 Tab，启停开关，导入（本地 md/zip/目录、URL、<strong>git 仓库整套</strong>）。
+      默认技能只种一次，用户关掉的不会被重新打开。</p></div>
+  </div>
+
+  <div class="note">
+    <span class="t">供应商切换那个开关，UI 上要说人话</span>
+    <p>「隔离 / 联动」是工程语言。界面上建议写成：
+    <br><strong>· 只影响本应用</strong>（默认）—— 你在终端里自己用的 claude 不受影响
+    <br><strong>· 同时改全局</strong> —— 终端里的 claude 也跟着切
+    <br>并在切到「同时改全局」时提示会备份 <code>~/.claude/settings.json</code>。</p>
+  </div>
+</section>
+
+<!-- S6 主链路 -->
+<section id="s6">
+  <div class="sn">S E C T I O N　0 6</div>
+  <h2>主链路：<span class="zh">跑在 MicaBase 上</span></h2>
+  <p class="sdesc">V2 定的产品流程不变，这里说的是它怎么落到 MicaBase 的任务模型上。</p>
+  <div class="flow">
+    <div class="fnode"><div class="i">① 本地</div><div class="t">对话提需求</div><div class="d">AI 追问 4–6 轮，产出结构化需求单</div></div>
+    <div class="fnode"><div class="i">② 提交</div><div class="t">POST /v1/tasks</div><div class="d">需求单入队，返回 task_id</div></div>
+    <div class="fnode"><div class="i">③ 执行</div><div class="t">engine 起 CLI 子进程</div><div class="d">cc_provider 决定用哪家；stream-json 流式回传</div></div>
+    <div class="fnode"><div class="i">④ 演出</div><div class="t">task:stream 事件</div><div class="d">与 SSE 同构，预览窗逐块刷新</div></div>
+    <div class="fnode"><div class="i">⑤ 交付</div><div class="t">本地秒开 + 推 R2</div><div class="d">127.0.0.1 打开，同时上线拿域名</div></div>
+  </div>
+  <div class="note good">
+    <span class="t">MicaBase 的三个现成能力刚好对上 V2 的三个硬需求</span>
+    <p><strong>· 十分钟不能干等</strong> → SSE 事件流 + <code>Last-Event-ID</code> 续传，分阶段吐产物天然支持，断线还能接上。
+    <br><strong>· 用户要能反悔</strong> → <code>cancel / pause / resume</code> 已经实现，回执走 SSE。
+    <br><strong>· 排队要可控</strong> → 队列满返回 <code>429 + Retry-After</code>，现场多台机器排号有据可依。
+    <br>这三条 V2 里都是"需要新做"，现在都是"已经有了"。</p>
+  </div>
+</section>
+
+<!-- S7 分发实测 -->
+<section id="s7">
+  <div class="sn">S E C T I O N　0 7</div>
+  <h2>分发层：<span class="zh">已在你的 Cloudflare 上实测跑通</span></h2>
+  <p class="sdesc">
+    2026-08-13 实测，域名 <code>r2t-9f3x.llmwiki.cloud</code>，Worker <code>r2-sites</code> + R2 桶 <code>user-sites</code>。
+    代码在 <code>D:\polaris\个人网站创作平台\r2-sites\</code>。
+  </p>
+  <div class="grid g4">
+    <div class="card gr"><div class="num">8/8</div><div class="k">功 能 验 收</div><p class="small">目录补 index、站点级 404 回退、路径穿越拦截、指纹资源 immutable、HEAD——全过</p></div>
+    <div class="card rd"><div class="num">10/10</div><div class="k">缓 存 命 中 仍 调 W o r k e r</div><p class="small">9 次 HIT 照样跑了 Worker，<strong>请求额度照扣</strong></p></div>
+    <div class="card"><div class="num">0–1<span style="font-size:16px">ms</span></div><div class="k">C P U 实 测</div><p class="small">缓存命中确实几乎不吃 CPU</p></div>
+    <div class="card am"><div class="num">$5</div><div class="k">建 议 直 接 上 付 费</div><p class="small">免费版 10 万/天兜不住现场量</p></div>
+  </div>
+  <div class="note bad">
+    <span class="t">两个已经踩过的坑，写进 V3 免得再踩</span>
+    <p><strong>① <code>wrangler r2 object put</code> 默认写本地。</strong>wrangler 4.90 默认 <code>--local</code>，
+    写进 <code>.wrangler\state\v3\r2\</code>。最阴的是 <code>get</code> 也读本地——put 成功、get 读回来内容正确，
+    但线上绑定看到的是空桶。<strong>所有 R2 命令必须带 <code>--remote</code>。</strong>
+    做「生成完自动上传」时一定会再遇到。<br><br>
+    <strong>② 选 R2 不是为了省额度，是为了部署模型。</strong>Workers Static Assets 的请求其实免费且不调用 Worker，
+    但资源随 Worker 版本一起打包——每生成一个站就要重部署一次。R2 是运行时 PUT，下一秒可访问，不碰 Worker。
+    <strong>这才是唯一决定性的理由。</strong></p>
+  </div>
+  <div class="note warn">
+    <span class="t">还没验的那一项，是最关键的</span>
+    <p>昨天全程走代理，<strong>国内直连没测到</strong>。而「分配域名 + 国内可访问」正是要承诺给用户的核心价值。
+    必须用现场同款网络实测：直接打开 / 微信内打开 / 手机 4G，三种都测并记录首屏耗时。</p>
+  </div>
+</section>
+
+<!-- S8 服务端 -->
+<section id="s8">
+  <div class="sn">S E C T I O N　0 8</div>
+  <h2>服务端：<span class="zh">已经建好并跑通</span></h2>
+  <p class="sdesc">
+    这一节不是设计稿，是<strong>已经部署在 <code>r2t-9f3x.llmwiki.cloud</code> 上、当天实测过的东西</strong>。
+    桌面端只要按契约调，大厅数据就是同步的——两边共用同一份 D1。
+  </p>
+
+  <h3>数据模型</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:14%">表</th><th style="width:30%">字段</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>works</code></td>
+        <td class="m">id / slug / creator / title / tagline / cover / poster / accent / hits / status / created_at</td>
+        <td><code>creator</code> 就是<strong>开始创作前输入的姓名</strong>，非空且 ≤24 字，服务端强校验。
+        <code>accent</code> 由标题哈希定档，保证同一作品每次渲染配色一致。
+        <code>status</code> 用于内容安全一键下架。</td></tr>
+      <tr><td><code>hits</code></td><td class="m">work_id / visitor / at（联合主键）</td>
+        <td>点击去重。<code>visitor</code> 是 IP+UA 的哈希，<strong>不落原始信息</strong>。</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>接口契约（桌面端按这个接）</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:9%">方法</th><th style="width:24%">路径</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="m">POST</td><td class="m">/api/works</td><td>发布作品。需 <code>x-publish-token</code>。返回 id / slug / siteUrl / <strong>posterUrl</strong> / hallUrl</td></tr>
+      <tr><td class="m">PATCH</td><td class="m">/api/works/&lt;id&gt;</td><td>回填封面截图、海报 PNG，或改 status（下架）</td></tr>
+      <tr><td class="m">GET</td><td class="m">/api/works?sort=hot|new</td><td>大厅列表，带热度值</td></tr>
+      <tr><td class="m">POST</td><td class="m">/api/works/&lt;id&gt;/hit</td><td>记一次点击（30 分钟同访客去重）</td></tr>
+      <tr><td class="m">GET</td><td class="m">/p/&lt;id&gt; · /p/&lt;id&gt;.svg</td><td>分享海报页 / 自包含海报 SVG</td></tr>
+      <tr><td class="m">GET</td><td class="m">/qr?d=&lt;url&gt;</td><td>二维码 SVG（Worker 内零依赖实现）</td></tr>
+      <tr><td class="m">GET</td><td class="m">/u/&lt;slug&gt;/…</td><td>作品站静态分发；<strong>访问页面时自动记一次点击</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>实测结果</h3>
+  <div class="grid g4">
+    <div class="card gr"><div class="num">✓</div><div class="k">姓 名 强 校 验</div><p class="small">不传 creator 直接 400；令牌错误 401。<strong>没填姓名就发不出作品</strong></p></div>
+    <div class="card gr"><div class="num">1→4</div><div class="k">点 击 语 义</div><p class="small">3 个不同访客访问站点，点击数从 1 涨到 4；同访客连打 5 次只计 1 次</p></div>
+    <div class="card gr"><div class="num">0</div><div class="k">静 态 资 源 误 计</div><p class="small">请求 css 不计数，只有页面导航才算</p></div>
+    <div class="card"><div class="num">8.7<span style="font-size:15px">KB</span></div><div class="k">大 厅 首 屏</div><p class="small">服务端直出，无前端框架，无水合</p></div>
+  </div>
+
+  <h3>大厅：六条硬规则已落到代码里</h3>
+  <p>不是写在文档里靠自觉，是写死在 <code>hall.js</code> 的 CSS 与模板里：</p>
+  <ul>
+    <li><strong>① 封面统一 16:10 居中裁切</strong> —— <code>aspect-ratio:16/10</code> + <code>object-fit:cover</code>，作品站再花哨，在大厅里也只是一张标准卡；</li>
+    <li><strong>② 信息固定三行</strong> —— 标题单行省略（不换行、不缩字号）/ 头像+姓名 / 点击数；</li>
+    <li><strong>③ 只有两种尺寸</strong> —— Top3 大卡（16:9）+ 其余同尺寸小卡，没有参差瀑布流；</li>
+    <li><strong>④ 卡片样式不被内容影响</strong> —— 大厅有自己的设计语言，不继承作品的；</li>
+    <li><strong>⑤ 先审后展</strong> —— <code>status != 'public'</code> 的作品不出现在任何列表；</li>
+    <li><strong>⑥ 永不空榜</strong> —— 没有数据时出引导态而不是空白，并预埋样例作品打底。</li>
+  </ul>
+  <p class="small">排序 <code>点击数 / (小时数+2)^1.2</code>，最热 / 最新双 Tab。没有真实封面时用<strong>确定性生成的版式示意图</strong>
+  （导航条 / 标题块 / 正文行 / 卡片栅格），看上去就是"一个网页"，而不是一坨占位灰块。</p>
+
+  <h3>姓名：开始创作前的第一道门</h3>
+  <p>现场每个人<strong>动手之前先填自己的姓名</strong>，这个姓名有三个去处：大厅卡片的署名、分享海报的创作者位、以及他的专属网址。</p>
+  <div class="flow">
+    <div class="fnode"><div class="i">01</div><div class="t">填姓名</div><div class="d">桌面端 <code>require_name()</code> 未设置就不让开始</div></div>
+    <div class="fnode"><div class="i">02</div><div class="t">服务端复校</div><div class="d">非空、≤24 字，不合规直接 400</div></div>
+    <div class="fnode"><div class="i">03</div><div class="t">转专属网址</div><div class="d">中文自动转拼音，成为 <code>/u/&lt;拼音&gt;-&lt;短码&gt;/</code></div></div>
+    <div class="fnode"><div class="i">04</div><div class="t">落到三处</div><div class="d">大厅署名 · 海报创作者位 · 网址</div></div>
+  </div>
+
+  <div class="note good">
+    <span class="t">中文姓名要能变成像样的网址</span>
+    <p>第一版实现里「张三」生成的 slug 是 <code>w-tfrx9</code> —— 一串没法念、没法发给别人的乱码，
+    而我们对每个人承诺的是<strong>「专属网址」</strong>。这等于承诺没兑现。<br>
+    改成内置一张紧凑的汉字→拼音表（覆盖百家姓与人名常用字，Worker 里零依赖）后，实测结果：</p>
+    <div class="tw" style="margin-top:12px"><table style="min-width:0">
+      <tbody>
+        <tr><td style="width:22%">张三</td><td class="m">zhangsan-1dy4s</td><td style="width:22%">欧阳修</td><td class="m">ouyangxiu-3yl0g</td></tr>
+        <tr><td>李小明</td><td class="m">lixiaoming-du05m</td><td>Anna 李</td><td class="m">anna-li-nosc1</td></tr>
+        <tr><td>王小美</td><td class="m">wangxiaomei-1yc32</td><td colspan="2" class="small">复姓、中英混合都正确；尾部 5 位短码防同名冲突</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="note warn">
+    <span class="t">还没做的：个人中心与邮箱登录</span>
+    <p>本轮把「填姓名 → 发布 → 大厅 → 海报 → 点击统计」这条主线打通了，<strong>邮箱验证码登录与个人中心还没动</strong>。
+    现阶段发布靠桌面端持有的发布令牌（<code>x-publish-token</code>），够撑 8/18 现场；
+    个人中心（改资料 / 我的作品 / 我的网址 / 我的额度）建议排在内测之后。</p>
+  </div>
+
+  <h3>内容安全：下架必须是真的下架</h3>
+  <p>这块在联调中被抓出三个 bug，都已修复并实测确认。写在这里是因为<strong>第一个是现场硬伤</strong>：</p>
+  <div class="tw"><table>
+    <thead><tr><th style="width:24%">问题</th><th style="width:30%">原来的表现</th><th>修复</th></tr></thead>
+    <tbody>
+      <tr><td><strong>下架只是从列表消失</strong></td>
+        <td><code>status=hidden</code> 之后，作品站 <code>/u/&lt;slug&gt;/</code> 仍返回 200、
+        海报页与海报 SVG 也仍返回 200。<strong>真出内容事故时等于没有开关。</strong></td>
+        <td>页面导航<strong>在读缓存之前</strong>先查在架状态（放缓存之后判会被已缓存的页面绕过）；
+        海报与详情接口同样加判。运维通道带令牌仍可查看，方便复核。</td></tr>
+      <tr><td><strong>status 没有白名单</strong></td>
+        <td><code>{"status":"banana"}</code> 返回 ok，作品变成既非 public 也非 hidden 的幽灵态。</td>
+        <td>限定 <code>public|hidden</code>；<code>cover</code>/<code>poster</code> 也限定前缀与字符集。</td></tr>
+      <tr><td><strong>幽灵点击</strong></td>
+        <td>对不存在的作品记点击返回 <code>counted:true</code>，并在 hits 表留下孤儿行。</td>
+        <td>先确认作品存在且在架再记数。</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">实测：下架后站点 / 海报 / 海报 SVG / 公开详情接口<strong>四项全部 404</strong>，运维接口仍 200；恢复后全部回到 200。</p>
+
+  <div class="note bad">
+    <span class="t">运维上必须记住的一条</span>
+    <p>Worker 版本在各个 PoP 之间<strong>不是瞬时同步</strong>的。实测部署后几秒内，
+    同一个 URL 打到 TPE 机房拿到新版本、打到 SJC 还是旧版本，表现为"同样的请求一会儿成功一会儿 404"。
+    <strong>活动当天绝对不要在演示前几十秒部署</strong>；改完至少留 2 分钟再验。</p>
+  </div>
+
+  <h3>现场运维脚本</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:22%">脚本</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="m">smoke-live.ps1</td><td><strong>开场前 60 秒体检</strong>：健康检查、大厅、作品站、海报页、海报 SVG、二维码、错令牌拒绝，
+      共 8 项，每项打印 PASS/FAIL 与毫秒耗时。实测 8/8 通过，平均 985ms。</td></tr>
+      <tr><td class="m">hall-ops.ps1</td><td><code>-Action list / hide / show / stats / export</code>。
+      <strong>hide 是内容安全的应急开关</strong>，值守的人必须提前练一遍。export 出 CSV（带 BOM，Excel 直接开）。</td></tr>
+      <tr><td class="m">seed-hall.ps1</td><td>种入样例作品打底，兑现"永不空榜"。支持 <code>-DryRun</code>。</td></tr>
+      <tr><td class="m">verify-qr.mjs<br>verify-poster-qr.mjs</td><td>二维码两层验证，改动 QR 相关代码后必跑。</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- S8B 分享海报 -->
+<section id="s8b">
+  <div class="sn">S E C T I O N　0 8 B</div>
+  <h2>分享海报：<span class="zh">补上的最后一环</span></h2>
+  <p class="sdesc">
+    作品做完之后，用户要有一张能直接发出去的东西。这张海报是<strong>自动生成的</strong>，
+    不需要任何人做图，五个要素齐全。
+  </p>
+
+  <div class="grid g3">
+    <div class="card cy"><div class="k">① ② 　 人 与 作 品</div><h5>创作者姓名 + 主题 + 一句话亮点</h5>
+      <p class="small">姓名放在顶部显著位，<strong>字号按长度自适应</strong>（24 字上限时固定字号会冲出画布，实测踩过）。
+      标题最多 2 行、亮点最多 2 行，超出省略号收尾。</p></div>
+    <div class="card cy"><div class="k">③ 　 画 面</div><h5>作品画面示意</h5>
+      <p class="small">优先用桌面端回传的真实首屏截图；没有截图时用<strong>由作品 id 派生的确定性版式图</strong>，
+      同一作品每次都长一样，不会今天蓝明天紫。</p></div>
+    <div class="card cy"><div class="k">④ ⑤ 　 入 口 与 品 牌</div><h5>体验二维码 + 活动主题元素</h5>
+      <p class="small">二维码直接指向作品地址；活动元素为「现场共创」徽章、活动名、日期、口号与
+      深空底＋光线＋网格的统一视觉。</p></div>
+  </div>
+
+  <div class="note good">
+    <span class="t">二维码是自己实现的，而且验到能扫为止</span>
+    <p>Worker 里装不了 npm 包，所以 QR 编码器（byte 模式 · RS 纠错 · 8 种掩码择优 · V1–V15）是<strong>零依赖手写</strong>的。
+    「看起来像二维码」不算数，所以做了两层验证：<br>
+    <strong>· 编码器层</strong>：用 jsQR 真解码回来逐字比对，7 个定向用例 + 120 个随机 fuzz，<strong>127/127 通过</strong>，覆盖 V1–V11（含 V7+ 的版本信息块）。<br>
+    <strong>· 渲染层</strong>：把海报 SVG 真的栅格化成 1080×1440 PNG，再从<strong>像素</strong>里解码，<strong>4/4 通过</strong>——
+    因为海报里是手工把模块画成 <code>&lt;path&gt;</code>，单元格是浮点尺寸，取整误差完全可能把它毁掉。</p>
+  </div>
+
+  <div class="note bad">
+    <span class="t">开发过程中真踩到的一个坑，值得记下来</span>
+    <p>第一版二维码<strong>结构全对</strong>——定位图形、定时图形、校正图形、固定暗模块，逐项自检全过，
+    肉眼看也完全像个正常二维码——但<strong>扫描器一个都读不出来</strong>。
+    原因是格式信息的位序写反了：标准要求 MSB 先放，我按 LSB 先放。<br>
+    这类 bug 靠"看"永远发现不了，只能靠真解码。<strong>凡是要被机器读的东西，验收标准必须是"机器能读"，不是"人看着对"。</strong></p>
+  </div>
+
+  <h3>两种形态</h3>
+  <div class="tw"><table>
+    <thead><tr><th style="width:20%">地址</th><th style="width:16%">形态</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="m">/p/&lt;id&gt;</td><td>HTML 分享页</td>
+        <td>发给微信好友点开就是这个。带 OG 卡片信息（标题/描述/封面），页面上有<strong>长按保存</strong>提示、
+        「打开作品」「去大厅看看」两个按钮，以及一个可直接扫的小二维码。</td></tr>
+      <tr><td class="m">/p/&lt;id&gt;.svg</td><td>自包含 SVG</td>
+        <td>1080×1440，封面以 data URI 内嵌，不依赖任何外部资源。供打印，或由桌面端本地栅格化成 PNG 回传。</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">封面超过 900 KB 时自动退回生成式示意图，避免把海报 SVG 撑爆。</p>
+</section>
+
+<!-- S9 排期 -->
+<section id="s9">
+  <div class="sn">S E C T I O N　0 9</div>
+  <h2>排期：<span class="zh">移植优先，功能其次</span></h2>
+  <p class="sdesc">今天 8/13，到内测剩 4 天。好消息是三块能力是<strong>移植不是新写</strong>；坏消息是移植的接口适配活儿很碎。</p>
+  <div class="gantt">
+    <div class="grow ghead"><div class="gl">工 作 项</div>
+      <div class="gbar"><div class="cell">8/13</div><div class="cell">8/14</div><div class="cell">8/15</div><div class="cell">8/16</div><div class="cell">8/17</div><div class="cell">8/18</div><div class="cell">—</div></div></div>
+    <div class="grow"><div class="gl">Tauri 壳落地<small>apps/desktop 按 README 4 步</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:0.5%;width:27%;background:#66d9e8">tauri init · 接 mica · task:stream</div></div></div>
+    <div class="grow"><div class="gl">provider 命名冲突定夺<small>P0 · 先决</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:0.5%;width:13%;background:#e2656b">改名 cc_provider</div></div></div>
+    <div class="grow"><div class="gl">移植 · 环境医生<small>146+40 KB</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:14.5%;width:27%;background:#e8965a">doctor 增强 + EnvDoctor.vue</div></div></div>
+    <div class="grow"><div class="gl">移植 · cc-switch<small>192+91 KB</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:14.5%;width:41%;background:#e8965a">cc_provider + ProviderDock + 用量看板</div></div></div>
+    <div class="grow"><div class="gl">移植 · 技能库<small>110+23 KB</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:28.5%;width:27%;background:#e8965a">skills + SkillCenter</div></div></div>
+    <div class="grow"><div class="gl">引擎策略改造<small>去强制路由 + MiniMax 生图</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:14.5%;width:27%;background:#b58ae0">scheduler + image_store</div></div></div>
+    <div class="grow"><div class="gl">生成工作台 + 十分钟演出<small>核心体验</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:14.5%;width:41%;background:#66d9e8">需求单 · 分段产出 · 本地预览</div></div></div>
+    <div class="grow"><div class="gl">上线链路接 R2<small>已跑通，接进来</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:42.5%;width:27%;background:#6ad39a">批量 PUT --remote · 分域名</div></div></div>
+    <div class="grow"><div class="gl">大厅 + 邮箱登录<small>服务器侧</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:28.5%;width:27%;background:#6ad39a">验证码 · 卡片流 · 点击去重</div></div></div>
+    <div class="grow"><div class="gl">冻结 → 内测 → 展示<small>连跑 20 次</small></div>
+      <div class="gbar"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="b" style="left:56.5%;width:28%;background:#6ad39a">8/16 冻结 · 8/17 内测 · 8/18 展示</div></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card rd"><div class="k">先 决 项</div><h5>provider 改名必须第一个做</h5>
+      <p class="small">它卡着 cc-switch 整块移植。今天定完，否则后面所有引用都要返工。</p></div>
+    <div class="card am"><div class="k">砍 掉 的</div><h5>主页设计共创、微信 JS-SDK 分享</h5>
+      <p class="small">前者进二期；后者用「分享长图 + 二维码」替代，不依赖微信资质。</p></div>
+  </div>
+</section>
+
+<!-- S10 风险 -->
+<section id="s10">
+  <div class="sn">S E C T I O N　1 0</div>
+  <h2>风险<span class="zh">（V3 重排）</span></h2>
+  <div class="tw"><table>
+    <thead><tr><th class="c" style="width:6%">#</th><th style="width:19%">风险</th><th style="width:33%">最坏情况</th><th>处置</th></tr></thead>
+    <tbody>
+      <tr><td class="c"><span class="tag t-p0">R1</span></td><td><strong>移植量被低估</strong></td>
+        <td>600 KB 代码横跨两个工程，依赖树、feature 开关、AppHandle 类型都不同。4 天里可能只搬得动一块。</td>
+        <td><strong>按价值排序，允许只搬一块半。</strong>顺序：cc-switch（现场必须能切供应商）→ 环境医生（新机器开箱）→ 技能库（可延后）。
+        技能库砍掉不影响 8/18 演示。</td></tr>
+      <tr><td class="c"><span class="tag t-p0">R2</span></td><td><strong>十分钟兑现不了</strong></td>
+        <td>当着人面等，超时就冷场。</td>
+        <td>分段可见产出 + 8 分钟自动进简化收尾 + 8/17 连跑 20 次统计耗时分布 + 备 3 个预生成样例可一键切演示模式。</td></tr>
+      <tr><td class="c"><span class="tag t-p0">R3</span></td><td><strong>国内访问未验证</strong></td>
+        <td>「分配域名 + 国内可访问」是核心承诺，打不开就等于没交付。</td>
+        <td>现场同款网络实测三种打开方式并记录首屏耗时。不达标提前上加速。</td></tr>
+      <tr><td class="c"><span class="tag t-p1">R4</span></td><td><strong>provider 串台</strong></td>
+        <td>两套 provider 混用，出现「应用切了供应商、CLI 没跟着切」或反之，且极难定位。</td>
+        <td>改名隔离 + 默认走「只影响本应用」+ 在设置页显式显示<strong>当前 CLI 实际生效的供应商</strong>。</td></tr>
+      <tr><td class="c"><span class="tag t-p1">R5</span></td><td><strong>邮箱验证码送达</strong></td>
+        <td>验证码进垃圾箱，现场排队当场堵死。</td>
+        <td>SPF/DKIM 配全，QQ/163/Gmail/Outlook 四家实测，现场备人工开号通道。</td></tr>
+      <tr><td class="c"><span class="tag t-p1">R6</span></td><td><strong>UGC 内容安全</strong></td>
+        <td>大厅与现场大屏是公开位，一条不当内容投出来性质就变了。</td>
+        <td>生成内容 + 上传头像 + 站点标题三处审核；先审后展；留一键下架后台并专人值守。</td></tr>
+      <tr><td class="c"><span class="tag t-p2">R7</span></td><td><strong>单机吞吐</strong></td>
+        <td>十分钟一个人，一台机器一小时最多 6 个，一两百人接不住。</td>
+        <td>备 2–3 台机器 + 现场预约排号；等待的人先逛大厅，把排队转化成大厅流量。<strong>现场定位成「看别人生成 + 自己也能排队做一个」。</strong></td></tr>
+      <tr><td class="c"><span class="tag t-p2">R8</span></td><td><strong>Token 券口径</strong></td>
+        <td>100 万面额 vs「2 元/人」预算差数倍，费用由贵方承担，事后易扯皮。</td>
+        <td>面额不变 + 四道硬限额（单次上限 / 频率 / 日额度 / 券余额）。结论落书面。</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- S11 物料 -->
+<section id="s11">
+  <div class="sn">S E C T I O N　1 1</div>
+  <h2>宣传物料</h2>
+  <p class="sdesc">底图 MiniMax <code>image-01</code> 生成，中文排版本地合成，文案可随时改、不消耗生图额度。文案已按「本地生成 + 云端上线」改过。</p>
+  <h3>活动宣发物料（三张，人工设计）</h3>
+  <div class="posters">
+    <div class="poster"><img src="__IMG1__" alt="主视觉">
+      <div class="cap"><b>01 · 主视觉</b>说需求 / 等十分钟 / 本地秒开 / 一键上线</div></div>
+    <div class="poster"><img src="__IMG2__" alt="作品大厅">
+      <div class="cap"><b>02 · 作品大厅</b>谁的网站被点开得最多，谁排最前</div></div>
+    <div class="poster"><img src="__IMG3__" alt="参与券">
+      <div class="cap"><b>03 · 参与券</b>邮箱注册核销，面额待 Token 口径确认后定稿</div></div>
+  </div>
+
+  <h3 style="margin-top:44px">用户分享海报（每个作品自动生成，无需做图）</h3>
+  <div class="grid g2" style="align-items:start">
+    <div class="poster"><img src="__IMG4__" alt="自动生成的分享海报">
+      <div class="cap"><b>作品分享海报 · 线上真实产出</b>
+      由服务端实时生成，取自大厅里的「林晚晴 / 猫咪回忆录」。
+      右下角二维码经像素级解码验证，扫出来就是 <code>/u/linwanqing-mao/</code> 这个公网地址。</div></div>
+    <div>
+      <div class="card cy"><div class="k">五 要 素 对 照</div>
+        <h5>逐条落位</h5>
+        <p class="small">
+        <strong>① 创作者名字</strong> —— 顶部 CREATOR 区，字号随长度自适应<br>
+        <strong>② 主题 + 一句话亮点</strong> —— 中部主标题与副标，各限 2 行<br>
+        <strong>③ 作品画面示意</strong> —— 真实首屏截图，无截图时用确定性版式生成图<br>
+        <strong>④ 体验二维码</strong> —— 右下角，直指作品公网地址<br>
+        <strong>⑤ 活动主题概念+元素</strong> —— 「现场共创」徽章、活动名、日期、口号，
+        以及深空底＋光线＋网格的统一视觉语言</p>
+      </div>
+      <div class="card" style="margin-top:14px"><div class="k">配 色</div>
+        <h5>6 档，由标题哈希定</h5>
+        <p class="small">同一作品每次渲染颜色一致，不会今天蓝明天紫；不同作品之间又有区分度，
+        一整墙海报摆在一起不会全是一个色。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEXT -->
+<section style="border-bottom:none">
+  <div class="sn">N E X T　A C T I O N S</div>
+  <h2>今天要办的<span class="zh">四件事</span></h2>
+  <div class="grid g2">
+    <div class="card rd"><div class="k">今 天 · 先 决</div><h5>1. provider 命名定夺</h5>
+      <p class="small">MicaBase 的 <code>provider</code> 与移植进来的改名 <code>cc_provider</code>。卡着整块 cc-switch 移植，不定就没法开工。</p></div>
+    <div class="card rd"><div class="k">今 天 · 我 方</div><h5>2. 国内访问实测</h5>
+      <p class="small">现场同款网络下测 <code>r2t-9f3x.llmwiki.cloud</code>：直连 / 微信内 / 4G，记录首屏耗时。</p></div>
+    <div class="card am"><div class="k">今 天 · 双 方</div><h5>3. 移植范围拍板</h5>
+      <p class="small">4 天可能只搬得动一块半。确认优先级：cc-switch → 环境医生 → 技能库（可砍）。</p></div>
+    <div class="card"><div class="k">8 / 1 4 · 贵 方</div><h5>4. 动效素材 + Token 口径</h5>
+      <p class="small">动效素材给不给（不给就走原型级）；100 万 Token 券的预算口径怎么处理。</p></div>
+  </div>
+</section>
+
+<footer>
+  一句话生成 · 规划书 V3（MicaBase 基座版）　/　2026-08-13<br>
+  基座：D:\polaris\个人网站创作平台\youxi（MicaBase / crates/mica，六模块已通读）<br>
+  移植源：D:\polaris\polaris-app（polaris-kernel doctor 146KB · provider 192KB · skills 110KB，前端 .vue 155KB）<br>
+  分发层：Cloudflare Worker + R2，2026-08-13 于 r2t-9f3x.llmwiki.cloud 实测 8/8 通过<br>
+  代码量为实际统计；成本数字为量级估算，正式结算以实际合同单价为准
+</footer>
+
+</div>
+</body>
+</html>

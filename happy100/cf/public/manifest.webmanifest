@@ -1,0 +1,18 @@
+{
+  "name": "幸福小事",
+  "short_name": "幸福小事",
+  "description": "让生活更幸福的 100 件小事 · 打卡、感悟、日报与周报",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6EE",
+  "theme_color": "#FBF6EE",
+  "lang": "zh-CN",
+  "categories": ["lifestyle", "health", "productivity"],
+  "icons": [
+    { "src": "art/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "art/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "art/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

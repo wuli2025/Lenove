@@ -1,0 +1,832 @@
+/* ═══════════ FORMA Agent —— 创作面板 + 设置页 ═══════════
+   版式对标有戏剧场的设置页（居中窄栏 + 分块卡片），配色沿用 FORMA 自己的
+   CSS 变量，所以明暗主题切换、纸感浅色皮都自动跟着走。 */
+
+/* ── 全屏视图容器 ── */
+.fa-view {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: none;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.fa-view.on {
+  display: block;
+}
+body.fa-locked {
+  overflow: hidden;
+}
+
+.fa-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 4vw;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+}
+.fa-topbar .fa-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fa-topbar .fa-back:hover {
+  border-color: var(--acid);
+  background: color-mix(in srgb, var(--acid) 10%, transparent);
+}
+.fa-topbar h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.fa-topbar .fa-sub {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.fa-topbar .fa-sp {
+  flex: 1;
+}
+
+/* 后端连接状态灯 */
+.fa-conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+.fa-conn i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6b6b66;
+}
+.fa-conn.ok i {
+  background: #57e08a;
+  box-shadow: 0 0 0 3px rgba(87, 224, 138, 0.16);
+}
+.fa-conn.bad i {
+  background: #ff6a52;
+  box-shadow: 0 0 0 3px rgba(255, 106, 82, 0.16);
+}
+
+/* ── 设置页：居中窄栏 + 分块卡片（照搬有戏剧场版式） ── */
+.fa-narrow {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 40px 24px 96px;
+}
+.fa-head h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 3.2vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.fa-head .sub {
+  margin: 0 0 30px;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.fa-blk {
+  margin-bottom: 22px;
+  padding: 24px 26px 26px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+}
+.fa-blk.plain {
+  background: transparent;
+}
+.fa-blk .bTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.fa-blk .bTitle .tag {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.fa-blk .bDesc {
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 12.8px;
+  line-height: 1.85;
+}
+.fa-blk .bDesc code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--panel-2);
+  color: var(--muted-light);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 11.5px;
+  word-break: break-all;
+}
+
+.fa-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.8px;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+.fa-btn:hover:not(:disabled) {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+.fa-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.fa-btn.pri {
+  border-color: transparent;
+  background: var(--acid);
+  color: #101010;
+  font-weight: 600;
+}
+.fa-btn.pri:hover:not(:disabled) {
+  background: #eaff7d;
+  color: #101010;
+}
+.fa-btn.sm {
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 11.8px;
+}
+.fa-btn.danger:hover:not(:disabled) {
+  border-color: #ff6a52;
+  color: #ff6a52;
+}
+
+.fa-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fa-row.lab {
+  margin: 14px 0 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fa-in {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+.fa-in:focus {
+  border-color: var(--acid);
+}
+
+.fa-msg {
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 12.6px;
+  line-height: 1.7;
+}
+.fa-msg.info {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted-light);
+}
+.fa-msg.ok {
+  border: 1px solid rgba(87, 224, 138, 0.32);
+  background: rgba(87, 224, 138, 0.08);
+  color: #8ce8ae;
+}
+.fa-msg.err {
+  border: 1px solid rgba(255, 106, 82, 0.32);
+  background: rgba(255, 106, 82, 0.08);
+  color: #ff9d8b;
+}
+
+/* 版本卡 */
+.fa-verCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-2);
+}
+.fa-verLogo {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--acid);
+  color: #101010;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+.fa-verMeta {
+  flex: 1;
+  min-width: 0;
+}
+.fa-verName {
+  font-size: 14px;
+  font-weight: 600;
+}
+.fa-verNum {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11.8px;
+}
+
+/* 能力位（当前使用 / 故障兜底） */
+.fa-slotGrid {
+  display: grid;
+  gap: 10px;
+}
+.fa-slotRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel-2);
+}
+.fa-slotName {
+  width: 128px;
+  flex: none;
+  font-size: 13.2px;
+  font-weight: 600;
+}
+.fa-slotName .sd {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.fa-slotPicks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-top: 2px;
+}
+.fa-pk {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-light);
+  font-size: 12.2px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.fa-pk .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5d5d58;
+}
+.fa-pk:hover {
+  border-color: var(--acid);
+  color: var(--text);
+}
+.fa-pk.on {
+  border-color: var(--acid);
+  background: color-mix(in srgb, var(--acid) 14%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+.fa-pk.on .dot {
+  background: var(--acid);
+}
+.fa-pk.nokey .dot {
+  background: #ff6a52;
+}
+
+/* 供应商卡 */
+.fa-provList {
+  display: grid;
+  gap: 10px;
+}
+.fa-provCard {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel-2);
+}
+.fa-provCard .ph {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.fa-provCard .pn {
+  font-size: 13.6px;
+  font-weight: 600;
+}
+.fa-provCard .kind {
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+.fa-provCard .use {
+  padding: 2px 9px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--acid) 16%, transparent);
+  color: var(--acid);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.fa-provCard .acts {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.fa-provCard .meta {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11.8px;
+  line-height: 1.9;
+  word-break: break-all;
+}
+.fa-provCard .meta .k {
+  display: inline-block;
+  min-width: 46px;
+  color: var(--muted-light);
+  font-weight: 600;
+}
+.fa-provCard .res {
+  margin-top: 10px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 11.8px;
+}
+.fa-provCard .res.ok {
+  background: rgba(87, 224, 138, 0.1);
+  color: #8ce8ae;
+}
+.fa-provCard .res.err {
+  background: rgba(255, 106, 82, 0.1);
+  color: #ff9d8b;
+}
+
+/* 环境医生 */
+.fa-docGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.fa-docCard {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel-2);
+}
+.fa-docCard.bad {
+  border-color: rgba(255, 106, 82, 0.34);
+}
+.fa-docCard .dh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fa-docCard .dn {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.fa-docCard .st {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.fa-docCard .st.ok {
+  background: rgba(87, 224, 138, 0.14);
+  color: #8ce8ae;
+}
+.fa-docCard .st.no {
+  background: rgba(255, 106, 82, 0.14);
+  color: #ff9d8b;
+}
+.fa-docCard .req {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+.fa-docCard .dm {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.8;
+  word-break: break-all;
+}
+.fa-docCard .hint {
+  margin-top: 9px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orange) 10%, transparent);
+  color: var(--muted-light);
+  font-size: 11.5px;
+  line-height: 1.8;
+}
+.fa-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--panel);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 11px;
+}
+.fa-cmd span {
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* ── 供应商编辑浮层 ── */
+.fa-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(3px);
+}
+.fa-mask.show {
+  display: flex;
+}
+.fa-dlg {
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 26px 28px 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.fa-dlg h3 {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.fa-dlg label {
+  display: block;
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fa-dlg input,
+.fa-dlg select,
+.fa-dlg textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+.fa-dlg input:focus,
+.fa-dlg select:focus,
+.fa-dlg textarea:focus {
+  border-color: var(--acid);
+}
+.fa-dlg .tip {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11.2px;
+  line-height: 1.7;
+}
+.fa-dlg .foot {
+  display: flex;
+  gap: 9px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+.fa-dlg .foot .fa-sp {
+  flex: 1;
+}
+#pvErr {
+  margin-top: 14px;
+  font-size: 12.4px;
+  color: #ff9d8b;
+}
+#pvErr.ok {
+  color: #8ce8ae;
+}
+
+/* ═══════════ 创作面板 ═══════════ */
+.fa-studio {
+  display: grid;
+  grid-template-columns: minmax(360px, 440px) 1fr;
+  gap: 0;
+  height: calc(100vh - 65px);
+}
+@media (max-width: 1080px) {
+  .fa-studio {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+.fa-form {
+  overflow-y: auto;
+  padding: 26px 26px 60px;
+  border-right: 1px solid var(--line);
+}
+.fa-form h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.fa-form .fh {
+  margin: 26px 0 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+.fa-form .fh:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.fa-field {
+  margin-bottom: 13px;
+}
+.fa-field > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fa-field input,
+.fa-field textarea,
+.fa-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  resize: vertical;
+}
+.fa-field input:focus,
+.fa-field textarea:focus,
+.fa-field select:focus {
+  border-color: var(--acid);
+}
+.fa-field .hintline {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.fa-modes {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fa-mode {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s, background 0.18s;
+}
+.fa-mode.on {
+  border-color: var(--acid);
+  background: color-mix(in srgb, var(--acid) 8%, var(--panel));
+}
+.fa-mode i {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+}
+.fa-mode.on i {
+  border-color: var(--acid);
+  background:
+    radial-gradient(circle, var(--acid) 0 42%, transparent 44%);
+}
+.fa-mode strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fa-mode small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11.3px;
+  line-height: 1.65;
+}
+
+.fa-go {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 13px;
+  border: 0;
+  background: var(--acid);
+  color: #101010;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fa-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.fa-stop {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* 右侧：预览 + 事件流 */
+.fa-stage {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fa-stageBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.fa-tabs {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--panel);
+}
+.fa-tabs button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.fa-tabs button.on {
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 600;
+}
+.fa-stageBody {
+  flex: 1;
+  min-height: 460px;
+  position: relative;
+  background: var(--bg-soft);
+}
+.fa-pane {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.fa-pane.on {
+  display: block;
+}
+.fa-pane iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+#faLog {
+  height: 100%;
+  overflow-y: auto;
+  padding: 18px 22px;
+  margin: 0;
+  color: var(--muted-light);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#faLog .ev {
+  color: var(--acid);
+}
+#faLog .bad {
+  color: #ff9d8b;
+}
+.fa-empty {
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.fa-empty b {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 我的站点 */
+.fa-siteList {
+  display: grid;
+  gap: 9px;
+}
+.fa-siteRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-2);
+}
+.fa-siteRow .sn {
+  font-size: 13px;
+  font-weight: 600;
+}
+.fa-siteRow .sm {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.3px;
+}
+.fa-siteRow .sa {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* 顶栏新增入口 */
+.main-nav button.fa-navBtn {
+  background: none;
+  cursor: pointer;
+}

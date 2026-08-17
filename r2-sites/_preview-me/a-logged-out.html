@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>登录 · 一句话生成</title>
+<meta name="description" content="用邮箱验证码登录 一句话生成">
+<meta property="og:title" content="登录 · 一句话生成">
+<meta property="og:description" content="用邮箱验证码登录 一句话生成">
+<style>
+:root{
+  --bg:#070b12; --bg2:#0b111b;
+  --text:#e8f0f6; --muted:#8fa3b6; --muted-light:#a9bccb; --dim:#5f7488;
+  --acid:#66d9e8; --gold:#f0d08a;
+  --line:rgba(217,226,234,.10); --line-strong:rgba(102,217,232,.34);
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",-apple-system,"Segoe UI",sans-serif; --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;line-height:1.7}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+
+/* ── 顶栏（结构与尺寸沿用 FORMA） ── */
+.topbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;min-height:72px;padding:0 28px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(24px)}
+.brand{display:inline-flex;align-items:center;justify-self:start;gap:10px;width:fit-content;
+  font-size:20px;font-weight:700;letter-spacing:-.05em}
+.brand em{margin:-12px 0 0 -8px;color:var(--acid);font-style:normal}
+.brand-mark{position:relative;display:inline-block;width:23px;height:23px}
+.brand-mark i{position:absolute;width:14px;height:18px;border-radius:50% 52% 46% 50%;transform-origin:60% 65%}
+.brand-mark i:nth-child(1){top:0;left:0;background:#66d9e8;transform:rotate(-24deg)}
+.brand-mark i:nth-child(2){top:0;right:0;background:#b58ae0;transform:rotate(22deg)}
+.brand-mark i:nth-child(3){right:4px;bottom:-1px;background:#f0d08a;transform:rotate(152deg);mix-blend-mode:screen}
+.main-nav{display:flex;align-items:center;justify-self:center;gap:4px;padding:4px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.main-nav a{display:flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:10px;
+  color:var(--muted);font-size:13px;font-weight:600;transition:180ms ease}
+.main-nav a:hover,.main-nav a.active{color:var(--text);background:rgba(255,255,255,.08)}
+.main-nav span{font-size:15px}
+.nav-actions{display:flex;align-items:center;justify-self:end;gap:10px}
+.tagline{font-size:12px;color:var(--dim);letter-spacing:.04em}
+.avatar-button{display:flex;align-items:center;justify-content:center;width:40px;height:40px;
+  border:1px solid transparent;border-radius:12px;overflow:hidden;
+  color:#04070d;background:linear-gradient(135deg,#66d9e8,#b58ae0);
+  font-size:13px;font-weight:800;letter-spacing:.04em;transition:180ms ease}
+.avatar-button img{width:100%;height:100%;object-fit:cover}
+.avatar-button.anon{background:rgba(255,255,255,.025);border-color:var(--line);color:var(--muted-light);
+  width:auto;padding:0 14px;font-size:12px;font-weight:600;letter-spacing:0}
+.avatar-button:hover{border-color:var(--line-strong);filter:brightness(1.06)}
+.avatar-button.active{outline:2px solid var(--acid);outline-offset:2px}
+
+@media(max-width:900px){
+  .topbar{grid-template-columns:auto 1fr auto;min-height:64px;padding:0 16px}
+  .brand{font-size:16px}
+  .brand-mark{transform:scale(.85)}
+  .main-nav{border:0;background:transparent}
+  .main-nav a{padding:0 10px}
+  .desktop-only{display:none}
+}
+body{background-image:radial-gradient(900px 520px at 80% -10%,rgba(102,217,232,.10),transparent 62%)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 90px}
+
+/* ── 未登录：登录卡 ── */
+.gate{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.gate-card{width:100%;max-width:412px;border:1px solid var(--line);border-radius:16px;
+  background:rgba(12,19,30,.76);padding:34px 30px 28px}
+.gate-card h1{font-size:23px;font-weight:750;letter-spacing:.01em;margin-bottom:8px}
+.gate-card .lead{color:var(--muted);font-size:13.5px;line-height:1.8;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--dim);margin-bottom:7px;letter-spacing:.04em}
+.field input{width:100%;height:44px;padding:0 14px;border-radius:10px;color:var(--text);font-size:14px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);outline:none;font-family:inherit}
+.field input:focus{border-color:var(--line-strong);background:rgba(255,255,255,.05)}
+.field input[readonly]{color:var(--muted);background:rgba(255,255,255,.015)}
+#code{font-family:var(--mono);font-size:20px;letter-spacing:.42em;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 18px;
+  border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);
+  font-size:13.5px;font-weight:600;cursor:pointer;transition:160ms ease;font-family:inherit}
+.btn:hover{border-color:var(--line-strong)}
+.btn.primary{background:var(--acid);border-color:var(--acid);color:#04070d;font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.btn.sm{height:32px;padding:0 12px;font-size:12px;border-radius:8px}
+.msg{min-height:20px;margin-top:12px;font-size:12.5px;line-height:1.7;color:var(--gold)}
+.msg.ok{color:var(--acid)}
+.hint{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--dim);line-height:1.9}
+.step{display:none}.step.on{display:block}
+.back{background:0;border:0;color:var(--dim);font:inherit;font-size:12px;cursor:pointer;padding:0;margin-top:12px}
+.back:hover{color:var(--muted)}
+
+/* ── 已登录：横幅 + 资料卡 + 作品陈列 ── */
+.banner{height:178px;margin-top:20px;border-radius:16px;border:1px solid var(--line);
+  background:radial-gradient(130% 190% at 16% -10%,#123244,#0c1622 56%,#070b12 100%);position:relative;overflow:hidden}
+.banner::after{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(217,226,234,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(217,226,234,.05) 1px,transparent 1px);
+  background-size:34px 34px;mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent)}
+.lay{display:grid;grid-template-columns:308px 1fr;gap:24px;align-items:start;margin-top:18px}
+.card{border:1px solid var(--line);border-radius:16px;background:rgba(12,19,30,.82);
+  padding:26px 22px 22px;text-align:center;position:sticky;top:92px;margin-top:-112px}
+.ava{width:112px;height:112px;border-radius:50%;margin:0 auto 15px;overflow:hidden;display:grid;place-items:center;
+  font-size:40px;font-weight:800;color:#04070d;background:linear-gradient(140deg,#66d9e8,#b58ae0 62%,#f0d08a);
+  box-shadow:0 0 0 4px rgba(7,11,18,.85)}
+.ava img{width:100%;height:100%;object-fit:cover}
+.card h2{font-size:20px;font-weight:700;word-break:break-all;margin-bottom:6px}
+.card .mail{font-family:var(--mono);font-size:11.5px;color:var(--dim);word-break:break-all}
+.stats{display:flex;margin:20px 0 18px}
+.stats>div{flex:1;position:relative}
+.stats>div+div::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:1px;background:var(--line)}
+.stats b{display:block;font-size:19px;font-weight:750;font-family:var(--mono);color:var(--acid)}
+.stats span{display:block;font-size:11.5px;color:var(--dim);margin-top:4px}
+.acts{display:flex;flex-direction:column;gap:9px}
+.acts .btn{width:100%}
+.edit{margin-top:4px;text-align:left;display:none}
+.edit.on{display:block}
+.col{min-width:0}
+.sec-hd{display:flex;align-items:baseline;gap:11px;margin:0 0 14px}
+.sec-hd h3{font-size:17px;font-weight:650;letter-spacing:.02em}
+.sec-hd .cnt{font-size:12px;color:var(--dim)}
+.sec{margin-bottom:34px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.w{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(12,19,30,.72);
+  transition:border-color .18s,transform .18s}
+.w:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.w .th{aspect-ratio:16/10;background:#0b111b;border-bottom:1px solid var(--line);overflow:hidden;display:block;position:relative}
+.w .th img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.w .th .ph{width:100%;height:100%;display:grid;place-items:center;font-size:34px;font-weight:800;color:rgba(7,11,18,.62)}
+.w .in{padding:12px 14px 14px}
+.w .t{font-size:14.5px;font-weight:650;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w .sub{font-size:12px;color:var(--dim);height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w .mt{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.w .hits{font-family:var(--mono);color:var(--gold)}
+.w .off{margin-left:auto;border:1px solid rgba(240,208,138,.4);border-radius:5px;padding:1px 7px;color:var(--gold)}
+.w .links{display:flex;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.w .links a{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:4px 9px}
+.w .links a:hover{color:var(--text);border-color:var(--line-strong)}
+.urls{border:1px solid var(--line);border-radius:12px;background:rgba(12,19,30,.6);overflow:hidden}
+.u{display:flex;align-items:center;gap:12px;padding:12px 15px;border-top:1px solid var(--line)}
+.u:first-child{border-top:0}
+.u .nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34%}
+.u code{font-family:var(--mono);font-size:11.5px;color:var(--acid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u .btn{margin-left:auto;flex:none}
+.empty{border:1px dashed rgba(102,217,232,.26);border-radius:14px;padding:44px 24px;text-align:center;
+  background:rgba(102,217,232,.035)}
+.empty b{display:block;font-size:16px;margin-bottom:9px}
+.empty span{color:var(--muted);font-size:13px;line-height:1.9}
+.note{font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:12px}
+@media(max-width:1000px){
+  .lay{grid-template-columns:1fr}
+  .card{position:static;margin-top:-86px}
+  .grid{grid-template-columns:1fr}
+}</style>
+</head><body>
+<header class="topbar">
+  <a class="brand" href="/" aria-label="一句话生成 首页">
+    <span class="brand-mark"><i></i><i></i><i></i></span>
+    <span>一句话生成</span><em>°</em>
+  </a>
+  <nav class="main-nav" aria-label="主导航">
+    <a class="" href="/"><span>⌂</span> 创作</a><a class="" href="/hall"><span>◇</span> 大厅</a>
+  </nav>
+  <div class="nav-actions">
+    <span class="tagline desktop-only">说一句话，就有一个网站</span>
+    <a class="avatar-button anon active"
+       href="/me" aria-label="个人中心" title="登录 / 个人中心">
+      <span class="ava-anon">登录</span>
+    </a>
+  </div>
+</header>
+<main class="gate"><div class="gate-card">
+  <h1>登录 / 注册</h1>
+  <p class="lead">输入邮箱，我们会发一个 6 位验证码给你。<br>没有账号的话，验证通过就自动创建，不用另外注册。</p>
+
+  <div class="step on" id="s1">
+    <div class="field">
+      <label for="email">邮箱</label>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" spellcheck="false">
+    </div>
+    <button class="btn primary wide" id="send">获取验证码</button>
+  </div>
+
+  <div class="step" id="s2">
+    <div class="field">
+      <label for="mailShow">邮箱</label>
+      <input id="mailShow" readonly>
+    </div>
+    <div class="field">
+      <label for="code">验证码（10 分钟内有效）</label>
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······">
+    </div>
+    <button class="btn primary wide" id="verify">登录</button>
+    <button class="back" id="again">换个邮箱 / 重新获取</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <div class="hint">同一邮箱 60 秒内只能获取一次；一个验证码最多试 5 次。</div>
+</div></main>
+<script>
+const $=(s)=>document.querySelector(s);
+const msg=(t,ok)=>{const m=$('#msg');m.textContent=t||'';m.className='msg'+(ok?' ok':'');};
+let mail='';
+async function post(url,body){
+  const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),credentials:'same-origin'});
+  let d={};try{d=await r.json()}catch(e){}
+  return {ok:r.ok&&d.ok,data:d};
+}
+$('#send').onclick=async()=>{
+  const v=$('#email').value.trim().toLowerCase();
+  if(!v){msg('请先填邮箱');return}
+  $('#send').disabled=true;msg('发送中…',true);
+  const {ok,data}=await post('/api/auth/request-code',{email:v});
+  $('#send').disabled=false;
+  if(!ok){msg(data.error||'发送失败');return}
+  mail=data.email||v;
+  $('#mailShow').value=mail;
+  $('#s1').classList.remove('on');$('#s2').classList.add('on');
+  // MAIL_DEBUG=1 时后端会把码带回来，联调不用翻日志；线上这个字段永远没有
+  msg(data.debugCode?('联调模式：验证码 '+data.debugCode):'验证码已发送，请查收邮箱（含垃圾箱）',true);
+  $('#code').focus();
+};
+$('#verify').onclick=async()=>{
+  const c=$('#code').value.trim();
+  if(!/^\d{6}$/.test(c)){msg('验证码是 6 位数字');return}
+  $('#verify').disabled=true;msg('验证中…',true);
+  const {ok,data}=await post('/api/auth/verify',{email:mail,code:c});
+  $('#verify').disabled=false;
+  if(!ok){msg(data.error||'验证失败');return}
+  msg('登录成功，正在进入…',true);
+  location.href='/me';
+};
+$('#again').onclick=()=>{$('#s2').classList.remove('on');$('#s1').classList.add('on');msg('');$('#code').value=''};
+$('#code').addEventListener('keydown',(e)=>{if(e.key==='Enter')$('#verify').click()});
+$('#email').addEventListener('keydown',(e)=>{if(e.key==='Enter')$('#send').click()});
+</script>
+</body></html>

@@ -1,0 +1,4 @@
+/target
+/resources/runtimes/
+*.log
+.DS_Store

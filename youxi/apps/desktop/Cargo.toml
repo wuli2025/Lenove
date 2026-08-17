@@ -1,0 +1,48 @@
+[package]
+name = "yiju-desktop"
+version.workspace = true
+edition.workspace = true
+description = "一句话生成 · 现场桌面端（需求访谈 → 分段生成 → 本地预览 → 一键上线）"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# 业务逻辑 100% 在 mica，本 crate 是薄装配层（apps/desktop/README.md 约定）。
+# 不开 server feature —— tauri 与 axum 互不渗透，由 check-boundaries 与编译闸拦截。
+mica = { path = "../../crates/mica" }
+
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+dirs = "5"
+uuid = { version = "1", features = ["v4"] }
+
+[lib]
+name = "yiju_desktop"
+path = "src/lib.rs"
+
+[[bin]]
+name = "yiju-desktop"
+path = "src/main.rs"
+
+# 现场体检用：不起窗口跑完整条生成链路，统计耗时分布（规划书 R1 处置③）
+[[bin]]
+name = "yiju-smoke"
+path = "src/bin/smoke.rs"
+
+# 并发压测的执行单元：一次一份任意需求单，不起窗口，可同时开多个
+[[bin]]
+name = "yiju-gen"
+path = "src/bin/gen_one.rs"
+
+# 批量上线：复用桌面端「推上线」同一条 mica::publish 链路
+[[bin]]
+name = "yiju-publish"
+path = "src/bin/publish_one.rs"
+
+[features]
+# Tauri 默认走自定义协议；这个 feature 由 tauri-build 生成的代码引用
+custom-protocol = ["tauri/custom-protocol"]

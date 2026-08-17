@@ -1,0 +1,28 @@
+name = "r2-sites"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# 观测：免费版也能开，用来看真实请求数 / CPU 分布
+[observability]
+enabled = true
+
+# 发信配置。MAIL_DEBUG=1 只是联调期间临时开着（接口返回值会带验证码），
+# 活动前必须删掉这一行。授权码不落这里，走 wrangler secret。
+[vars]
+MAIL_PROVIDER = "qq"
+QQ_MAIL_USER = "179982094@qq.com"
+MAIL_FROM_NAME = "一句话生成"
+MAIL_DEBUG = "1"
+
+[[r2_buckets]]
+binding = "SITES"
+bucket_name = "user-sites"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hall"
+database_id = "a3c89036-6673-4a49-951e-4d17d17b06dc"
+
+[[routes]]
+pattern = "r2t-9f3x.llmwiki.cloud"
+custom_domain = true
