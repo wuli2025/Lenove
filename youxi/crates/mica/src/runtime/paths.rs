@@ -9,7 +9,9 @@ pub fn data_root() -> PathBuf {
             return PathBuf::from(dir);
         }
     }
-    dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")).join("MicaBase")
+    dirs::home_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("MicaBase")
 }
 
 pub fn data_dir() -> PathBuf {

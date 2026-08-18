@@ -29,11 +29,15 @@ pub fn profile_path() -> PathBuf {
 pub fn normalize_name(raw: &str) -> Result<String> {
     let name = raw.trim();
     if name.is_empty() {
-        return Err(MicaError::Other("创作者姓名不能为空，请先填写姓名再开始创作".into()));
+        return Err(MicaError::Other(
+            "创作者姓名不能为空，请先填写姓名再开始创作".into(),
+        ));
     }
     // 控制字符（\n \t \0 等）混进姓名会把海报和 slug 一起搞坏，直接拒
     if name.chars().any(|c| c.is_control()) {
-        return Err(MicaError::Other("创作者姓名不能包含换行、制表符等控制字符".into()));
+        return Err(MicaError::Other(
+            "创作者姓名不能包含换行、制表符等控制字符".into(),
+        ));
     }
     let len = name.chars().count();
     if len > MAX_NAME_CHARS {
@@ -61,7 +65,9 @@ pub fn get_at(path: &Path) -> Result<Option<CreatorProfile>> {
 
 /// 写指定路径的档案，返回清洗后的档案（调用方直接拿去展示，不必再读一次）。
 pub fn set_at(path: &Path, name: &str) -> Result<CreatorProfile> {
-    let profile = CreatorProfile { name: normalize_name(name)? };
+    let profile = CreatorProfile {
+        name: normalize_name(name)?,
+    };
     atomic_write(path, &serde_json::to_vec_pretty(&profile)?)?;
     Ok(profile)
 }
@@ -121,7 +127,10 @@ mod tests {
         // 边界：24 字符放行，25 字符拒
         let ok = "张".repeat(MAX_NAME_CHARS);
         assert_eq!(normalize_name(&ok).unwrap().chars().count(), MAX_NAME_CHARS);
-        assert!(ok.len() > MAX_NAME_CHARS, "24 个汉字远超 24 字节，证明必须按字符数校验");
+        assert!(
+            ok.len() > MAX_NAME_CHARS,
+            "24 个汉字远超 24 字节，证明必须按字符数校验"
+        );
         assert!(normalize_name(&"张".repeat(MAX_NAME_CHARS + 1)).is_err());
         assert!(normalize_name(&"a".repeat(MAX_NAME_CHARS + 1)).is_err());
     }

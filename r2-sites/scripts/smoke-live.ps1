@@ -6,12 +6,12 @@
   依次验证 8 项，每项打印 PASS/FAIL + 毫秒耗时：
 
     1  /api/health                健康检查通
-    2  /                          大厅页 200，且真的渲染出了作品卡（不是"大厅还空着"）
+    2  /hall                     大厅页 200，且真的渲染出了作品卡（不是"大厅还空着"）
     3  /api/works                 列表接口 200 且有数据，顺手随机抽一个作品做后续用例
     4  /u/<slug>/                 随机作品的站点页打得开
-    5  /p/<id>                    海报页打得开
-    6  /p/<id>.svg                返回 image/svg+xml
-    7  /qr?d=...                  二维码返回 SVG
+    5  /p/<id>                    有 PNG 海报则展示；没有则明确返回 409
+    6  /p/<id>.svg                旧 SVG 海报路由必须已移除（404）
+    7  /api/capabilities          正确令牌下发布与生图能力都可用
     8  POST /api/works（错令牌）  必须返回 401
 
   耗时是这套脚本的重点：现场网络一慢，光看 PASS/FAIL 看不出问题，看毫秒数一眼就知道
@@ -86,7 +86,7 @@ for ($round = 1; $round -le $Repeat; $round++) {
   Add-Check '1 /api/health' $pass $r.Ms $(if ($pass) { 'ok:true' } else { "HTTP $($r.Status) $($r.Error)" })
 
   # ── 2 大厅页 ──
-  $r = Invoke-Hall -Url "$Base/" -TimeoutSec 20
+  $r = Invoke-Hall -Url "$Base/hall" -TimeoutSec 20
   $cards = 0
   if ($r.Body) { $cards = ([regex]::Matches($r.Body, 'class="c(?: big)?"')).Count }
   $empty = $r.Body -match 'class="empty"'
@@ -94,7 +94,7 @@ for ($round = 1; $round -le $Repeat; $round++) {
   $note = if ($empty) { '大厅是空的！开场前先跑 seed-hall.ps1' }
           elseif ($pass) { "HTTP 200，$cards 张作品卡，$([Math]::Round($r.Body.Length/1024,1)) KB" }
           else { "HTTP $($r.Status)，作品卡 $cards 张 $($r.Error)" }
-  Add-Check '2 大厅页 /' $pass $r.Ms $note
+  Add-Check '2 大厅页 /hall' $pass $r.Ms $note
 
   # ── 3 列表接口（顺手抽样） ──
   $r = Invoke-Hall -Url "$Base/api/works?limit=60" -TimeoutSec 20
@@ -120,21 +120,32 @@ for ($round = 1; $round -le $Repeat; $round++) {
   $pass = $r.Ok -and $r.Status -eq 200 -and $r.ContentType -match 'text/html'
   Add-Check '4 /u/<slug>/' $pass $r.Ms $(if ($pass) { "$($sample.slug)  $([Math]::Round($r.Body.Length/1024,1)) KB" } else { "HTTP $($r.Status)，站点页面可能没传到 R2（记得 --remote） $($r.Error)" })
 
-  # ── 5 海报页 ──
+  # ── 5 PNG 海报页 / 明确的未生成状态 ──
   $r = Invoke-Hall -Url "$Base/p/$($sample.id)" -TimeoutSec 20
-  $pass = $r.Ok -and $r.Status -eq 200 -and $r.ContentType -match 'text/html'
-  Add-Check '5 /p/<id> 海报页' $pass $r.Ms $(if ($pass) { "$($sample.id)" } else { "HTTP $($r.Status) $($r.Error)" })
+  if ($sample.poster) {
+    $pass = $r.Ok -and $r.Status -eq 200 -and $r.ContentType -match 'text/html' -and $r.Body -match '/r2/'
+    $note = if ($pass) { "$($sample.id)，展示已上传 PNG" } else { "HTTP $($r.Status)，已有 poster key 却未展示 PNG $($r.Error)" }
+  } else {
+    $pass = $r.Ok -and $r.Status -eq 409 -and $r.ContentType -match 'text/html' -and $r.Body -match '海报尚未生成'
+    $note = if ($pass) { '未生成海报，服务端明确返回 409（没有伪造替代图）' } else { "HTTP $($r.Status)，未得到明确的未生成状态 $($r.Error)" }
+  }
+  Add-Check '5 /p/<id> PNG 海报' $pass $r.Ms $note
 
-  # ── 6 海报 SVG ──
-  $r = Invoke-Hall -Url "$Base/p/$($sample.id).svg" -TimeoutSec 25
-  $pass = $r.Ok -and $r.Status -eq 200 -and $r.ContentType -match 'image/svg\+xml' -and $r.Body -match '<svg'
-  Add-Check '6 /p/<id>.svg' $pass $r.Ms $(if ($pass) { "$($r.ContentType)，$([Math]::Round($r.Body.Length/1024,1)) KB" } else { "HTTP $($r.Status)，Content-Type=$($r.ContentType) $($r.Error)" })
+  # ── 6 旧 SVG 海报路由必须消失 ──
+  $r = Invoke-Hall -Url "$Base/p/$($sample.id).svg" -TimeoutSec 20
+  $pass = $r.Ok -and $r.Status -eq 404
+  Add-Check '6 旧 SVG 海报应 404' $pass $r.Ms $(if ($pass) { '已移除' } else { "HTTP $($r.Status)，Content-Type=$($r.ContentType)（不应再返回 SVG）" })
 
-  # ── 7 二维码 ──
-  $qrTarget = [uri]::EscapeDataString("$Base/u/$($sample.slug)/")
-  $r = Invoke-Hall -Url "$Base/qr?d=$qrTarget&s=240" -TimeoutSec 20
-  $pass = $r.Ok -and $r.Status -eq 200 -and $r.ContentType -match 'image/svg\+xml' -and $r.Body -match '<svg'
-  Add-Check '7 /qr 二维码' $pass $r.Ms $(if ($pass) { "$([Math]::Round($r.Body.Length/1024,1)) KB" } else { "HTTP $($r.Status)，Content-Type=$($r.ContentType) $($r.Error)" })
+  # ── 7 认证能力预检 ──
+  $r = if ($token) {
+    Invoke-Hall -Url "$Base/api/capabilities" -Header @("x-publish-token: $token") -TimeoutSec 20
+  } else {
+    [pscustomobject]@{ Ok = $false; Status = 0; Ms = 0; ContentType = ''; Body = ''; Error = '本机没有发布令牌' }
+  }
+  $caps = $null
+  if ($r.Ok -and $r.Status -eq 200) { try { $caps = $r.Body | ConvertFrom-Json } catch { } }
+  $pass = $null -ne $caps -and $caps.ok -eq $true -and $caps.publish -eq $true -and $caps.image -eq $true
+  Add-Check '7 发布与生图能力' $pass $r.Ms $(if ($pass) { "模型 $($caps.imageModel)" } else { "HTTP $($r.Status)，能力不完整 $($r.Error)" })
 
   # ── 8 错误令牌必须 401 ──
   $tmp = [IO.Path]::GetTempFileName()

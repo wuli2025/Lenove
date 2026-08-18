@@ -19,7 +19,11 @@ impl Default for DeltaBatcher {
 
 impl DeltaBatcher {
     pub fn new(window: Duration) -> Self {
-        Self { buf: String::new(), window, last_flush: Instant::now() }
+        Self {
+            buf: String::new(),
+            window,
+            last_flush: Instant::now(),
+        }
     }
 
     /// 追加增量；距上次 flush 超过窗口则返回应发送的合批文本

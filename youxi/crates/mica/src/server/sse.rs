@@ -36,7 +36,11 @@ pub async fn task_events(
 
         for (seq, json) in replay {
             last_seq = seq;
-            if tx.send(Ok(Event::default().id(seq.to_string()).data(json))).await.is_err() {
+            if tx
+                .send(Ok(Event::default().id(seq.to_string()).data(json)))
+                .await
+                .is_err()
+            {
                 on_disconnect(&state, &id).await;
                 return;
             }
@@ -67,7 +71,11 @@ pub async fn task_events(
                         Ok(j) => j,
                         Err(_) => continue,
                     };
-                    if tx.send(Ok(Event::default().id(seq.to_string()).data(json))).await.is_err() {
+                    if tx
+                        .send(Ok(Event::default().id(seq.to_string()).data(json)))
+                        .await
+                        .is_err()
+                    {
                         on_disconnect(&state, &id).await;
                         return;
                     }
@@ -88,7 +96,9 @@ pub async fn task_events(
 /// 断连即取消（PRD 4.8）：宽限期内未重连且任务标记了 cancel_on_disconnect 才取消。
 /// 交互对话任务关页面即停止计费；流水线任务绝不因断连作废。
 async fn on_disconnect(state: &AppState, id: &String) {
-    let Ok(Some(row)) = state.db.get_task(id) else { return };
+    let Ok(Some(row)) = state.db.get_task(id) else {
+        return;
+    };
     if !row.spec.cancel_on_disconnect {
         return;
     }

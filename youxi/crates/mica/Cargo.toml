@@ -27,6 +27,7 @@ hmac = "0.12"
 sha2 = "0.10"
 hex = "0.4"
 dirs = "5"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
 axum = { version = "0.8", optional = true }
 tower-http = { version = "0.6", features = ["trace", "cors"], optional = true }

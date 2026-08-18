@@ -45,14 +45,25 @@ mod tests {
 
         atomic_write(&target, b"v1").unwrap();
         assert_eq!(fs::read(&target).unwrap(), b"v1");
-        assert!(!dir.join("providers.json.bak").exists(), "首次写入不产生备份");
+        assert!(
+            !dir.join("providers.json.bak").exists(),
+            "首次写入不产生备份"
+        );
 
         atomic_write(&target, b"v2").unwrap();
         assert_eq!(fs::read(&target).unwrap(), b"v2");
-        assert_eq!(fs::read(dir.join("providers.json.bak")).unwrap(), b"v1", "首改备份保留原值");
+        assert_eq!(
+            fs::read(dir.join("providers.json.bak")).unwrap(),
+            b"v1",
+            "首改备份保留原值"
+        );
 
         atomic_write(&target, b"v3").unwrap();
-        assert_eq!(fs::read(dir.join("providers.json.bak")).unwrap(), b"v1", "备份只做一次");
+        assert_eq!(
+            fs::read(dir.join("providers.json.bak")).unwrap(),
+            b"v1",
+            "备份只做一次"
+        );
         let _ = fs::remove_dir_all(&dir);
     }
 }

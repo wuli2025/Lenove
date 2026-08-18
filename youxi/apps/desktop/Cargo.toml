@@ -19,6 +19,19 @@ tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 dirs = "5"
 uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+keyring = { version = "3", features = ["windows-native", "apple-native"] }
+qrcode = "0.14"
+png = "0.18"
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+lol_html = "2"
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+# 禁用 WebView2 的密码保存与通用自动填充，避免设置面板里短暂输入的 key
+# 被浏览器资料库另存一份明文。
+webview2-com = "0.38"
+windows = "0.61"
 
 [lib]
 name = "yiju_desktop"
@@ -37,6 +50,10 @@ path = "src/bin/smoke.rs"
 [[bin]]
 name = "yiju-gen"
 path = "src/bin/gen_one.rs"
+
+[[bin]]
+name = "yiju-doctor"
+path = "src/bin/yiju_doctor.rs"
 
 # 批量上线：复用桌面端「推上线」同一条 mica::publish 链路
 [[bin]]

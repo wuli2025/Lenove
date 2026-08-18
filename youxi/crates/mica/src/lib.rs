@@ -9,6 +9,6 @@ pub mod engine;
 pub mod provider;
 pub mod publish;
 pub mod runtime;
-pub mod update;
 #[cfg(feature = "server")]
 pub mod server;
+pub mod update;

@@ -93,7 +93,9 @@ mod nix {
 
     impl JobHandle {
         pub fn create(_memory_limit: u64) -> io::Result<Self> {
-            Ok(Self { pgid: AtomicI32::new(0) })
+            Ok(Self {
+                pgid: AtomicI32::new(0),
+            })
         }
 
         pub fn assign(&self, child: &tokio::process::Child) -> io::Result<()> {

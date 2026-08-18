@@ -10,15 +10,27 @@ pub fn binding_env(binding: &ProviderBinding) -> EnvMap {
     env.insert(binding.auth_field.clone(), binding.secret.clone());
     env.insert("ANTHROPIC_MODEL".into(), binding.models.default.clone());
     if !binding.models.opus.is_empty() {
-        env.insert("ANTHROPIC_DEFAULT_OPUS_MODEL".into(), binding.models.opus.clone());
+        env.insert(
+            "ANTHROPIC_DEFAULT_OPUS_MODEL".into(),
+            binding.models.opus.clone(),
+        );
     }
     if !binding.models.sonnet.is_empty() {
-        env.insert("ANTHROPIC_DEFAULT_SONNET_MODEL".into(), binding.models.sonnet.clone());
+        env.insert(
+            "ANTHROPIC_DEFAULT_SONNET_MODEL".into(),
+            binding.models.sonnet.clone(),
+        );
     }
     if !binding.models.haiku.is_empty() {
-        env.insert("ANTHROPIC_DEFAULT_HAIKU_MODEL".into(), binding.models.haiku.clone());
+        env.insert(
+            "ANTHROPIC_DEFAULT_HAIKU_MODEL".into(),
+            binding.models.haiku.clone(),
+        );
         // CLI 后台小任务（标题生成等）走 small/fast 档，同样钉死
-        env.insert("ANTHROPIC_SMALL_FAST_MODEL".into(), binding.models.haiku.clone());
+        env.insert(
+            "ANTHROPIC_SMALL_FAST_MODEL".into(),
+            binding.models.haiku.clone(),
+        );
     }
     env
 }
@@ -57,12 +69,24 @@ mod tests {
     #[test]
     fn env_contains_pinned_models_and_auth() {
         let env = binding_env(&binding());
-        assert_eq!(env.get("ANTHROPIC_BASE_URL").unwrap(), "https://open.bigmodel.cn/api/anthropic");
+        assert_eq!(
+            env.get("ANTHROPIC_BASE_URL").unwrap(),
+            "https://open.bigmodel.cn/api/anthropic"
+        );
         assert_eq!(env.get("ANTHROPIC_AUTH_TOKEN").unwrap(), "sk-xyz");
-        assert!(!env.contains_key("ANTHROPIC_API_KEY"), "只注入本绑定的鉴权字段");
+        assert!(
+            !env.contains_key("ANTHROPIC_API_KEY"),
+            "只注入本绑定的鉴权字段"
+        );
         assert_eq!(env.get("ANTHROPIC_MODEL").unwrap(), "glm-4.7");
-        assert_eq!(env.get("ANTHROPIC_DEFAULT_HAIKU_MODEL").unwrap(), "glm-4.5-air");
-        assert_eq!(env.get("ANTHROPIC_SMALL_FAST_MODEL").unwrap(), "glm-4.5-air");
+        assert_eq!(
+            env.get("ANTHROPIC_DEFAULT_HAIKU_MODEL").unwrap(),
+            "glm-4.5-air"
+        );
+        assert_eq!(
+            env.get("ANTHROPIC_SMALL_FAST_MODEL").unwrap(),
+            "glm-4.5-air"
+        );
     }
 
     #[test]

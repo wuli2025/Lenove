@@ -105,7 +105,13 @@ mod tests {
         // 未登记时 kill → 打标记
         assert!(!reg.kill(&id));
         // 随后登记 → 应被补杀（返回 false，不留在表内）
-        let ok = reg.register(&id, ProcHandle { pid: 12345, job: None });
+        let ok = reg.register(
+            &id,
+            ProcHandle {
+                pid: 12345,
+                job: None,
+            },
+        );
         assert!(!ok);
         assert_eq!(reg.inflight(), 0);
 

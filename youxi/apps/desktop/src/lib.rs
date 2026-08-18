@@ -5,8 +5,12 @@
 //! 「8/17 连跑 20 次统计成功率与耗时分布」。连跑 20 次这件事必须能在命令行做，
 //! 靠人手点 20 次 GUI 是统计不出分布的。
 
+pub mod cloud;
 pub mod config;
+pub mod doctor;
 pub mod generate;
 pub mod interview;
 pub mod llm;
+pub mod obf;
 pub mod preview;
+pub mod tts;

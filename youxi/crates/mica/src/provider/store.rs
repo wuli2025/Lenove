@@ -44,7 +44,10 @@ impl ProviderEntry {
             name: p.name.to_string(),
             kind: default_kind(),
             base_url: p.base_url.to_string(),
-            auth: AuthCfg { field: p.auth_field.to_string(), secret: secret.to_string() },
+            auth: AuthCfg {
+                field: p.auth_field.to_string(),
+                secret: secret.to_string(),
+            },
             models: ModelMap {
                 default: p.models[0].into(),
                 opus: p.models[1].into(),
@@ -90,7 +93,11 @@ impl ProviderStore {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => ProvidersFile::default(),
             Err(e) => return Err(e.into()),
         };
-        Ok(Self { path, inner: RwLock::new(file), failures: Mutex::new(HashMap::new()) })
+        Ok(Self {
+            path,
+            inner: RwLock::new(file),
+            failures: Mutex::new(HashMap::new()),
+        })
     }
 
     fn save_locked(&self, file: &ProvidersFile) -> Result<()> {
@@ -103,7 +110,13 @@ impl ProviderStore {
     }
 
     pub fn get(&self, id: &str) -> Option<ProviderEntry> {
-        self.inner.read().unwrap().providers.iter().find(|p| p.id == id).cloned()
+        self.inner
+            .read()
+            .unwrap()
+            .providers
+            .iter()
+            .find(|p| p.id == id)
+            .cloned()
     }
 
     pub fn upsert(&self, entry: ProviderEntry) -> Result<()> {
@@ -197,8 +210,11 @@ mod tests {
     use super::*;
 
     fn tmp_store() -> ProviderStore {
-        let dir = std::env::temp_dir()
-            .join(format!("mica-prov-{}-{:?}", std::process::id(), std::thread::current().id()));
+        let dir = std::env::temp_dir().join(format!(
+            "mica-prov-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         ProviderStore::load(dir.join("providers.json")).unwrap()
     }
@@ -228,8 +244,12 @@ mod tests {
     #[test]
     fn failover_after_threshold() {
         let store = tmp_store();
-        store.upsert(ProviderEntry::from_preset("a", "zhipu", "s").unwrap()).unwrap();
-        store.upsert(ProviderEntry::from_preset("b", "deepseek", "s").unwrap()).unwrap();
+        store
+            .upsert(ProviderEntry::from_preset("a", "zhipu", "s").unwrap())
+            .unwrap();
+        store
+            .upsert(ProviderEntry::from_preset("b", "deepseek", "s").unwrap())
+            .unwrap();
         store.set_active("a").unwrap();
         store.set_fallback(Some("b".into())).unwrap();
 

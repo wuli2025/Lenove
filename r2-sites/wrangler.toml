@@ -6,13 +6,15 @@ compatibility_date = "2026-08-01"
 [observability]
 enabled = true
 
-# 发信配置。MAIL_DEBUG=1 只是联调期间临时开着（接口返回值会带验证码），
-# 活动前必须删掉这一行。授权码不落这里，走 wrangler secret。
+# 发信配置。授权码不落这里，走 wrangler secret。
 [vars]
 MAIL_PROVIDER = "qq"
 QQ_MAIL_USER = "179982094@qq.com"
 MAIL_FROM_NAME = "一句话生成"
-MAIL_DEBUG = "1"
+IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell"
+
+[ai]
+binding = "AI"
 
 [[r2_buckets]]
 binding = "SITES"

@@ -16,6 +16,23 @@ export const json = (data, status = 200, extra = {}) =>
 
 export const bad = (msg, status = 400) => json({ ok: false, error: msg }, status);
 
+/** 只认真实位图魔数；扩展名、Content-Type 和调用方声明都不作为证据。 */
+export function rasterType(input) {
+  const b = input instanceof Uint8Array ? input : new Uint8Array(input || 0);
+  if (b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
+      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) {
+    return { ext: 'png', mime: 'image/png' };
+  }
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) {
+    return { ext: 'jpg', mime: 'image/jpeg' };
+  }
+  if (b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) {
+    return { ext: 'webp', mime: 'image/webp' };
+  }
+  return null;
+}
+
 /** 22 位 base36 短 id，够用且不暴露顺序 */
 export function shortId() {
   const b = crypto.getRandomValues(new Uint8Array(8));
@@ -102,9 +119,9 @@ export async function createWork(request, env) {
   try {
     await env.DB.prepare(
       `INSERT INTO works (id, slug, creator, title, tagline, cover, poster, accent, hits, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NULL, ?, 0, 'public', ?)`
+       VALUES (?, ?, ?, ?, ?, NULL, NULL, ?, 0, 'draft', ?)`
     )
-      .bind(id, slug, creator, title, tagline, body.cover || null, accent, now)
+      .bind(id, slug, creator, title, tagline, accent, now)
       .run();
   } catch (e) {
     if (String(e).includes('UNIQUE')) return bad('该 slug 已被占用，换一个', 409);
@@ -118,8 +135,7 @@ export async function createWork(request, env) {
     slug,
     siteUrl: `${origin}/u/${slug}/`,
     posterUrl: `${origin}/p/${id}`,
-    posterSvg: `${origin}/p/${id}.svg`,
-    hallUrl: `${origin}/`,
+    hallUrl: `${origin}/hall`,
   });
 }
 
@@ -135,11 +151,9 @@ export async function patchWork(request, env, id) {
     return bad('请求体不是合法 JSON');
   }
 
-  // status 必须是白名单里的值。
-  // 之前直接把 body 里的值写库，实测 {"status":"banana"} 会返回 ok:true，
-  // 作品从大厅消失但既不是 public 也不是 hidden，只能靠人工捞回来。
-  if (body.status !== undefined && !['public', 'hidden'].includes(body.status)) {
-    return bad('status 只能是 public 或 hidden');
+  // 普通 PATCH 只能隐藏，不能把 draft 直接改成 public 绕过 R2 完整性校验。
+  if (body.status !== undefined && body.status !== 'hidden') {
+    return bad('status 只能设为 hidden；公开作品必须调用 finalize');
   }
   // cover / poster 存的是 R2 key，必须限定前缀与字符，别让它变成任意写入口
   for (const k of ['cover', 'poster']) {
@@ -168,6 +182,50 @@ export async function patchWork(request, env, id) {
   return json({ ok: true });
 }
 
+/**
+ * 唯一允许 draft → public 的入口。
+ * 公开前必须确认首页与真实位图封面都已经进入 R2，避免大厅出现 404 / SVG 假封面。
+ */
+export async function finalizeWork(request, env, id) {
+  const token = request.headers.get('x-publish-token') || '';
+  if (!env.PUBLISH_TOKEN || token !== env.PUBLISH_TOKEN) return bad('发布令牌无效', 401);
+
+  const w = await env.DB.prepare(
+    `SELECT id, slug, cover, status FROM works WHERE id = ?`,
+  ).bind(id).first();
+  if (!w) return bad('作品不存在', 404);
+  if (w.status === 'public') return json({ ok: true, alreadyPublic: true });
+  if (w.status !== 'draft') return bad('只有 draft 作品可以公开', 409);
+  if (!w.cover || !String(w.cover).startsWith(`covers/${id}.`)) {
+    return bad('缺少该作品的真实封面，不能公开', 409);
+  }
+
+  const indexKey = `sites/${w.slug}/index.html`;
+  if (!(await env.SITES.head(indexKey))) return bad('站点首页尚未上传，不能公开', 409);
+
+  const cover = await env.SITES.get(w.cover);
+  if (!cover) return bad('封面对象尚未上传，不能公开', 409);
+  const bytes = await cover.arrayBuffer();
+  const raster = rasterType(bytes);
+  if (!raster) return bad('封面不是有效的 PNG/JPEG/WebP 位图', 409);
+  if (cover.httpMetadata?.contentType && cover.httpMetadata.contentType !== raster.mime) {
+    return bad('封面 Content-Type 与真实字节不一致', 409);
+  }
+
+  const r = await env.DB.prepare(
+    `UPDATE works SET status = 'public' WHERE id = ? AND status = 'draft'`,
+  ).bind(id).run();
+  if (!r.meta.changes) return bad('作品状态已变化，请刷新后重试', 409);
+
+  const origin = new URL(request.url).origin;
+  return json({
+    ok: true,
+    siteUrl: `${origin}/u/${w.slug}/`,
+    posterUrl: `${origin}/p/${id}`,
+    hallUrl: `${origin}/hall`,
+  });
+}
+
 // ───────────────────────── 读取 ─────────────────────────
 
 /** 热度 = 点击数 / (小时数+2)^1.2 —— 加时间衰减，新作品才有机会往上冒 */
@@ -184,7 +242,7 @@ export async function listWorks(request, env) {
   // 现场量级（几百条）直接全取回来在 JS 里排，避免把衰减公式塞进 SQL
   const { results } = await env.DB.prepare(
     `SELECT id, slug, creator, title, tagline, cover, poster, accent, hits, created_at
-       FROM works WHERE status = 'public'
+       FROM works WHERE status = 'public' AND cover IS NOT NULL
       ORDER BY created_at DESC LIMIT 500`
   ).all();
 

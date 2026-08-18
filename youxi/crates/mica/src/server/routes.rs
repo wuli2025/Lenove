@@ -16,7 +16,10 @@ use serde_json::json;
 fn err_response(e: MicaError) -> Response {
     let (status, msg) = match &e {
         MicaError::NotFound(_) => (StatusCode::NOT_FOUND, e.to_string()),
-        MicaError::Terminal(state) => (StatusCode::GONE, format!("task already terminal: {state:?}")),
+        MicaError::Terminal(state) => (
+            StatusCode::GONE,
+            format!("task already terminal: {state:?}"),
+        ),
         MicaError::InvalidState(_) => (StatusCode::CONFLICT, e.to_string()),
         MicaError::QueueFull(_) => (StatusCode::TOO_MANY_REQUESTS, e.to_string()),
         MicaError::Provider(_) => (StatusCode::UNPROCESSABLE_ENTITY, e.to_string()),
@@ -25,7 +28,8 @@ fn err_response(e: MicaError) -> Response {
     let mut resp = (status, Json(json!({"error": msg}))).into_response();
     if status == StatusCode::TOO_MANY_REQUESTS {
         // 背压带预估等待（PRD 4.3）
-        resp.headers_mut().insert("retry-after", "5".parse().unwrap());
+        resp.headers_mut()
+            .insert("retry-after", "5".parse().unwrap());
     }
     resp
 }
@@ -93,10 +97,7 @@ fn default_tenant() -> String {
     "default".into()
 }
 
-pub async fn submit_task(
-    State(state): State<AppState>,
-    Json(body): Json<SubmitBody>,
-) -> Response {
+pub async fn submit_task(State(state): State<AppState>, Json(body): Json<SubmitBody>) -> Response {
     let spec = TaskSpec {
         id: new_task_id(),
         tenant: body.tenant,
@@ -149,7 +150,11 @@ pub async fn get_task(State(state): State<AppState>, Path(id): Path<String>) -> 
 fn control(state: &AppState, id: &str, op: ControlOp) -> Response {
     match state.scheduler.control(&id.to_string(), op) {
         // 受理即 202，实际生效以 SSE 的 ControlAck / StateChanged 为准（PRD 4.8 回执闭环）
-        Ok(()) => (StatusCode::ACCEPTED, Json(json!({"accepted": true, "op": op}))).into_response(),
+        Ok(()) => (
+            StatusCode::ACCEPTED,
+            Json(json!({"accepted": true, "op": op})),
+        )
+            .into_response(),
         Err(e) => err_response(e),
     }
 }
@@ -181,7 +186,10 @@ pub async fn patch_task(
     Path(id): Path<String>,
     Json(body): Json<PatchBody>,
 ) -> Response {
-    match state.scheduler.patch(&id, body.model, body.priority, body.provider) {
+    match state
+        .scheduler
+        .patch(&id, body.model, body.priority, body.provider)
+    {
         Ok(()) => (StatusCode::ACCEPTED, Json(json!({"accepted": true}))).into_response(),
         Err(e) => err_response(e),
     }
@@ -255,7 +263,9 @@ pub async fn add_provider(
             kind: "anthropic_compat".into(),
             base_url,
             auth: crate::provider::store::AuthCfg {
-                field: body.auth_field.unwrap_or_else(|| "ANTHROPIC_AUTH_TOKEN".into()),
+                field: body
+                    .auth_field
+                    .unwrap_or_else(|| "ANTHROPIC_AUTH_TOKEN".into()),
                 secret: body.secret,
             },
             models,
@@ -280,7 +290,9 @@ pub async fn activate_provider(State(state): State<AppState>, Path(id): Path<Str
         },
         Ok(result) => (
             StatusCode::UNPROCESSABLE_ENTITY,
-            Json(json!({"ok": false, "error": "probe failed, activation refused", "probe": result})),
+            Json(
+                json!({"ok": false, "error": "probe failed, activation refused", "probe": result}),
+            ),
         )
             .into_response(),
         Err(e) => err_response(e),

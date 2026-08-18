@@ -19,10 +19,16 @@ pub struct Msg {
 
 impl Msg {
     pub fn user(c: impl Into<String>) -> Self {
-        Self { role: "user", content: c.into() }
+        Self {
+            role: "user",
+            content: c.into(),
+        }
     }
     pub fn assistant(c: impl Into<String>) -> Self {
-        Self { role: "assistant", content: c.into() }
+        Self {
+            role: "assistant",
+            content: c.into(),
+        }
     }
 }
 
@@ -142,10 +148,20 @@ impl Llm {
             .map_err(|e| format!("模型请求失败：{e}"))?;
 
         let status = r.status();
-        let raw = r.text().await.map_err(|e| format!("读取模型响应失败：{e}"))?;
+        let raw = r
+            .text()
+            .await
+            .map_err(|e| format!("读取模型响应失败：{e}"))?;
         if !status.is_success() {
-            // 把网关原文带出来——现场排查全靠这段，截断到 300 字够定位又不刷屏
-            return Err(format!("模型返回 {status}：{}", raw.chars().take(300).collect::<String>()));
+            // 网关原文只保留一小段定位信息；如果上游把请求凭据回显出来，必须先抹掉，
+            // 否则环境医生/设置日志会把原本只在 Rust 内存里的 key 带进 WebView。
+            let excerpt = raw.chars().take(300).collect::<String>();
+            let excerpt = if self.key.is_empty() {
+                excerpt
+            } else {
+                excerpt.replace(&self.key, "[凭据已隐藏]")
+            };
+            return Err(format!("模型返回 {status}：{excerpt}"));
         }
 
         let parsed: Resp =
@@ -159,10 +175,17 @@ impl Llm {
             .collect::<String>();
         let usage = parsed
             .usage
-            .map(|u| Usage { input_tokens: u.input_tokens, output_tokens: u.output_tokens })
+            .map(|u| Usage {
+                input_tokens: u.input_tokens,
+                output_tokens: u.output_tokens,
+            })
             .unwrap_or_default();
 
-        Ok(Completion { text, usage, stop_reason: parsed.stop_reason.unwrap_or_default() })
+        Ok(Completion {
+            text,
+            usage,
+            stop_reason: parsed.stop_reason.unwrap_or_default(),
+        })
     }
 }
 
@@ -258,7 +281,10 @@ mod tests {
 
     #[test]
     fn block_extraction() {
-        assert_eq!(extract_block("前言\n```html\n<p>x</p>\n```\n后记", "html"), "<p>x</p>");
+        assert_eq!(
+            extract_block("前言\n```html\n<p>x</p>\n```\n后记", "html"),
+            "<p>x</p>"
+        );
         // 要的语言没有，但有裸围栏
         assert_eq!(extract_block("```\n<p>y</p>\n```", "html"), "<p>y</p>");
         // 完全没围栏就用整段
@@ -304,12 +330,19 @@ mod tests {
 
     #[test]
     fn usage_totals() {
-        let u = Usage { input_tokens: 1200, output_tokens: 800 };
+        let u = Usage {
+            input_tokens: 1200,
+            output_tokens: 800,
+        };
         assert_eq!(u.total(), 2000);
     }
 
     fn comp(reason: &str) -> Completion {
-        Completion { text: String::new(), usage: Usage::default(), stop_reason: reason.into() }
+        Completion {
+            text: String::new(),
+            usage: Usage::default(),
+            stop_reason: reason.into(),
+        }
     }
 
     #[test]

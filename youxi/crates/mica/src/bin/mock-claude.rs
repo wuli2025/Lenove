@@ -32,7 +32,13 @@ fn main() {
         }
     }
 
-    let chunks = ["你好，", "这是 mock 回复：", &format!("收到「{prompt_head}」，"), "分段流式输出，", "完毕。"];
+    let chunks = [
+        "你好，",
+        "这是 mock 回复：",
+        &format!("收到「{prompt_head}」，"),
+        "分段流式输出，",
+        "完毕。",
+    ];
     let mut full = String::new();
     for chunk in chunks {
         full.push_str(chunk);

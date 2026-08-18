@@ -46,7 +46,9 @@ pub enum TaskKind {
 }
 
 /// 三级优先级（PRD 4.3），数值越小越优先
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Priority {
     High,
@@ -70,7 +72,10 @@ pub enum TaskState {
 
 impl TaskState {
     pub fn is_terminal(self) -> bool {
-        matches!(self, TaskState::Canceled | TaskState::Done | TaskState::Error)
+        matches!(
+            self,
+            TaskState::Canceled | TaskState::Done | TaskState::Error
+        )
     }
 }
 
@@ -112,7 +117,11 @@ pub struct TaskLimits {
 
 impl Default for TaskLimits {
     fn default() -> Self {
-        Self { timeout_secs: 1800, idle_secs: 300, max_output_bytes: MAX_OUTPUT_BYTES }
+        Self {
+            timeout_secs: 1800,
+            idle_secs: 300,
+            max_output_bytes: MAX_OUTPUT_BYTES,
+        }
     }
 }
 
@@ -153,19 +162,46 @@ pub struct TaskSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AgentEvent {
-    Queued { position: u32 },
-    Started { pid: Option<u32> },
-    Delta { text: String },
-    ToolUse { name: String, summary: String },
+    Queued {
+        position: u32,
+    },
+    Started {
+        pid: Option<u32>,
+    },
+    Delta {
+        text: String,
+    },
+    ToolUse {
+        name: String,
+        summary: String,
+    },
     /// 任务产物（PRD 4.1）：生图/多文件产出的落盘回传，path 为任务工作区内路径
-    Artifact { path: String, kind: String },
-    Usage { input_tokens: u64, output_tokens: u64 },
+    Artifact {
+        path: String,
+        kind: String,
+    },
+    Usage {
+        input_tokens: u64,
+        output_tokens: u64,
+    },
     /// 控制指令回执（PRD 4.8），随事件流下发
-    ControlAck { op: ControlOp, ok: bool, detail: Option<String> },
+    ControlAck {
+        op: ControlOp,
+        ok: bool,
+        detail: Option<String>,
+    },
     /// Paused / Resumed / Canceled 等状态转移（PRD 4.8）
-    StateChanged { state: TaskState },
-    Done { result: String },
-    Error { code: ErrorCode, detail: String, retryable: bool },
+    StateChanged {
+        state: TaskState,
+    },
+    Done {
+        result: String,
+    },
+    Error {
+        code: ErrorCode,
+        detail: String,
+        retryable: bool,
+    },
 }
 
 /// 四档模型钉死（PRD 5.2：防 CLI 后台小任务回落官方默认名被网关拒）
@@ -256,14 +292,23 @@ mod tests {
 
     #[test]
     fn agent_event_serde_roundtrip_and_tag() {
-        let ev = AgentEvent::ControlAck { op: ControlOp::Cancel, ok: true, detail: None };
+        let ev = AgentEvent::ControlAck {
+            op: ControlOp::Cancel,
+            ok: true,
+            detail: None,
+        };
         let json = serde_json::to_string(&ev).unwrap();
-        assert!(json.contains(r#""type":"control_ack""#), "tag 格式应为 snake_case: {json}");
+        assert!(
+            json.contains(r#""type":"control_ack""#),
+            "tag 格式应为 snake_case: {json}"
+        );
         assert!(json.contains(r#""op":"cancel""#));
         let back: AgentEvent = serde_json::from_str(&json).unwrap();
         assert!(matches!(back, AgentEvent::ControlAck { ok: true, .. }));
 
-        let ev = AgentEvent::StateChanged { state: TaskState::Paused };
+        let ev = AgentEvent::StateChanged {
+            state: TaskState::Paused,
+        };
         let json = serde_json::to_string(&ev).unwrap();
         assert!(json.contains(r#""state":"paused""#));
     }
@@ -284,10 +329,9 @@ mod tests {
 
     #[test]
     fn task_spec_deserialize_defaults() {
-        let spec: TaskSpec = serde_json::from_str(
-            r#"{"id":"t1","tenant":"u1","engine":"api","prompt":"hi"}"#,
-        )
-        .unwrap();
+        let spec: TaskSpec =
+            serde_json::from_str(r#"{"id":"t1","tenant":"u1","engine":"api","prompt":"hi"}"#)
+                .unwrap();
         assert_eq!(spec.priority, Priority::Normal);
         assert_eq!(spec.limits.timeout_secs, 1800);
         assert!(!spec.cancel_on_disconnect);

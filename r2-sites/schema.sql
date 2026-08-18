@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS works (
   creator     TEXT NOT NULL,               -- 创作者姓名（开始创作前输入）
   title       TEXT NOT NULL,               -- 作品主题
   tagline     TEXT NOT NULL DEFAULT '',    -- 一句话亮点描述
-  cover       TEXT,                        -- 封面截图在 R2 的 key（没有则用生成式示意图）
-  poster      TEXT,                        -- 海报 PNG 在 R2 的 key（桌面端渲染后回传）
+  cover       TEXT,                        -- 生图模型产出的真实位图封面 R2 key（公开作品必填）
+  poster      TEXT,                        -- 桌面端 Canvas 生成的 1080×1440 PNG R2 key
   accent      INTEGER NOT NULL DEFAULT 0,  -- 配色档位 0-5，由标题哈希定，保证同一作品每次一致
   hits        INTEGER NOT NULL DEFAULT 0,  -- 被点开次数（30 分钟内同一访客只计 1 次）
-  status      TEXT NOT NULL DEFAULT 'public', -- public | hidden（一键下架用）
+  status      TEXT NOT NULL DEFAULT 'draft', -- draft | public | hidden；finalize 才能公开
   created_at  INTEGER NOT NULL
 );
 

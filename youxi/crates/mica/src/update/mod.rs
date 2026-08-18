@@ -68,9 +68,18 @@ pub async fn check() -> UpdateReport {
         Err(e) => return UpdateReport::offline(&current, format!("parse: {e}")),
     };
 
-    let latest = json.get("tag_name").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let download_url = json.get("html_url").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let notes = json.get("body").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let latest = json
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let download_url = json
+        .get("html_url")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let notes = json
+        .get("body")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
     let update_available = match &latest {
         Some(tag) => is_newer(&current, tag),
         None => false,
@@ -93,7 +102,11 @@ fn is_newer(current: &str, latest: &str) -> bool {
     let parse = |s: &str| -> Vec<u64> {
         s.trim_start_matches(['v', 'V'])
             .split('.')
-            .map(|p| p.chars().take_while(|c| c.is_ascii_digit()).collect::<String>())
+            .map(|p| {
+                p.chars()
+                    .take_while(|c| c.is_ascii_digit())
+                    .collect::<String>()
+            })
             .map(|p| p.parse::<u64>().unwrap_or(0))
             .collect()
     };

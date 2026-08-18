@@ -36,7 +36,9 @@ pub async fn serve(root: PathBuf) -> std::io::Result<Preview> {
 
     tokio::spawn(async move {
         loop {
-            let Ok((stream, _)) = listener.accept().await else { continue };
+            let Ok((stream, _)) = listener.accept().await else {
+                continue;
+            };
             let root = handle_root.clone();
             tokio::spawn(async move {
                 let _ = handle(stream, &root).await;
@@ -77,8 +79,14 @@ async fn handle(mut stream: TcpStream, root: &Path) -> std::io::Result<()> {
     let decoded = percent_decode(path);
 
     let Some(file) = resolve(root, &decoded) else {
-        return respond(&mut stream, 404, "text/html; charset=utf-8", NOT_FOUND, method == "HEAD")
-            .await;
+        return respond(
+            &mut stream,
+            404,
+            "text/html; charset=utf-8",
+            NOT_FOUND,
+            method == "HEAD",
+        )
+        .await;
     };
 
     match tokio::fs::read(&file).await {
@@ -87,7 +95,14 @@ async fn handle(mut stream: TcpStream, root: &Path) -> std::io::Result<()> {
             respond(&mut stream, 200, ct, &bytes, method == "HEAD").await
         }
         Err(_) => {
-            respond(&mut stream, 404, "text/html; charset=utf-8", NOT_FOUND, method == "HEAD").await
+            respond(
+                &mut stream,
+                404,
+                "text/html; charset=utf-8",
+                NOT_FOUND,
+                method == "HEAD",
+            )
+            .await
         }
     }
 }
@@ -149,7 +164,13 @@ fn percent_decode(s: &str) -> String {
 }
 
 fn content_type(p: &Path) -> &'static str {
-    match p.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase().as_str() {
+    match p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase()
+        .as_str()
+    {
         "html" | "htm" => "text/html; charset=utf-8",
         "css" => "text/css; charset=utf-8",
         "js" | "mjs" => "text/javascript; charset=utf-8",
@@ -225,11 +246,23 @@ mod tests {
     #[test]
     fn content_types_cover_the_generated_set() {
         // 生成器产出的就这几种，错一个线上就是 text/plain 白页
-        assert_eq!(content_type(Path::new("a/index.html")), "text/html; charset=utf-8");
-        assert_eq!(content_type(Path::new("a/style.css")), "text/css; charset=utf-8");
-        assert_eq!(content_type(Path::new("a/app.js")), "text/javascript; charset=utf-8");
+        assert_eq!(
+            content_type(Path::new("a/index.html")),
+            "text/html; charset=utf-8"
+        );
+        assert_eq!(
+            content_type(Path::new("a/style.css")),
+            "text/css; charset=utf-8"
+        );
+        assert_eq!(
+            content_type(Path::new("a/app.js")),
+            "text/javascript; charset=utf-8"
+        );
         assert_eq!(content_type(Path::new("a/hero.svg")), "image/svg+xml");
         assert_eq!(content_type(Path::new("a/UPPER.PNG")), "image/png");
-        assert_eq!(content_type(Path::new("a/noext")), "application/octet-stream");
+        assert_eq!(
+            content_type(Path::new("a/noext")),
+            "application/octet-stream"
+        );
     }
 }

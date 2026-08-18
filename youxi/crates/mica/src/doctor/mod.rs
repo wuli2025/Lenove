@@ -46,7 +46,11 @@ pub fn resolve(engine: EngineId) -> Result<ResolvedRuntime> {
 
     // 3. 用户 PATH（含 .cmd 解析）
     if let Some(exe) = find_in_path(name) {
-        return Ok(ResolvedRuntime { needs_cmd_shim: is_cmd_shim(&exe), exe, via: "path".into() });
+        return Ok(ResolvedRuntime {
+            needs_cmd_shim: is_cmd_shim(&exe),
+            exe,
+            via: "path".into(),
+        });
     }
 
     Err(MicaError::Other(format!(
@@ -111,7 +115,12 @@ pub fn checkup() -> (Vec<ComponentReport>, bool) {
     (reports, all_ready)
 }
 
-fn component_via_resolver(name: &str, engine: EngineId, required: bool, hint: &str) -> ComponentReport {
+fn component_via_resolver(
+    name: &str,
+    engine: EngineId,
+    required: bool,
+    hint: &str,
+) -> ComponentReport {
     match resolve(engine) {
         Ok(rt) => {
             let path = rt.exe.display().to_string();
@@ -167,25 +176,43 @@ fn component_plain(name: &str, required: bool, hint: &str) -> ComponentReport {
 /// 尽力取版本号：`<exe> --version`，失败返回 None，绝不阻塞体检。
 fn probe_version(exe: &Path, needs_shim: bool) -> Option<String> {
     let out = if needs_shim {
-        std::process::Command::new("cmd").arg("/c").arg(exe).arg("--version").output()
+        std::process::Command::new("cmd")
+            .arg("/c")
+            .arg(exe)
+            .arg("--version")
+            .output()
     } else {
         std::process::Command::new(exe).arg("--version").output()
     }
     .ok()?;
-    let text = String::from_utf8_lossy(if out.stdout.is_empty() { &out.stderr } else { &out.stdout });
-    text.lines().next().map(|l| l.trim().to_string()).filter(|s| !s.is_empty())
+    let text = String::from_utf8_lossy(if out.stdout.is_empty() {
+        &out.stderr
+    } else {
+        &out.stdout
+    });
+    text.lines()
+        .next()
+        .map(|l| l.trim().to_string())
+        .filter(|s| !s.is_empty())
 }
 
 fn is_cmd_shim(path: &Path) -> bool {
     matches!(
-        path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase).as_deref(),
+        path.extension()
+            .and_then(|e| e.to_str())
+            .map(str::to_ascii_lowercase)
+            .as_deref(),
         Some("cmd") | Some("bat")
     )
 }
 
 fn find_in_path(name: &str) -> Option<PathBuf> {
     let path_var = std::env::var_os("PATH")?;
-    let exts: &[&str] = if cfg!(windows) { &[".exe", ".cmd", ".bat"] } else { &[""] };
+    let exts: &[&str] = if cfg!(windows) {
+        &[".exe", ".cmd", ".bat"]
+    } else {
+        &[""]
+    };
     for dir in std::env::split_paths(&path_var) {
         for ext in exts {
             let candidate = dir.join(format!("{name}{ext}"));

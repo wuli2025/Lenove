@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="base" x1="110" y1="70" x2="900" y2="960" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14243a"/>
+      <stop offset="0.48" stop-color="#0a1423"/>
+      <stop offset="1" stop-color="#050a12"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="0" cy="0" r="1" gradientTransform="translate(382 330) rotate(45) scale(640)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#66d9e8" stop-opacity="0.26"/>
+      <stop offset="0.55" stop-color="#287a9e" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#06101c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bubble" x1="190" y1="278" x2="823" y2="736" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8bedf2"/>
+      <stop offset="0.48" stop-color="#5bd5e6"/>
+      <stop offset="1" stop-color="#32a9d4"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="235" y1="310" x2="713" y2="687" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="0.4" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="706" y1="246" x2="855" y2="407" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff4bd"/>
+      <stop offset="0.48" stop-color="#f0d08a"/>
+      <stop offset="1" stop-color="#e6a953"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="34" stdDeviation="34" flood-color="#02050a" flood-opacity="0.72"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#52d8e8" flood-opacity="0.25"/>
+    </filter>
+    <filter id="sparkGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#f8dda0" flood-opacity="0.62"/>
+    </filter>
+    <clipPath id="appMask">
+      <rect x="40" y="40" width="944" height="944" rx="236"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#appMask)">
+    <rect x="40" y="40" width="944" height="944" rx="236" fill="url(#base)"/>
+    <rect x="40" y="40" width="944" height="944" rx="236" fill="url(#aura)"/>
+    <circle cx="160" cy="190" r="250" fill="#66d9e8" opacity="0.055"/>
+    <circle cx="893" cy="850" r="310" fill="#194e78" opacity="0.10"/>
+    <path d="M-20 782C188 651 294 860 502 740C668 644 786 698 1058 522" fill="none" stroke="#66d9e8" stroke-opacity="0.045" stroke-width="42"/>
+  </g>
+
+  <rect x="52" y="52" width="920" height="920" rx="224" fill="none" stroke="#c4f8fb" stroke-opacity="0.12" stroke-width="10"/>
+
+  <g clip-path="url(#appMask)">
+    <g filter="url(#shadow)">
+    <path d="M238 264H700C809 264 874 331 874 435V519C874 623 809 690 700 690H505L338 808C318 822 289 803 297 779L327 690H238C129 690 82 623 82 519V435C82 331 129 264 238 264Z" fill="url(#bubble)"/>
+    <path d="M238 278H700C798 278 858 338 858 435V519C858 616 798 676 700 676H500L322 796L351 676H238C140 676 98 616 98 519V435C98 338 140 278 238 278Z" fill="none" stroke="#d8fbfd" stroke-opacity="0.34" stroke-width="8"/>
+    <path d="M228 294H702C762 294 807 319 833 361C777 319 731 316 669 316H252C175 316 139 345 115 407C128 336 164 294 228 294Z" fill="url(#shine)"/>
+  </g>
+
+  <g fill="none" stroke="#091522" stroke-linecap="round">
+    <path d="M252 439H628" stroke-width="58" opacity="0.93"/>
+    <path d="M252 555H522" stroke-width="42" opacity="0.72"/>
+  </g>
+  <circle cx="620" cy="555" r="24" fill="#0a1725" opacity="0.68"/>
+
+  <g filter="url(#sparkGlow)">
+    <path d="M757 213C768 283 798 313 868 324C798 335 768 365 757 435C746 365 716 335 646 324C716 313 746 283 757 213Z" fill="url(#gold)"/>
+    <path d="M881 398C887 433 902 448 937 454C902 460 887 475 881 510C875 475 860 460 825 454C860 448 875 433 881 398Z" fill="#f7e2a9"/>
+    <circle cx="881" cy="255" r="18" fill="#fff3c4"/>
+  </g>
+
+  <path d="M755 256C765 294 787 315 825 325" fill="none" stroke="#fff9dc" stroke-linecap="round" stroke-width="12" opacity="0.72"/>
+  </g>
+</svg>

@@ -5,9 +5,8 @@
  *   /api/works           GET 列表 · POST 发布（需 x-publish-token）
  *   /api/works/<id>      GET 详情 · PATCH 回填封面/海报
  *   /api/works/<id>/hit  POST 记一次点击
- *   /p/<id>              分享海报页（发微信好友打开就是这个）
- *   /p/<id>.svg          自包含海报 SVG
- *   /qr?d=<url>          二维码 SVG
+ *   /p/<id>              已上传 PNG 分享海报的展示页
+ *   /qr?d=<url>          旧页面兼容用二维码 SVG（新海报不调用）
  *   /r2/<key>            封面 / 海报等媒体（限定前缀）
  *   /u/<slug>/<path...>  用户站点静态分发（R2 子路径方案）
  *
@@ -19,13 +18,15 @@
  *  4. html 短缓存（改完就能看到），带内容哈希的资源长缓存 + immutable。
  */
 import { hallHtml } from './hall.js';
+import { BRAND } from './brand.js';
 import { homeHtml } from './home.js';
 import { meHtml, currentUser } from './me.js';
 import { authRoutes } from './auth.js';
-import { posterHtml, posterSvg } from './poster.js';
+import { posterHtml } from './poster.js';
 import { qrSvg } from './qr.js';
 import {
-  json, bad, createWork, patchWork, listWorks, getWork, recordHit, workStatusBySlug, visitorHash, heat,
+  json, bad, rasterType, createWork, patchWork, finalizeWork, listWorks, getWork, recordHit,
+  workStatusBySlug, visitorHash, heat,
 } from './api.js';
 
 const IMMUTABLE = 'public, max-age=31536000, immutable';
@@ -82,6 +83,12 @@ function buildHeaders(obj, key, extra = {}) {
 
 const html = (body, status = 200, cache = 'public, max-age=30') =>
   new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache } });
+
+const methodHtml = (method, body, status = 200, cache = 'public, max-age=30') =>
+  new Response(method === 'HEAD' ? null : body, {
+    status,
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache },
+  });
 
 const svg = (body, cache = 'public, max-age=300') =>
   new Response(body, { status: 200, headers: { 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': cache } });
@@ -148,6 +155,79 @@ async function serveSite(request, env, ctx, url, resolved) {
   return response;
 }
 
+// ───────────────────────── 发布能力 / 生图 ─────────────────────────
+const publishAuthorized = (request, env) =>
+  Boolean(env.PUBLISH_TOKEN) && request.headers.get('x-publish-token') === env.PUBLISH_TOKEN;
+
+function decodeBase64Image(value) {
+  const encoded = String(value || '').replace(/^data:image\/[^;]+;base64,/, '');
+  if (!encoded || encoded.length > 20 * 1024 * 1024) throw new Error('图片响应为空或过大');
+  const bin = atob(encoded);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+async function handleCapabilities(request, env) {
+  if (!publishAuthorized(request, env)) return bad('发布令牌无效', 401);
+  return json({
+    ok: true,
+    publish: Boolean(env.SITES && env.DB),
+    image: Boolean(env.AI),
+    imageModel: env.IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell',
+    brand: {
+      name: BRAND.name,
+      event: BRAND.event,
+      slogan: BRAND.slogan,
+      en: BRAND.en,
+      date: BRAND.date,
+      bg: BRAND.bg,
+      accent: BRAND.cy,
+      gold: BRAND.am,
+    },
+  });
+}
+
+async function handleImageGenerate(request, env) {
+  if (!publishAuthorized(request, env)) return bad('发布令牌无效', 401);
+  if (!env.AI) return bad('Cloudflare Workers AI 尚未绑定', 503);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return bad('请求体不是合法 JSON');
+  }
+  const prompt = String(body.prompt || '').trim();
+  if (prompt.length < 20 || prompt.length > 1800) return bad('生图提示必须是 20–1800 个字符');
+
+  try {
+    const result = await env.AI.run(
+      env.IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell',
+      { prompt, steps: 6 },
+    );
+    const bytes = decodeBase64Image(result?.image ?? result);
+    const raster = rasterType(bytes);
+    if (!raster || raster.mime !== 'image/jpeg') {
+      console.error('image model returned a non-JPEG payload');
+      return bad('生图模型没有返回有效 JPEG', 502);
+    }
+    if (bytes.byteLength > 12 * 1024 * 1024) return bad('生图结果超过 12MB', 502);
+    return new Response(bytes, {
+      status: 200,
+      headers: {
+        'content-type': 'image/jpeg',
+        'content-length': String(bytes.byteLength),
+        'cache-control': 'no-store',
+        'x-content-type-options': 'nosniff',
+      },
+    });
+  } catch (err) {
+    console.error('workers-ai image generation failed', String(err?.message || err));
+    return bad('Cloudflare 生图失败，请稍后重试', 502);
+  }
+}
+
 // ───────────────────────── 上传（走 Worker 代理，不发 S3 密钥）─────────────────────────
 /**
  * 桌面端把产物 PUT 到这里，由 Worker 代写 R2。
@@ -157,9 +237,7 @@ async function serveSite(request, env, ctx, url, resolved) {
  * 权限边界也只有「往约定前缀里写」这一件事。
  */
 async function handleUpload(request, env, kind, rest) {
-  if (!env.PUBLISH_TOKEN || request.headers.get('x-publish-token') !== env.PUBLISH_TOKEN) {
-    return bad('发布令牌无效', 401);
-  }
+  if (!publishAuthorized(request, env)) return bad('发布令牌无效', 401);
   if (!rest || rest.includes('..') || rest.includes('//') || rest.startsWith('/')) {
     return bad('路径不合法');
   }
@@ -169,20 +247,44 @@ async function handleUpload(request, env, kind, rest) {
     const m = rest.match(/^([a-z0-9][a-z0-9-]{0,62})\/(.+)$/i);
     if (!m) return bad('路径应为 <slug>/<文件路径>');
     key = `sites/${m[1].toLowerCase()}/${m[2]}`;
+    if (extOf(key) === 'svg') return bad('站点禁止上传 SVG 视觉资源');
   } else if (kind === 'cover') {
     if (!/^[a-z0-9]+\.(png|jpg|jpeg|webp)$/i.test(rest)) return bad('封面文件名不合法');
     key = `covers/${rest}`;
   } else if (kind === 'poster') {
-    if (!/^[a-z0-9]+\.(png|jpg|jpeg)$/i.test(rest)) return bad('海报文件名不合法');
+    if (!/^[a-z0-9]+\.png$/i.test(rest)) return bad('海报必须是 PNG');
     key = `posters/${rest}`;
   } else {
     return bad('未知的上传类型');
   }
 
-  const ct = request.headers.get('content-type') || MIME[extOf(key)] || 'application/octet-stream';
   const body = await request.arrayBuffer();
   if (body.byteLength === 0) return bad('空文件');
   if (body.byteLength > 25 * 1024 * 1024) return bad('单个文件超过 25MB', 413);
+
+  const ext = extOf(key);
+  const rasterExt = ['png', 'jpg', 'jpeg', 'webp'].includes(ext);
+  let ct = MIME[ext] || 'application/octet-stream';
+  if (kind !== 'site' || rasterExt) {
+    const raster = rasterType(body);
+    if (!raster) return bad(`${kind === 'poster' ? '海报' : '图片'}不是有效的 PNG/JPEG/WebP 位图`);
+    const extensionMatches = ext === raster.ext || (raster.ext === 'jpg' && ext === 'jpeg');
+    if (!extensionMatches) return bad('图片扩展名与真实字节不一致');
+    if (kind === 'poster') {
+      if (raster.mime !== 'image/png') return bad('海报必须是 PNG');
+      const b = new Uint8Array(body);
+      const view = new DataView(b.buffer, b.byteOffset, b.byteLength);
+      if (b.byteLength < 24 || view.getUint32(16) !== 1080 || view.getUint32(20) !== 1440) {
+        return bad('海报尺寸必须是 1080×1440');
+      }
+    }
+    ct = raster.mime;
+  } else if (ext === 'html' || ext === 'htm' || ext === 'css' || ext === 'js' || ext === 'mjs') {
+    const text = new TextDecoder().decode(body).toLowerCase();
+    if (text.includes('<svg') || text.includes('data:image/svg+xml') || /["'(]\s*[^"')]*\.svg(?:[?#"')]|$)/i.test(text)) {
+      return bad('站点产物含 SVG 视觉资源，已拒绝上传');
+    }
+  }
 
   await env.SITES.put(key, body, {
     httpMetadata: { contentType: ct, cacheControl: cacheControlFor(key) },
@@ -204,23 +306,6 @@ async function serveMedia(request, env, ctx, key) {
     return new Response(null, { status: 200, headers });
   }
   return new Response(obj.body, { status: 200, headers });
-}
-
-/** 把 R2 里的封面转成 data URI，供自包含 SVG 内嵌 */
-async function coverDataUri(env, key) {
-  if (!key) return null;
-  const obj = await env.SITES.get(key);
-  if (!obj) return null;
-  const buf = await obj.arrayBuffer();
-  if (buf.byteLength > 900_000) return null; // 太大就退回生成式示意图，别把海报撑爆
-  let bin = '';
-  const bytes = new Uint8Array(buf);
-  const CH = 0x8000;
-  for (let i = 0; i < bytes.length; i += CH) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
-  }
-  const mime = obj.httpMetadata?.contentType || MIME[extOf(key)] || 'image/jpeg';
-  return `data:${mime};base64,${btoa(bin)}`;
 }
 
 // ───────────────────────── 入口 ─────────────────────────
@@ -248,19 +333,28 @@ export default {
       if (authed) return authed;
 
       // ── API ──
+      if (path === '/api/capabilities' && method === 'GET') {
+        return await handleCapabilities(request, env);
+      }
+      if (path === '/api/images/generate' && method === 'POST') {
+        return await handleImageGenerate(request, env);
+      }
       if (path === '/api/works') {
         if (method === 'POST') return await createWork(request, env);
         if (method === 'GET') return await listWorks(request, env);
         return bad('不支持的方法', 405);
       }
 
-      let m = path.match(/^\/api\/works\/([a-z0-9]+)$/i);
+      let m = path.match(/^\/api\/works\/([a-z0-9]+)\/finalize$/i);
+      if (m && method === 'POST') return await finalizeWork(request, env, m[1]);
+
+      m = path.match(/^\/api\/works\/([a-z0-9]+)$/i);
       if (m) {
         if (method === 'GET') {
           const w = await getWork(env, m[1]);
           // 带令牌的运维调用要能看到下架作品，公开调用则一律当作不存在
           const isOps = env.PUBLISH_TOKEN && request.headers.get('x-publish-token') === env.PUBLISH_TOKEN;
-          if (!w || (w.status !== 'public' && !isOps)) return bad('作品不存在', 404);
+          if (!w || ((w.status !== 'public' || !w.cover) && !isOps)) return bad('作品不存在', 404);
           return json({ ok: true, work: { ...w, heat: Number(heat(w).toFixed(4)) } });
         }
         if (method === 'PATCH') return await patchWork(request, env, m[1]);
@@ -292,18 +386,15 @@ export default {
         return svg(qrSvg(d, { size }), 'public, max-age=31536000, immutable');
       }
 
-      // ── 海报 ──
-      m = path.match(/^\/p\/([a-z0-9]+)(\.svg)?$/i);
+      // ── 海报：只展示已经上传到 R2 的 PNG，不生成 SVG 假图 ──
+      m = path.match(/^\/p\/([a-z0-9]+)$/i);
       if (m && (method === 'GET' || method === 'HEAD')) {
         const w = await getWork(env, m[1]);
-        // 下架的作品海报也要一起失效，否则分享链接还在外面转
         if (!w || w.status !== 'public') return new Response('Not Found', { status: 404 });
-        const siteUrl = `${url.origin}/u/${w.slug}/`;
-        if (m[2]) {
-          const dataUri = await coverDataUri(env, w.cover);
-          return svg(posterSvg(w, siteUrl, dataUri));
+        if (!w.poster) {
+          return methodHtml(method, '<!doctype html><meta charset="utf-8"><title>海报尚未生成</title><p style="font:16px sans-serif;padding:32px">海报尚未生成，请回到桌面端点击“生成分享卡/海报”。</p>', 409, 'no-store');
         }
-        return html(posterHtml(w, url.origin));
+        return methodHtml(method, posterHtml(w, url.origin));
       }
 
       // ── 媒体 ──
@@ -323,13 +414,13 @@ export default {
       // ── 首页（数字人需求访谈）──
       if (path === '/' && (method === 'GET' || method === 'HEAD')) {
         const user = await currentUser(request, env);
-        return html(homeHtml({ user }), 200, 'no-store');
+        return methodHtml(method, homeHtml({ user }), 200, 'no-store');
       }
 
       // ── 个人中心 ──
       if (path === '/me' && (method === 'GET' || method === 'HEAD')) {
         const user = await currentUser(request, env);
-        return html(meHtml({ user }), 200, 'no-store');
+        return methodHtml(method, meHtml({ user }), 200, 'no-store');
       }
 
       // ── 大厅 ──
@@ -337,7 +428,7 @@ export default {
         const sort = url.searchParams.get('sort') === 'new' ? 'new' : 'hot';
         const { results } = await env.DB.prepare(
           `SELECT id, slug, creator, title, tagline, cover, poster, accent, hits, created_at
-             FROM works WHERE status = 'public'
+             FROM works WHERE status = 'public' AND cover IS NOT NULL
             ORDER BY created_at DESC LIMIT 200`
         ).all();
         const now = Date.now();
@@ -345,7 +436,7 @@ export default {
         if (sort === 'hot') rows.sort((a, b) => heat(b, now) - heat(a, now) || b.created_at - a.created_at);
         const user = await currentUser(request, env);
         // 顶栏要显示当前登录态，所以不能走公共缓存
-        return html(hallHtml(rows, { origin: url.origin, sort, now, user }), 200, 'private, max-age=10');
+        return methodHtml(method, hallHtml(rows, { origin: url.origin, sort, now, user }), 200, 'private, max-age=10');
       }
 
       return new Response('Not Found', { status: 404 });

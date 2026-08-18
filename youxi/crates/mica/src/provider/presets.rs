@@ -17,7 +17,12 @@ pub const PRESETS: &[Preset] = &[
         name: "Anthropic 官方",
         base_url: "https://api.anthropic.com",
         auth_field: "ANTHROPIC_API_KEY",
-        models: ["claude-sonnet-5", "claude-opus-4-8", "claude-sonnet-5", "claude-haiku-4-5-20251001"],
+        models: [
+            "claude-sonnet-5",
+            "claude-opus-4-8",
+            "claude-sonnet-5",
+            "claude-haiku-4-5-20251001",
+        ],
     },
     Preset {
         key: "zhipu",
@@ -31,14 +36,24 @@ pub const PRESETS: &[Preset] = &[
         name: "DeepSeek",
         base_url: "https://api.deepseek.com/anthropic",
         auth_field: "ANTHROPIC_AUTH_TOKEN",
-        models: ["deepseek-chat", "deepseek-reasoner", "deepseek-chat", "deepseek-chat"],
+        models: [
+            "deepseek-chat",
+            "deepseek-reasoner",
+            "deepseek-chat",
+            "deepseek-chat",
+        ],
     },
     Preset {
         key: "kimi",
         name: "Kimi (Moonshot)",
         base_url: "https://api.moonshot.cn/anthropic",
         auth_field: "ANTHROPIC_AUTH_TOKEN",
-        models: ["kimi-k2-turbo-preview", "kimi-k2-turbo-preview", "kimi-k2-turbo-preview", "kimi-k2-turbo-preview"],
+        models: [
+            "kimi-k2-turbo-preview",
+            "kimi-k2-turbo-preview",
+            "kimi-k2-turbo-preview",
+            "kimi-k2-turbo-preview",
+        ],
     },
     Preset {
         key: "minimax",

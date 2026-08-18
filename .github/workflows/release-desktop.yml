@@ -1,0 +1,182 @@
+name: Build desktop 1.0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yiju-desktop-1.0.1
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Windows x64 NSIS
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust target
+        run: rustup target add x86_64-pc-windows-msvc
+
+      - name: Restore encrypted build bootstrap
+        shell: pwsh
+        env:
+          YIJU_BOOTSTRAP_B64: ${{ secrets.YIJU_BOOTSTRAP_B64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:YIJU_BOOTSTRAP_B64)) { throw 'YIJU_BOOTSTRAP_B64 is missing' }
+          $dir = Join-Path $env:RUNNER_TEMP 'MicaBase'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          [IO.File]::WriteAllBytes((Join-Path $dir 'yiju.json'), [Convert]::FromBase64String($env:YIJU_BOOTSTRAP_B64))
+
+      - name: Test desktop workspace
+        working-directory: youxi
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}\MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+        run: cargo test -p yiju-desktop -p mica
+
+      - name: Install fixed Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
+
+      - name: Build NSIS package
+        working-directory: youxi/apps/desktop
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}\MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+          MICA_PUBLISH_BASE_URL: https://r2t-9f3x.llmwiki.cloud
+        run: cargo tauri build --target x86_64-pc-windows-msvc --bundles nsis
+
+      - name: Extract installer for secret scan
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem 'youxi/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe' | Select-Object -First 1
+          if (-not $installer) { throw 'NSIS installer not found' }
+          $out = Join-Path $env:RUNNER_TEMP 'nsis-extracted'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          & 7z x $installer.FullName "-o$out" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw '7z could not extract NSIS installer' }
+
+      - name: Scan release for exact plaintext credentials
+        shell: pwsh
+        env:
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+        run: |
+          python 'youxi/apps/desktop/scripts/scan_release_secrets.py' `
+            --config "$env:RUNNER_TEMP/MicaBase/yiju.json" `
+            --path 'youxi/target/x86_64-pc-windows-msvc/release/yiju-desktop.exe' `
+            --path 'youxi/target/x86_64-pc-windows-msvc/release/bundle/nsis' `
+            --path "$env:RUNNER_TEMP/nsis-extracted"
+          if ($LASTEXITCODE -ne 0) { throw 'plaintext release credential detected' }
+
+      - name: Record Windows artifact metadata
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem 'youxi/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe' | Select-Object -First 1
+          $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash
+          "file=$($installer.Name)" | Set-Content -Encoding utf8 'windows-release-metadata.txt'
+          "bytes=$($installer.Length)" | Add-Content -Encoding utf8 'windows-release-metadata.txt'
+          "sha256=$hash" | Add-Content -Encoding utf8 'windows-release-metadata.txt'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yiju-1.0.1-windows-x64
+          path: |
+            youxi/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            windows-release-metadata.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove temporary bootstrap
+        if: always()
+        shell: pwsh
+        run: Remove-Item -Recurse -Force "$env:RUNNER_TEMP/MicaBase","$env:RUNNER_TEMP/nsis-extracted" -ErrorAction SilentlyContinue
+
+  macos:
+    name: macOS universal DMG
+    runs-on: macos-14
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install universal Rust targets
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Restore encrypted build bootstrap
+        env:
+          YIJU_BOOTSTRAP_B64: ${{ secrets.YIJU_BOOTSTRAP_B64 }}
+        run: |
+          test -n "$YIJU_BOOTSTRAP_B64"
+          mkdir -p "$RUNNER_TEMP/MicaBase"
+          python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"]+"/MicaBase/yiju.json").write_bytes(base64.b64decode(os.environ["YIJU_BOOTSTRAP_B64"]))'
+
+      - name: Test desktop workspace
+        working-directory: youxi
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}/MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+        run: cargo test -p yiju-desktop -p mica
+
+      - name: Run real startup doctor
+        working-directory: youxi
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}/MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+          MICA_PUBLISH_BASE_URL: https://r2t-9f3x.llmwiki.cloud
+        run: cargo run -p yiju-desktop --release --bin yiju-doctor -- --deep
+
+      - name: Install fixed Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
+
+      - name: Build ad-hoc signed universal app and DMG
+        working-directory: youxi/apps/desktop
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}/MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+          MICA_PUBLISH_BASE_URL: https://r2t-9f3x.llmwiki.cloud
+        run: cargo tauri build --target universal-apple-darwin --bundles app,dmg --config tauri.macbuild.conf.json
+
+      - name: Verify architectures, signature and DMG
+        run: |
+          APP=$(find youxi/target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)
+          DMG=$(find youxi/target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' -print -quit)
+          test -n "$APP" -a -n "$DMG"
+          BIN=$(find "$APP/Contents/MacOS" -type f -perm -111 -print -quit)
+          ARCHS=$(lipo -archs "$BIN")
+          echo "$ARCHS" | grep -q 'x86_64'
+          echo "$ARCHS" | grep -q 'arm64'
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          hdiutil verify "$DMG"
+          SHA=$(shasum -a 256 "$DMG" | awk '{print $1}')
+          BYTES=$(stat -f '%z' "$DMG")
+          {
+            echo "file=$(basename "$DMG")"
+            echo "bytes=$BYTES"
+            echo "sha256=$SHA"
+            echo "architectures=$ARCHS"
+            echo "signing=ad-hoc (not notarized)"
+          } > macos-release-metadata.txt
+
+      - name: Scan release for exact plaintext credentials
+        env:
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+        run: |
+          python3 youxi/apps/desktop/scripts/scan_release_secrets.py \
+            --config "$RUNNER_TEMP/MicaBase/yiju.json" \
+            --path youxi/target/universal-apple-darwin/release/bundle/macos \
+            --path youxi/target/universal-apple-darwin/release/bundle/dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yiju-1.0.1-macos-universal
+          path: |
+            youxi/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            macos-release-metadata.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove temporary bootstrap
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/MicaBase"

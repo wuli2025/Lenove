@@ -13,6 +13,7 @@
 //!
 //! 降级原则同样照抄原文：**宁可简单但完整，不要精致但没做完。**
 
+use crate::cloud::CloudConfig;
 use crate::config::Config;
 use crate::interview::Requirement;
 use crate::llm::{extract_block, extract_json, Llm, Msg};
@@ -24,6 +25,7 @@ use std::time::Instant;
 #[serde(rename_all = "snake_case")]
 pub enum Stage {
     Skeleton,
+    Visuals,
     Hero,
     Content,
     Footer,
@@ -35,6 +37,7 @@ impl Stage {
     pub fn label(self) -> &'static str {
         match self {
             Stage::Skeleton => "骨架先出来",
+            Stage::Visuals => "生图模型正在画作品画面",
             Stage::Hero => "首屏正在长出来",
             Stage::Content => "内容区一屏一屏地填",
             Stage::Footer => "补页脚与出口",
@@ -46,11 +49,12 @@ impl Stage {
     /// 内容区本来就是最长的一段。
     pub fn pct(self) -> u32 {
         match self {
-            Stage::Skeleton => 20,
-            Stage::Hero => 38,
-            Stage::Content => 62,
-            Stage::Footer => 74,
-            Stage::Polish => 92,
+            Stage::Skeleton => 16,
+            Stage::Visuals => 32,
+            Stage::Hero => 46,
+            Stage::Content => 68,
+            Stage::Footer => 78,
+            Stage::Polish => 93,
             Stage::Done => 100,
         }
     }
@@ -102,15 +106,68 @@ pub struct SectionPlan {
     pub heading: String,
     /// 这一栏打算放什么，给内容阶段当输入
     pub intent: String,
+    /// 版式：prose / cards / timeline / list / gallery / stats / quotes / faq / steps。
+    /// 骨架阶段就定死，内容阶段照着写——不然六栏出来全是一样的段落堆。
+    pub layout: String,
+    /// 这一栏必须写到的几点。**页面丰不丰满在这里就决定了**：
+    /// 骨架只给一句 intent，内容阶段就只能自由发挥出三行套话。
+    pub beats: Vec<String>,
 }
+
+impl SectionPlan {
+    /// 版式关键词，模型没给或给了个没见过的词就退回长文
+    fn layout_or_prose(&self) -> &str {
+        const KNOWN: [&str; 9] = [
+            "prose", "cards", "timeline", "list", "gallery", "stats", "quotes", "faq", "steps",
+        ];
+        let l = self.layout.trim();
+        if KNOWN.contains(&l) {
+            l
+        } else {
+            "prose"
+        }
+    }
+    /// 这一栏该占多少视觉体量。灰模按它铺占位，页面在骨架阶段就有真实的形状。
+    fn weight(&self) -> usize {
+        self.beats.len().clamp(3, 6)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[serde(default)]
+pub struct ImagePlan {
+    /// 稳定的小写资源名；`cover` 是强制首图，其余如 `memory-room`。
+    pub slot: String,
+    /// hero / section，用于约束图片放置位置。
+    pub purpose: String,
+    /// 给生图模型的英文画面描述；禁止要求模型在图里写字、画 UI 或二维码。
+    pub prompt: String,
+    pub alt: String,
+    pub section_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct GeneratedVisual {
+    pub slot: String,
+    pub path: String,
+    pub alt: String,
+    pub section_id: String,
+}
+
+const MAX_VISUALS: usize = 4;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 struct Skeleton {
     title: String,
     tagline: String,
+    /// 整站气质与视觉基调，一两句话。骨架定一次，首屏与精修共用——
+    /// 不然首屏走温柔路线、精修配了套赛博霓虹，两边各画各的。
+    mood: String,
     palette: Palette,
     sections: Vec<SectionPlan>,
+    image_plans: Vec<ImagePlan>,
 }
 
 /// 站点草稿。每个阶段只改自己那一块，渲染时整体拼装——
@@ -119,8 +176,11 @@ struct Skeleton {
 pub struct SiteDraft {
     pub title: String,
     pub tagline: String,
+    pub mood: String,
     pub palette: Palette,
     pub sections: Vec<SectionPlan>,
+    pub image_plans: Vec<ImagePlan>,
+    pub visuals: Vec<GeneratedVisual>,
     pub hero_html: String,
     pub sections_html: String,
     pub footer_html: String,
@@ -137,6 +197,11 @@ pub struct Outcome {
     pub tagline: String,
     pub elapsed_ms: u64,
     pub tokens: u64,
+    pub cover_path: String,
+    pub visual_count: usize,
+    /// Rust 桌面装配层用于发布前复验；WebView 不需要拿到完整内部清单。
+    #[serde(skip_serializing)]
+    pub visuals: Vec<GeneratedVisual>,
     /// 是否走了降级分支
     pub degraded: bool,
     pub degrade_reason: String,
@@ -144,19 +209,26 @@ pub struct Outcome {
 
 const NO_EXTERNAL: &str = "\
 硬性约束（违反即作废）：
-- 产物必须完全自包含：禁止任何外链资源，不许出现 <script src>、<link rel=stylesheet href>、
-  外部字体、外部图片 URL。配图只能用内联 SVG 或 CSS 渐变。
+- 产物必须完全自包含：禁止外部字体、外部图片 URL、<script src> 与外链样式表。
+- 严禁生成任何 <svg>、data:image/svg+xml 或 .svg 资源；也不许用 CSS 图形冒充作品画面。
+- 页面里的作品图片只能使用本次提供的 assets/*.jpg 清单，不能自行编造路径。
+- CSS 渐变只可做背景、光晕、分隔等非形象化装饰，不能替代清单中的真实生图。
 - 禁止写入任何 API key、token、密钥。
 - 只输出要求的那一段，不要解释，不要寒暄。";
 
 pub struct Engine {
     llm: Llm,
     cfg: Config,
+    cloud: CloudConfig,
 }
 
 impl Engine {
-    pub fn new(cfg: Config) -> Self {
-        Self { llm: Llm::new(&cfg.api_url, &cfg.api_key, &cfg.model), cfg }
+    pub fn new(cfg: Config, cloud: CloudConfig) -> Self {
+        Self {
+            llm: Llm::new(&cfg.api_url, &cfg.api_key, &cfg.model),
+            cfg,
+            cloud,
+        }
     }
 
     /// 跑完整条生成链路。每个阶段结束调一次 `on_progress`。
@@ -164,6 +236,26 @@ impl Engine {
     /// `on_progress` 是同步回调（Tauri 的 emit 本身就是同步的），
     /// 保持简单：引擎不关心它怎么送出去。
     pub async fn run<F>(
+        &self,
+        req: &Requirement,
+        site_dir: &Path,
+        on_progress: F,
+    ) -> Result<Outcome, String>
+    where
+        F: FnMut(Progress),
+    {
+        let hard = std::time::Duration::from_secs(self.cfg.hard_deadline_secs.max(1));
+        tokio::time::timeout(hard, self.run_inner(req, site_dir, on_progress))
+            .await
+            .map_err(|_| {
+                format!(
+                    "生成超过 {} 秒硬截止，已取消仍在进行的模型与生图任务，请重试。",
+                    self.cfg.hard_deadline_secs.max(1)
+                )
+            })?
+    }
+
+    async fn run_inner<F>(
         &self,
         req: &Requirement,
         site_dir: &Path,
@@ -220,8 +312,10 @@ impl Engine {
                 if !s.tagline.trim().is_empty() {
                     draft.tagline = s.tagline.trim().to_string();
                 }
+                draft.mood = s.mood.trim().to_string();
                 draft.palette = s.palette;
                 draft.sections = s.sections;
+                draft.image_plans = s.image_plans;
             }
             Err(e) => {
                 // 骨架挂了不能整条链路死掉：用需求单自己拼一个兜底结构，
@@ -237,10 +331,18 @@ impl Engine {
         if draft.title.trim().is_empty() {
             draft.title = "我的网站".into();
         }
+        draft.image_plans = normalize_image_plans(&draft, &brief);
         write_site(site_dir, &draft)?;
         emit(Stage::Skeleton, tokens, &degrade_reason, &mut on_progress);
 
-        // ── 阶段 2 首屏 ───────────────────────────────────────────────
+        // ── 阶段 2 真实生图 ─────────────────────────────────────────────
+        // 封面是交付硬条件：任一计划图失败都停止，不把灰模/SVG 当成成功产物。
+        self.cloud.capabilities().await?;
+        draft.visuals = self.generate_visuals(site_dir, &draft.image_plans).await?;
+        write_site(site_dir, &draft)?;
+        emit(Stage::Visuals, tokens, "真实位图已生成", &mut on_progress);
+
+        // ── 阶段 3 首屏 ───────────────────────────────────────────────
         match self.hero(&brief, &draft).await {
             Ok((html, used, truncated)) => {
                 tokens += used;
@@ -250,8 +352,7 @@ impl Engine {
                 draft.hero_html = html;
             }
             Err(e) => {
-                degraded = true;
-                degrade_reason = format!("首屏生成失败，保留灰模：{e}");
+                return Err(format!("首屏生成失败，未使用灰模或 SVG 代替：{e}"));
             }
         }
         write_site(site_dir, &draft)?;
@@ -287,8 +388,7 @@ impl Engine {
                 draft.sections_html = html;
             }
             Err(e) => {
-                degraded = true;
-                degrade_reason = format!("内容区生成失败，保留灰模：{e}");
+                return Err(format!("内容区生成失败，未使用灰模或 SVG 代替：{e}"));
             }
         }
         write_site(site_dir, &draft)?;
@@ -323,9 +423,15 @@ impl Engine {
             None => {
                 degraded = true;
                 degrade_reason = if over_time {
-                    format!("已过 {} 秒软截止，跳过配图精修直接收尾", self.cfg.soft_deadline_secs)
+                    format!(
+                        "已过 {} 秒软截止，跳过配图精修直接收尾",
+                        self.cfg.soft_deadline_secs
+                    )
                 } else {
-                    format!("token 触顶（{tokens}/{}），跳过配图精修直接收尾", self.cfg.gen_token_budget)
+                    format!(
+                        "token 触顶（{tokens}/{}），跳过配图精修直接收尾",
+                        self.cfg.gen_token_budget
+                    )
                 };
                 on_progress(Progress {
                     stage: Stage::Polish,
@@ -348,11 +454,15 @@ impl Engine {
                 "{} 撞到输出上限被截断，产物可能不完整（已自动补全未闭合标签）",
                 cut.join("、")
             );
-            degrade_reason =
-                if degrade_reason.is_empty() { note } else { format!("{degrade_reason}；{note}") };
+            degrade_reason = if degrade_reason.is_empty() {
+                note
+            } else {
+                format!("{degrade_reason}；{note}")
+            };
         }
 
         write_site(site_dir, &draft)?;
+        validate_site_assets(site_dir, &draft)?;
 
         // R4 红线自动检查：产物里绝不能带密钥。
         // 规划书原文要求「上线前搜一遍产物文件里有没有 sk- 开头的字符串，做成自动检查」。
@@ -360,6 +470,14 @@ impl Engine {
             return Err(format!(
                 "产物疑似包含密钥（{hit}），已拦下不予交付。这是规划书 R4 的红线，请检查生成提示词。"
             ));
+        }
+        let exact = [
+            self.cfg.api_key.as_str(),
+            self.cfg.tts_key.as_str(),
+            self.cloud.exact_secret(),
+        ];
+        if let Some(hit) = scan_for_exact_values(site_dir, &exact)? {
+            return Err(format!("产物包含运行时凭据（{hit}），已拦下不予交付"));
         }
 
         on_progress(Progress {
@@ -378,9 +496,63 @@ impl Engine {
             tagline: draft.tagline.clone(),
             elapsed_ms: t0.elapsed().as_millis() as u64,
             tokens,
+            cover_path: "assets/cover.jpg".into(),
+            visual_count: draft.visuals.len(),
+            visuals: draft.visuals.clone(),
             degraded,
             degrade_reason,
         })
+    }
+
+    async fn generate_visuals(
+        &self,
+        site_dir: &Path,
+        plans: &[ImagePlan],
+    ) -> Result<Vec<GeneratedVisual>, String> {
+        let assets = site_dir.join("assets");
+        std::fs::create_dir_all(&assets).map_err(|e| format!("创建图片目录失败：{e}"))?;
+
+        let mut jobs = tokio::task::JoinSet::new();
+        // Workers AI 的瞬时容量对并发突发比较敏感。两张并行仍能保持速度，
+        // 又不会让一份六图网站同时把六个请求撞到同一网关。
+        let image_slots = std::sync::Arc::new(tokio::sync::Semaphore::new(2));
+        for (index, plan) in plans.iter().cloned().enumerate() {
+            let cloud = self.cloud.clone();
+            let image_slots = std::sync::Arc::clone(&image_slots);
+            jobs.spawn(async move {
+                let bytes = match image_slots.acquire_owned().await {
+                    Ok(_permit) => cloud.generate_image(&plan.prompt).await,
+                    Err(_) => Err("生图并发控制已关闭".into()),
+                };
+                (index, plan, bytes)
+            });
+        }
+
+        let mut generated: Vec<Option<GeneratedVisual>> = vec![None; plans.len()];
+        while let Some(joined) = jobs.join_next().await {
+            let (index, plan, bytes) = joined.map_err(|e| format!("生图任务异常退出：{e}"))?;
+            let bytes = bytes.map_err(|e| format!("图片 {} 生成失败：{e}", plan.slot))?;
+            let final_path = assets.join(format!("{}.jpg", plan.slot));
+            let part_path = assets.join(format!("{}.jpg.part", plan.slot));
+            std::fs::write(&part_path, &bytes).map_err(|e| format!("写生图临时文件失败：{e}"))?;
+            if final_path.exists() {
+                std::fs::remove_file(&final_path).map_err(|e| format!("替换旧生图失败：{e}"))?;
+            }
+            std::fs::rename(&part_path, &final_path)
+                .map_err(|e| format!("提交生图文件失败：{e}"))?;
+            generated[index] = Some(GeneratedVisual {
+                slot: plan.slot.clone(),
+                path: format!("assets/{}.jpg", plan.slot),
+                alt: plan.alt,
+                section_id: plan.section_id,
+            });
+        }
+
+        generated
+            .into_iter()
+            .enumerate()
+            .map(|(i, value)| value.ok_or_else(|| format!("第 {} 张生图没有返回", i + 1)))
+            .collect()
     }
 
     /// 骨架：**失败重试一次**。
@@ -403,20 +575,48 @@ impl Engine {
 
     async fn skeleton_once(&self, brief: &str) -> Result<(Skeleton, u64, bool), String> {
         let sys = format!(
-            "你是一名网页结构设计师。根据需求单，规划一个单页网站的结构与配色。\n\
+            "你是一名网页结构设计师。根据需求单，把一个单页网站**规划到能直接开工**的程度。\n\
              只输出 JSON：\n\
              {{\"title\":\"页面标题\",\"tagline\":\"一句话亮点，不超过60字\",\n\
+               \"mood\":\"整站气质与视觉基调，一两句，写给后面画首屏、配 CSS 的人看\",\n\
                \"palette\":{{\"bg\":\"#..\",\"surface\":\"#..\",\"text\":\"#..\",\"muted\":\"#..\",\"accent\":\"#..\"}},\n\
-               \"sections\":[{{\"id\":\"英文小写短id\",\"heading\":\"中文栏目标题\",\"intent\":\"这一栏放什么\"}}]}}\n\
-             规则：sections 3 到 5 个，第一个不要是首屏（首屏单独做）。\n\
-             配色要和内容气质相符，保证正文与背景对比度足够。\n{NO_EXTERNAL}"
+               \"sections\":[{{\"id\":\"英文小写短id\",\"heading\":\"中文栏目标题\",\n\
+                 \"layout\":\"版式\",\"intent\":\"这一栏放什么\",\n\
+                 \"beats\":[\"这一栏必须写到的具体一点\",\"再一点\"]}}],\"image_plans\":[{{\"slot\":\"cover\",\"purpose\":\"hero\",\"prompt\":\"English image prompt\",\"alt\":\"中文替代文字\",\"section_id\":\"\"}}]}}\n\
+             规则：\n\
+             - sections 4 到 6 个，第一个不要是首屏（首屏单独做）。栏目之间要有递进，\n\
+               别把同一件事拆成两栏，也别拿「关于」「联系」这种空壳凑数。\n\
+             - layout 只能从这几个里挑：prose 长文 / cards 卡片组 / timeline 时间线 /\n\
+               list 清单 / gallery 图块墙 / stats 数字条 / quotes 引语 / faq 问答 / steps 步骤。\n\
+               整站不要全用同一种版式，也别硬凑——版式要是这一栏内容天然的样子。\n\
+             - beats 每栏 4 到 6 条，写**页面上真的要出现的东西**：具体的事、场景、\n\
+               数字、名字、一句能直接印上去的话。不要写「介绍一下背景」这种任务描述。\n\
+               需求单没交代的，按题目合理设想，宁可具体也不要套话。\n\
+               这几条会原样交给写文案的人照着写——这里写得空，页面就是空的。\n\
+             - image_plans 必须 1 到 4 张。第一张 slot 必须是 cover、purpose=hero、section_id 为空；
+\
+               gallery 或确实需要作品画面的 cards 栏可各加一张，section_id 必须引用上面的真实栏目 id。
+\
+               prompt 必须是 40–900 字符的英文摄影/插画画面描述，明确 no text, no letters,
+\
+               no logo, no UI, no QR code；不要让生图模型写标题。alt 用中文准确描述画面。
+\
+               slot 只用小写字母、数字和连字符，不能重复。
+\
+             - 配色要和内容气质相符，保证正文与背景对比度足够。\n{NO_EXTERNAL}"
         );
         // max_tokens 给足：1200 时实测 3 次里有 1 次 JSON 在 1342 列被截断，
         // 触发兜底结构（能跑，但栏目规划就白做了）。骨架是后面所有阶段的输入，
         // 这里省 token 是最不划算的。
-        let c = self.llm.complete(&sys, &[Msg::user(brief.to_string())], 2200).await?;
+        // 2200 → 3600：栏目从 3–5 涨到 4–6，每栏还多带 layout + 3–5 条 beats，
+        // 光 beats 就比原来整份 JSON 还长，按老额度必然断在 sections 中间。
+        let c = self
+            .llm
+            .complete(&sys, &[Msg::user(brief.to_string())], 4600)
+            .await?;
         let json = extract_json(&c.text).ok_or("骨架输出里没有 JSON")?;
-        let s: Skeleton = serde_json::from_str(json).map_err(|e| format!("骨架 JSON 解析失败：{e}"))?;
+        let s: Skeleton =
+            serde_json::from_str(json).map_err(|e| format!("骨架 JSON 解析失败：{e}"))?;
         Ok((s, c.usage.total(), c.truncated()))
     }
 
@@ -426,7 +626,9 @@ impl Engine {
              只输出一个 ```html 代码块，内容是 <section class=\"hero\"> …… </section>，\n\
              里面要有大标题、一句副标题、以及一两句引子。文案要具体、有人味，\n\
              直接用需求单里用户说过的事，不要写「欢迎来到我的网站」这种空话。\n\
-             可以用内联 SVG 或 CSS 渐变做装饰。可用的配色变量：\n\
+             必须把清单里的 cover 写成真实 <img src=\"assets/cover.jpg\" alt=\"清单中的alt\">，\n\
+             可裁切、叠文字或加遮罩，但不许省略、替换路径或生成 SVG。CSS 渐变只做背景光晕。\n\
+             可用的配色变量：\n\
              var(--bg) var(--surface) var(--text) var(--muted) var(--accent)。\n\
              首屏里如果放跳转按钮，**锚点只能从下面给出的栏目 id 里挑**，\n\
              一个字都不能改、更不能自己编——编出来的锚点点了不跳，是现场最丢人的那种 bug。\n{NO_EXTERNAL}"
@@ -440,60 +642,553 @@ impl Engine {
             .collect::<Vec<_>>()
             .join("、");
         let user = format!(
-            "需求单：\n{brief}\n站点标题：{}\n可用锚点（只能用这些）：{}",
+            "需求单：\n{brief}\n站点标题：{}\n{}可用锚点（只能用这些）：{}\n真实生图清单：\n{}",
             d.title,
-            if anchors.is_empty() { "（暂无，不要放跳转按钮）".to_string() } else { anchors }
+            mood_line(&d.mood),
+            if anchors.is_empty() {
+                "（暂无，不要放跳转按钮）".to_string()
+            } else {
+                anchors
+            },
+            visual_lines(&d.visuals),
         );
         // 1600 偏紧：首屏带内联 SVG 装饰时很容易压线
         // 2400 → 3600：k3 写首屏爱铺陈，2400 实测会断在按钮文案中间（2026-08-15 摸鱼案）
         let c = self.llm.complete(&sys, &[Msg::user(user)], 3600).await?;
-        Ok((close_unclosed(extract_block(&c.text, "html")), c.usage.total(), c.truncated()))
+        Ok((
+            close_unclosed(extract_block(&c.text, "html")),
+            c.usage.total(),
+            c.truncated(),
+        ))
     }
 
     async fn content(&self, brief: &str, d: &SiteDraft) -> Result<(String, u64, bool), String> {
-        let plan = d
-            .sections
-            .iter()
-            .map(|s| format!("- id={} 标题={} 打算放={}", s.id, s.heading, s.intent))
-            .collect::<Vec<_>>()
-            .join("\n");
+        let plan = plan_lines(&d.sections);
         let sys = format!(
             "你是一名网页文案与前端。按给定的栏目计划写出**全部内容区块**。\n\
              只输出一个 ```html 代码块，里面是若干个 <section id=\"...\"> …… </section>，顺序与计划一致。\n\
+             计划里的「必须写到」是骨架阶段定好的内容清单，**一条都不许省、不许合并**，\n\
+             每条都要在页面上看得见（一张卡片、一个时间点、一条问答……）。\n\
+             但它是**下限不是上限**：每条至少展开成一段有细节的文案，写完清单还有话说就接着写。\n\
+             一个栏目只有三五行字就是没做完——那正是这份计划要治的毛病。\n\
+             版式也照计划来：cards 就真的排成卡片组，timeline 就真的排成时间线，\n\
+             stats 就真的给出数字与说明——不要六个栏目全写成一样的段落堆。\n\
              每个栏目都要有真实、具体的文案，宁可短也不要套话。\n\
-             需要列表、卡片、时间线就用语义化 HTML 写出来。\n\
+             用语义化 HTML（ul/ol/figure/blockquote/dl/article）把结构写出来。\n\
+             真实生图清单中 section_id 非空的每张图，都必须在对应 section 内用\n\
+             <figure><img src=\"清单路径\" alt=\"清单alt\"></figure> 出现；不能挪栏、漏图或编造图片。\n\
              可用的配色变量：var(--bg) var(--surface) var(--text) var(--muted) var(--accent)。\n\
-             可以写 <style> 标签补充这些区块自己的样式。\n{NO_EXTERNAL}"
+             可以写 <style> 标签补充这些区块自己的样式（卡片网格、时间线竖线之类）。\n{NO_EXTERNAL}"
         );
-        let user = format!("需求单：\n{brief}\n\n栏目计划：\n{plan}");
+        let user = format!(
+            "需求单：\n{brief}\n{}\n栏目计划：\n{plan}\n真实生图清单：\n{}",
+            mood_line(&d.mood),
+            visual_lines(&d.visuals),
+        );
         // 额度演进史：4000 → 4 栏页面撞上限，正文停在半句话中间、5 个标签没闭合，
         // 而当时 stop_reason 没人读，链路还报「成功、未降级」。
         // 8000 → 文字类够了，但条目密集的题目（一百个色名、按键热力）仍会撞。
         // 这是全篇最长的一段产出，也是唯一直接决定"页面完不完整"的一段，
         // 省这里的 token 是最不划算的。
-        let c = self.llm.complete(&sys, &[Msg::user(user)], 11000).await?;
-        Ok((close_unclosed(extract_block(&c.text, "html")), c.usage.total(), c.truncated()))
+        // 11000 → 14000：骨架现在给 4–6 栏、每栏 3–5 条必写项，要求"一条都不许省"，
+        // 等于把产出量按老额度的上沿又抬了一截。不跟着抬就是自己给自己造截断。
+        let c = self.llm.complete(&sys, &[Msg::user(user)], 14000).await?;
+        Ok((
+            close_unclosed(extract_block(&c.text, "html")),
+            c.usage.total(),
+            c.truncated(),
+        ))
     }
 
     async fn polish(&self, brief: &str, d: &SiteDraft) -> Result<(String, u64, bool), String> {
         let sys = format!(
             "你是一名前端。给已经成型的页面补一层**精修 CSS**：\n\
              入场动效（要克制）、响应式适配（窄屏单列）、排版细节（行高、字距、留白）、\n\
-             以及用 CSS 渐变/图形做的装饰。\n\
+             以及不冒充作品画面的 CSS 背景光晕、边框与分隔。
+\
+             禁止 SVG，禁止新增 background-image URL；现有真实生图只能排版、裁切，不能替换。\n\
              只输出一个 ```css 代码块，不要 HTML。不要重设已有配色变量。\n\
              必须包含 @media (max-width: 720px) 的窄屏规则。\n\
              动效一律加 @media (prefers-reduced-motion: reduce) 的关闭分支。\n{NO_EXTERNAL}"
         );
-        let user = format!("需求单：\n{brief}\n栏目：{}", d.sections.iter().map(|s| s.heading.as_str()).collect::<Vec<_>>().join("、"));
+        // 版式一起喂进去：精修要给卡片组补网格、给时间线补竖线，
+        // 只告诉它栏目名，它只能瞎猜这一栏长什么样。
+        let user = format!(
+            "需求单：\n{brief}\n{}栏目：{}",
+            mood_line(&d.mood),
+            d.sections
+                .iter()
+                .map(|s| format!("{}（{}）", s.heading, s.layout_or_prose()))
+                .collect::<Vec<_>>()
+                .join("、")
+        );
         // 额度演进史（都是实测打出来的）：
         //   2000 → 5 个用例里 4 个 CSS 停在半条声明上，兜底闸被吞
         //   3000 → 文字类页面够了，但色卡/深海这种视觉密集的题目 6 个里 3 个还在截断
         //   4500 → 星空/深海这种要画渐变、星点、光晕的页面还是正好撞满
-        //   6000 → 当前值
+        //   6000 → 骨架开始规划版式后，精修要额外给卡片网格、时间线竖线、
+        //          数字条各补一套规则，实测（橘猫纪念站）当场撞满被截断
+        //   8000 → 当前值
         // 精修现在和内容区**并发**跑，只要它比内容区先回来，加额度的墙钟成本就是 0；
-        // 实测内容区普遍 110–210s，精修 4500 token 时已经在它之前收工，还有余量。
-        let c = self.llm.complete(&sys, &[Msg::user(user)], 6000).await?;
-        Ok((harden_css(extract_block(&c.text, "css")), c.usage.total(), c.truncated()))
+        // 实测内容区普遍 165–210s，精修从没跑赢过它，还有余量。
+        let c = self.llm.complete(&sys, &[Msg::user(user)], 8000).await?;
+        Ok((
+            harden_css(extract_block(&c.text, "css")),
+            c.usage.total(),
+            c.truncated(),
+        ))
+    }
+}
+
+fn normalize_image_plans(d: &SiteDraft, brief: &str) -> Vec<ImagePlan> {
+    let section_ids: std::collections::HashSet<&str> =
+        d.sections.iter().map(|s| s.id.as_str()).collect();
+    let mut seen = std::collections::HashSet::new();
+    let mut cover = None;
+    let mut sections = Vec::new();
+
+    for mut plan in d.image_plans.iter().cloned() {
+        plan.slot = plan.slot.trim().to_ascii_lowercase();
+        if !valid_slot(&plan.slot) || seen.contains(&plan.slot) {
+            continue;
+        }
+        plan.prompt = bounded_chars(plan.prompt.trim(), 900);
+        if plan.prompt.chars().count() < 20 {
+            continue;
+        }
+        if !plan.prompt.to_ascii_lowercase().contains("no text") {
+            plan.prompt
+                .push_str(", no text, no letters, no logo, no UI, no QR code");
+        }
+        plan.alt = bounded_chars(plan.alt.trim(), 120);
+        if plan.slot == "cover" {
+            seen.insert(plan.slot.clone());
+            plan.purpose = "hero".into();
+            plan.section_id.clear();
+            if plan.alt.is_empty() {
+                plan.alt = format!("{}的主题画面", d.title);
+            }
+            cover = Some(plan);
+            continue;
+        }
+        if section_ids.contains(plan.section_id.trim()) {
+            seen.insert(plan.slot.clone());
+            plan.purpose = "section".into();
+            if plan.alt.is_empty() {
+                plan.alt = format!("{}的内容画面", plan.section_id);
+            }
+            sections.push(plan);
+        }
+    }
+
+    let cover = cover.unwrap_or_else(|| ImagePlan {
+        slot: "cover".into(),
+        purpose: "hero".into(),
+        prompt: bounded_chars(
+            &format!(
+                "A cinematic editorial hero image for a personal one-page website titled '{}', inspired by this brief: {}. {}, emotionally specific, polished composition, no text, no letters, no logo, no UI, no QR code",
+                d.title,
+                brief,
+                d.mood,
+            ),
+            900,
+        ),
+        alt: format!("{}的主题画面", d.title),
+        section_id: String::new(),
+    });
+
+    let mut out = vec![cover];
+    out.extend(sections.into_iter().take(MAX_VISUALS - 1));
+    out
+}
+
+fn valid_slot(slot: &str) -> bool {
+    let bytes = slot.as_bytes();
+    !bytes.is_empty()
+        && bytes.len() <= 32
+        && bytes[0].is_ascii_alphanumeric()
+        && bytes[bytes.len() - 1].is_ascii_alphanumeric()
+        && bytes
+            .iter()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-')
+}
+
+fn bounded_chars(value: &str, max: usize) -> String {
+    value.chars().take(max).collect()
+}
+
+fn visual_lines(visuals: &[GeneratedVisual]) -> String {
+    visuals
+        .iter()
+        .map(|v| {
+            format!(
+                "- slot={} path={} section_id={} alt={}",
+                v.slot,
+                v.path,
+                if v.section_id.is_empty() {
+                    "（hero）"
+                } else {
+                    &v.section_id
+                },
+                v.alt,
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// 完整解码生成图片，而不是只认前三个 JPEG 魔数字节。
+/// 结尾必须正好是 EOI，既拒绝截断文件，也拒绝在图片后夹带任意数据。
+pub fn validate_generated_jpeg(bytes: &[u8]) -> Result<(u32, u32), String> {
+    if bytes.len() < 4
+        || bytes.len() > 12 * 1024 * 1024
+        || !bytes.starts_with(b"\xff\xd8\xff")
+        || !bytes.ends_with(b"\xff\xd9")
+    {
+        return Err("不是结构完整且不超过 12MB 的 JPEG".into());
+    }
+
+    let mut reader =
+        image::ImageReader::with_format(std::io::Cursor::new(bytes), image::ImageFormat::Jpeg);
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(8192);
+    limits.max_image_height = Some(8192);
+    limits.max_alloc = Some(256 * 1024 * 1024);
+    reader.limits(limits);
+    let decoded = reader
+        .decode()
+        .map_err(|_| "JPEG 像素数据损坏或尺寸异常".to_string())?;
+    let dimensions = (decoded.width(), decoded.height());
+    if dimensions.0 == 0 || dimensions.1 == 0 {
+        return Err("JPEG 像素尺寸为空".into());
+    }
+    Ok(dimensions)
+}
+
+/// 最终站点只允许本次生图清单里的本地 JPEG；任何 SVG、远程图或灰模实例都拒绝。
+pub fn validate_site_assets(site_dir: &Path, draft: &SiteDraft) -> Result<(), String> {
+    let index = site_dir.join("index.html");
+    let html = std::fs::read_to_string(&index).map_err(|e| format!("读取最终页面失败：{e}"))?;
+    let lower = html.to_ascii_lowercase();
+    for (needle, reason) in [
+        ("<svg", "页面含内联 SVG"),
+        ("data:image/svg+xml", "页面含 SVG data URI"),
+        (".svg", "页面引用 SVG 文件"),
+        ("srcset=", "页面含未受控响应式图片清单"),
+        ("url(", "页面 CSS 含未受控图片/字体 URL"),
+        ("@import", "页面 CSS 含外链导入"),
+        ("class=\"gray\"", "页面仍有灰模占位"),
+        ("class=\"gray-lines\"", "页面仍有灰模占位"),
+        ("class=\"gray-grid\"", "页面仍有灰模占位"),
+        ("class=\"gray-rows\"", "页面仍有灰模占位"),
+    ] {
+        if lower.contains(needle) {
+            return Err(format!("最终产物校验失败：{reason}"));
+        }
+    }
+
+    if draft.visuals.is_empty() || draft.visuals[0].slot != "cover" {
+        return Err("最终产物校验失败：缺少必需的真实 cover".into());
+    }
+    let allowed: std::collections::HashSet<String> =
+        draft.visuals.iter().map(|v| v.path.clone()).collect();
+    for visual in &draft.visuals {
+        let path = site_dir.join(&visual.path);
+        let bytes =
+            std::fs::read(&path).map_err(|e| format!("读取生图 {} 失败：{e}", visual.path))?;
+        validate_generated_jpeg(&bytes)
+            .map_err(|e| format!("最终产物校验失败：{} 不是有效 JPEG：{e}", visual.path))?;
+    }
+
+    let mut used = std::collections::HashSet::new();
+    for tag in parse_opening_tags(&html)? {
+        if matches!(
+            tag.name.as_str(),
+            "script"
+                | "link"
+                | "iframe"
+                | "object"
+                | "embed"
+                | "base"
+                | "source"
+                | "video"
+                | "audio"
+        ) {
+            return Err(format!(
+                "最终产物校验失败：页面含不允许的 <{}> 标签",
+                tag.name
+            ));
+        }
+        if tag
+            .attrs
+            .iter()
+            .any(|(name, _)| name.starts_with("on") || name == "srcdoc")
+        {
+            return Err(format!("最终产物校验失败：<{}> 含可执行属性", tag.name));
+        }
+        if tag.attrs.iter().any(|(_, value)| {
+            let value = value.trim().to_ascii_lowercase();
+            value.starts_with("javascript:") || value.starts_with("data:text/html")
+        }) {
+            return Err(format!("最终产物校验失败：<{}> 含可执行 URL", tag.name));
+        }
+        if tag.attr("href").is_some_and(|href| !safe_href(href)) {
+            return Err(format!("最终产物校验失败：<{}> 含不安全链接", tag.name));
+        }
+        if tag.name != "img" && tag.attr("src").is_some() {
+            return Err(format!("最终产物校验失败：<{}> 含未授权 src", tag.name));
+        }
+        if tag.name == "meta"
+            && tag
+                .attr("http-equiv")
+                .is_some_and(|v| v.eq_ignore_ascii_case("refresh"))
+        {
+            return Err("最终产物校验失败：页面含自动跳转 meta".into());
+        }
+        if tag.name != "img" {
+            continue;
+        }
+        let src = tag.attr("src").ok_or("最终页面的 <img> 缺少 src")?;
+        let alt = tag.attr("alt").ok_or("最终页面的 <img> 缺少 alt")?;
+        if alt.trim().is_empty() {
+            return Err("最终页面的 <img> alt 不能为空".into());
+        }
+        if !allowed.contains(src) {
+            return Err(format!("最终页面引用了未授权图片：{src}"));
+        }
+        used.insert(src.to_string());
+    }
+    if used != allowed {
+        let missing = allowed
+            .difference(&used)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("、");
+        return Err(format!("最终页面没有完整使用生图清单：{missing}"));
+    }
+
+    reject_svg_files(site_dir)?;
+    Ok(())
+}
+
+#[derive(Debug)]
+struct ParsedTag {
+    name: String,
+    attrs: Vec<(String, String)>,
+}
+
+impl ParsedTag {
+    fn attr(&self, name: &str) -> Option<&str> {
+        self.attrs
+            .iter()
+            .find(|(key, _)| key == name)
+            .map(|(_, value)| value.as_str())
+    }
+}
+
+/// 针对最终产物的严格开始标签分词器。它按属性边界解析，绝不会把 `data-src`
+/// 当成 `src`，也不会依赖属性顺序；重复属性直接拒绝，避免浏览器与校验器取值不同。
+fn parse_opening_tags(html: &str) -> Result<Vec<ParsedTag>, String> {
+    let lower = html.to_ascii_lowercase();
+    let mut tags = Vec::new();
+    let mut pos = 0usize;
+
+    while let Some(rel) = html[pos..].find('<') {
+        let start = pos + rel;
+        if html[start..].starts_with("<!--") {
+            let Some(end) = html[start + 4..].find("-->") else {
+                return Err("最终页面含未闭合 HTML 注释".into());
+            };
+            pos = start + 4 + end + 3;
+            continue;
+        }
+
+        let first = html.as_bytes().get(start + 1).copied();
+        if !first.is_some_and(|b| b.is_ascii_alphabetic() || matches!(b, b'/' | b'!' | b'?')) {
+            pos = start + 1;
+            continue;
+        }
+        let end = find_tag_end(html, start + 1).ok_or("最终页面含未闭合标签")?;
+        let raw = html[start + 1..end].trim();
+        pos = end + 1;
+        if raw.starts_with('/') || raw.starts_with('!') || raw.starts_with('?') {
+            continue;
+        }
+
+        let name_end = raw
+            .bytes()
+            .position(|b| b.is_ascii_whitespace() || b == b'/')
+            .unwrap_or(raw.len());
+        let name = raw[..name_end].to_ascii_lowercase();
+        if name.is_empty() || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') {
+            return Err("最终页面含无法识别的标签名".into());
+        }
+        let attrs = parse_tag_attrs(&raw[name_end..], &name)?;
+        let is_style = name == "style";
+        tags.push(ParsedTag { name, attrs });
+
+        // CSS 里的 content 字符串可能含 `<...>`；style 是允许的原始文本元素，
+        // 跳到真实闭合标签后再继续分词，避免把 CSS 文本误认成 HTML。
+        if is_style {
+            let Some(close_rel) = lower[pos..].find("</style") else {
+                return Err("最终页面含未闭合 <style>".into());
+            };
+            let close_start = pos + close_rel;
+            let Some(close_end_rel) = html[close_start..].find('>') else {
+                return Err("最终页面含未闭合 </style>".into());
+            };
+            pos = close_start + close_end_rel + 1;
+        }
+    }
+    Ok(tags)
+}
+
+fn find_tag_end(html: &str, from: usize) -> Option<usize> {
+    let mut quote = None;
+    for (rel, ch) in html[from..].char_indices() {
+        match (quote, ch) {
+            (Some(q), c) if c == q => quote = None,
+            (None, '\'' | '"') => quote = Some(ch),
+            (None, '>') => return Some(from + rel),
+            _ => {}
+        }
+    }
+    None
+}
+
+fn parse_tag_attrs(raw: &str, tag_name: &str) -> Result<Vec<(String, String)>, String> {
+    let bytes = raw.as_bytes();
+    let mut attrs = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    let mut pos = 0usize;
+    while pos < bytes.len() {
+        while pos < bytes.len() && (bytes[pos].is_ascii_whitespace() || bytes[pos] == b'/') {
+            pos += 1;
+        }
+        if pos >= bytes.len() {
+            break;
+        }
+        let name_start = pos;
+        while pos < bytes.len()
+            && !bytes[pos].is_ascii_whitespace()
+            && !matches!(bytes[pos], b'=' | b'/')
+        {
+            pos += 1;
+        }
+        if pos == name_start {
+            return Err(format!("最终页面的 <{tag_name}> 属性格式异常"));
+        }
+        let name = raw[name_start..pos].to_ascii_lowercase();
+        if !name
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b':'))
+        {
+            return Err(format!("最终页面的 <{tag_name}> 含非法属性名"));
+        }
+        if !seen.insert(name.clone()) {
+            return Err(format!("最终页面的 <{tag_name}> 重复声明属性 {name}"));
+        }
+        while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        let mut value = String::new();
+        if pos < bytes.len() && bytes[pos] == b'=' {
+            pos += 1;
+            while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+                pos += 1;
+            }
+            if pos >= bytes.len() {
+                return Err(format!("最终页面的 <{tag_name}> 属性 {name} 缺少值"));
+            }
+            if matches!(bytes[pos], b'\'' | b'"') {
+                let quote = bytes[pos];
+                pos += 1;
+                let value_start = pos;
+                while pos < bytes.len() && bytes[pos] != quote {
+                    pos += 1;
+                }
+                if pos >= bytes.len() {
+                    return Err(format!("最终页面的 <{tag_name}> 属性 {name} 引号未闭合"));
+                }
+                value = raw[value_start..pos].to_string();
+                pos += 1;
+            } else {
+                let value_start = pos;
+                while pos < bytes.len() && !bytes[pos].is_ascii_whitespace() {
+                    pos += 1;
+                }
+                value = raw[value_start..pos].trim_end_matches('/').to_string();
+            }
+        }
+        attrs.push((name, value));
+    }
+    Ok(attrs)
+}
+
+fn safe_href(value: &str) -> bool {
+    let value = value.trim().to_ascii_lowercase();
+    value.starts_with('#')
+        || value.starts_with('/')
+        || value.starts_with("https://")
+        || value.starts_with("mailto:")
+        || value.starts_with("tel:")
+}
+
+fn reject_svg_files(dir: &Path) -> Result<(), String> {
+    for entry in std::fs::read_dir(dir)
+        .map_err(|e| format!("检查站点资源失败：{e}"))?
+        .flatten()
+    {
+        let path = entry.path();
+        if path.is_dir() {
+            reject_svg_files(&path)?;
+        } else if path
+            .extension()
+            .and_then(|v| v.to_str())
+            .is_some_and(|v| v.eq_ignore_ascii_case("svg"))
+        {
+            return Err(format!(
+                "最终产物校验失败：发现 SVG 文件 {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// 把骨架的栏目规划摊成给内容阶段看的清单。
+///
+/// beats 必须原样带过去。骨架把「必须写到」想好了却只把 intent 传下去，
+/// 等于每次都重新赌一次内容阶段的发挥——那正是页面时丰时空的来源。
+fn plan_lines(sections: &[SectionPlan]) -> String {
+    sections
+        .iter()
+        .map(|s| {
+            let beats = if s.beats.is_empty() {
+                String::new()
+            } else {
+                format!("\n  必须写到：{}", s.beats.join("；"))
+            };
+            format!(
+                "- id={} 标题={} 版式={} 打算放={}{}",
+                s.id,
+                s.heading,
+                s.layout_or_prose(),
+                s.intent,
+                beats
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// 骨架给的整站气质，拼成一行喂给后面的阶段；没有就什么都不加。
+fn mood_line(mood: &str) -> String {
+    let m = mood.trim();
+    if m.is_empty() {
+        String::new()
+    } else {
+        format!("整站气质（首屏、内容、精修共用同一套）：{m}\n")
     }
 }
 
@@ -508,22 +1203,40 @@ fn fallback_sections(req: &Requirement) -> Vec<SectionPlan> {
                 id: format!("s{}", i + 1),
                 heading: h.clone(),
                 intent: h.clone(),
+                ..Default::default()
             })
             .collect();
     }
     vec![
-        SectionPlan { id: "about".into(), heading: "关于".into(), intent: req.content.clone() },
-        SectionPlan { id: "content".into(), heading: "内容".into(), intent: req.content.clone() },
+        SectionPlan {
+            id: "about".into(),
+            heading: "关于".into(),
+            intent: req.content.clone(),
+            ..Default::default()
+        },
+        SectionPlan {
+            id: "content".into(),
+            heading: "内容".into(),
+            intent: req.content.clone(),
+            ..Default::default()
+        },
     ]
 }
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 /// 页脚：规划书第 02 节的传播闭环，两个入口固定。
 fn render_footer(d: &SiteDraft) -> String {
-    let hall = if d.hall_url.trim().is_empty() { "#" } else { d.hall_url.trim() };
+    let hall = if d.hall_url.trim().is_empty() {
+        "#"
+    } else {
+        d.hall_url.trim()
+    };
     format!(
         r#"<footer class="site-footer">
   <div class="footer-links">
@@ -537,12 +1250,27 @@ fn render_footer(d: &SiteDraft) -> String {
 
 /// 灰模：骨架阶段就要有东西可看，所以每个规划出来的栏目
 /// 先渲染成占位块。真实内容到位后被整体替换。
+///
+/// 占位跟着骨架的 layout 与 beats 走，不是清一色三根灰条：
+/// 骨架规划了六栏、其中两栏是卡片组，那第 10 秒屏幕上就该是六栏、两片卡片墙。
+/// 这是 R1「十分钟的持续生长是表演」里最便宜的一段演出——
+/// 灰模长得越像成品，后面每段内容填进去越像"长出来"而不是"换了一页"。
 fn render_gray(d: &SiteDraft) -> String {
     d.sections
         .iter()
         .map(|s| {
+            let n = s.weight();
+            let body = match s.layout_or_prose() {
+                "cards" | "gallery" | "stats" | "steps" => {
+                    format!(r#"<div class="gray-grid">{}</div>"#, "<i></i>".repeat(n))
+                }
+                "timeline" | "list" | "faq" | "quotes" => {
+                    format!(r#"<div class="gray-rows">{}</div>"#, "<i></i>".repeat(n))
+                }
+                _ => format!(r#"<div class="gray-lines">{}</div>"#, "<i></i>".repeat(n)),
+            };
             format!(
-                r#"<section id="{}" class="gray"><h2>{}</h2><div class="gray-lines"><i></i><i></i><i></i></div></section>"#,
+                r#"<section id="{}" class="gray"><h2>{}</h2>{body}</section>"#,
                 esc(&s.id),
                 esc(&s.heading)
             )
@@ -556,21 +1284,84 @@ fn render_gray(d: &SiteDraft) -> String {
 /// 每个阶段结束都整体重渲染一次：拼装成本可以忽略，
 /// 换来的是「任何一段失败都不会把已长出来的部分弄丢」。
 pub fn write_site(dir: &Path, d: &SiteDraft) -> Result<(), String> {
-    let html = render(d);
+    let html = sanitize_executable_html(&render(d))?;
     std::fs::write(dir.join("index.html"), html).map_err(|e| format!("写 index.html 失败：{e}"))
+}
+
+/// 模型偶尔会给锚点补 `onclick` 平滑滚动，或顺手画一枚装饰 SVG。
+/// 这些不是作品内容，直接在每次落盘时删掉，比做到最后才整站报废稳定得多；
+/// 真正的作品图片仍由后面的 manifest 闸强制要求，绝不会用删除来冒充生图成功。
+fn sanitize_executable_html(html: &str) -> Result<String, String> {
+    lol_html::rewrite_str(
+        html,
+        lol_html::RewriteStrSettings {
+            element_content_handlers: vec![
+                lol_html::element!(
+                    "script, svg, iframe, object, embed, base, link, source, video, audio",
+                    |element| {
+                        element.remove();
+                        Ok(())
+                    }
+                ),
+                lol_html::element!("*", |element| {
+                    if element.tag_name() == "meta"
+                        && element
+                            .get_attribute("http-equiv")
+                            .is_some_and(|v| v.eq_ignore_ascii_case("refresh"))
+                    {
+                        element.remove();
+                        return Ok(());
+                    }
+
+                    let names = element
+                        .attributes()
+                        .iter()
+                        .map(|attr| attr.name().to_ascii_lowercase())
+                        .collect::<Vec<_>>();
+                    for name in names {
+                        let value = element.get_attribute(&name).unwrap_or_default();
+                        let lower = value.trim().to_ascii_lowercase();
+                        let executable = name.starts_with("on")
+                            || name == "srcdoc"
+                            || lower.starts_with("javascript:")
+                            || lower.starts_with("data:text/html")
+                            || (name == "style" && lower.contains("url("));
+                        let unsafe_href = name == "href" && !safe_href(&value);
+                        let foreign_src = name == "src" && element.tag_name() != "img";
+                        if executable || unsafe_href || foreign_src {
+                            element.remove_attribute(&name);
+                        }
+                    }
+                    Ok(())
+                }),
+            ],
+            ..Default::default()
+        },
+    )
+    .map_err(|e| format!("清理模型 HTML 失败：{e}"))
 }
 
 pub fn render(d: &SiteDraft) -> String {
     let p = &d.palette;
     let hero = if d.hero_html.trim().is_empty() {
+        let cover = d
+            .visuals
+            .iter()
+            .find(|v| v.slot == "cover")
+            .map(|v| format!(r#"<img src="{}" alt="{}">"#, esc(&v.path), esc(&v.alt)))
+            .unwrap_or_default();
         format!(
-            r#"<section class="hero gray"><h1>{}</h1><div class="gray-lines"><i></i><i></i></div></section>"#,
+            r#"<section class="hero gray"><h1>{}</h1>{cover}<div class="gray-lines"><i></i><i></i></div></section>"#,
             esc(&d.title)
         )
     } else {
         d.hero_html.clone()
     };
-    let body = if d.sections_html.trim().is_empty() { render_gray(d) } else { d.sections_html.clone() };
+    let body = if d.sections_html.trim().is_empty() {
+        render_gray(d)
+    } else {
+        d.sections_html.clone()
+    };
     let nav = d
         .sections
         .iter()
@@ -591,7 +1382,7 @@ pub fn render(d: &SiteDraft) -> String {
   --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}}
 *{{box-sizing:border-box}}
 body{{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.75}}
-img,svg{{max-width:100%;height:auto}}
+img{{max-width:100%;height:auto}}
 a{{color:var(--accent)}}
 section{{max-width:920px;margin:0 auto;padding:64px 24px}}
 h1{{font-size:clamp(30px,6vw,54px);line-height:1.2;margin:0 0 16px}}
@@ -601,10 +1392,17 @@ h2{{font-size:clamp(21px,3.4vw,30px);margin:0 0 18px}}
   backdrop-filter:blur(10px);border-bottom:1px solid color-mix(in srgb,var(--text) 12%,transparent)}}
 .site-nav a{{color:var(--muted);text-decoration:none;font-size:14px}}
 .site-nav a:hover{{color:var(--accent)}}
-/* 灰模：骨架阶段的占位，真实内容到位后被替换 */
+/* 灰模：骨架阶段的占位，真实内容到位后被替换。
+   三种形状对应骨架规划的版式，让第一屏灰模就已经是成品的轮廓 */
 .gray-lines i{{display:block;height:13px;border-radius:7px;margin:11px 0;
   background:color-mix(in srgb,var(--text) 11%,transparent)}}
 .gray-lines i:nth-child(2){{width:82%}} .gray-lines i:nth-child(3){{width:58%}}
+.gray-grid{{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}}
+.gray-grid i{{display:block;height:104px;border-radius:12px;
+  background:color-mix(in srgb,var(--text) 8%,transparent)}}
+.gray-rows i{{display:block;height:46px;border-radius:10px;margin:10px 0;
+  background:color-mix(in srgb,var(--text) 8%,transparent)}}
+.gray-rows i:nth-child(even){{width:88%}}
 .gray h2,.gray h1{{color:var(--muted)}}
 .site-footer{{border-top:1px solid color-mix(in srgb,var(--text) 12%,transparent);
   margin-top:40px;padding:36px 24px 48px;text-align:center}}
@@ -662,7 +1460,9 @@ pub fn harden_css(css: &str) -> String {
     let mut rest = css;
 
     while let Some(open) = rest.find('{') {
-        let Some(close) = rest[open..].find('}').map(|i| open + i) else { break };
+        let Some(close) = rest[open..].find('}').map(|i| open + i) else {
+            break;
+        };
         let head = &rest[..=open];
         let body = &rest[open + 1..close];
 
@@ -791,7 +1591,10 @@ pub fn close_unclosed(html: &str) -> String {
 ///
 /// 末尾的注释不算实质内容，正常收尾的样式表不该被误伤。
 fn trailing_partial_decl(css: &str) -> Option<usize> {
-    let cut = css.rfind(|c| c == ';' || c == '{' || c == '}').map(|i| i + 1).unwrap_or(0);
+    let cut = css
+        .rfind(|c| c == ';' || c == '{' || c == '}')
+        .map(|i| i + 1)
+        .unwrap_or(0);
     let tail = &css[cut..];
 
     // 剥掉注释再看还剩什么
@@ -906,9 +1709,22 @@ fn referenced_animation(body: &str) -> Option<String> {
             }
             if matches!(
                 t,
-                "none" | "forwards" | "backwards" | "both" | "infinite" | "alternate"
-                    | "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out"
-                    | "normal" | "reverse" | "alternate-reverse" | "running" | "paused"
+                "none"
+                    | "forwards"
+                    | "backwards"
+                    | "both"
+                    | "infinite"
+                    | "alternate"
+                    | "linear"
+                    | "ease"
+                    | "ease-in"
+                    | "ease-out"
+                    | "ease-in-out"
+                    | "normal"
+                    | "reverse"
+                    | "alternate-reverse"
+                    | "running"
+                    | "paused"
                     | "important"
             ) || t.parse::<f32>().is_ok()
             {
@@ -922,13 +1738,15 @@ fn referenced_animation(body: &str) -> Option<String> {
 
 fn drop_zero_opacity(body: &str) -> String {
     body.split(';')
-        .filter(|decl| {
-            match decl.split_once(':') {
-                Some((p, v)) if p.trim() == "opacity" => {
-                    v.trim().trim_end_matches("!important").trim().parse::<f32>() != Ok(0.0)
-                }
-                _ => true,
+        .filter(|decl| match decl.split_once(':') {
+            Some((p, v)) if p.trim() == "opacity" => {
+                v.trim()
+                    .trim_end_matches("!important")
+                    .trim()
+                    .parse::<f32>()
+                    != Ok(0.0)
             }
+            _ => true,
         })
         .collect::<Vec<_>>()
         .join(";")
@@ -949,11 +1767,54 @@ pub fn scan_for_secrets(dir: &Path) -> Result<Option<String>, String> {
             }
             continue;
         }
-        let Ok(body) = std::fs::read_to_string(&p) else { continue };
+        let Ok(body) = std::fs::read_to_string(&p) else {
+            continue;
+        };
         for n in NEEDLES {
             if body.contains(n) {
                 return Ok(Some(format!("{} 里出现 {n}", p.display())));
             }
+        }
+    }
+    Ok(None)
+}
+
+/// 扫当前运行时真正使用的凭据值；与前缀扫描互补，捕捉无固定前缀的发布 token。
+pub fn scan_for_exact_values(dir: &Path, secrets: &[&str]) -> Result<Option<String>, String> {
+    let secrets: Vec<&[u8]> = secrets
+        .iter()
+        .map(|s| s.trim().as_bytes())
+        .filter(|s| s.len() >= 8)
+        .collect();
+    if secrets.is_empty() {
+        return Ok(None);
+    }
+    for entry in std::fs::read_dir(dir)
+        .map_err(|e| format!("扫描产物目录失败：{e}"))?
+        .flatten()
+    {
+        let path = entry.path();
+        if path.is_dir() {
+            if let Some(hit) = scan_for_exact_values(
+                &path,
+                secrets
+                    .iter()
+                    .map(|s| std::str::from_utf8(s).unwrap_or(""))
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+            )? {
+                return Ok(Some(hit));
+            }
+            continue;
+        }
+        let Ok(body) = std::fs::read(&path) else {
+            continue;
+        };
+        if secrets
+            .iter()
+            .any(|needle| body.windows(needle.len()).any(|w| w == *needle))
+        {
+            return Ok(Some(format!("{} 里出现精确凭据值", path.display())));
         }
     }
     Ok(None)
@@ -974,12 +1835,104 @@ mod tests {
             title: "我家猫的回忆录".into(),
             tagline: "十八年".into(),
             sections: vec![
-                SectionPlan { id: "photos".into(), heading: "照片".into(), intent: "老照片".into() },
-                SectionPlan { id: "story".into(), heading: "故事".into(), intent: "日常".into() },
+                SectionPlan {
+                    id: "photos".into(),
+                    heading: "照片".into(),
+                    intent: "老照片".into(),
+                    ..Default::default()
+                },
+                SectionPlan {
+                    id: "story".into(),
+                    heading: "故事".into(),
+                    intent: "日常".into(),
+                    ..Default::default()
+                },
             ],
             hall_url: "https://hall.example".into(),
             ..Default::default()
         }
+    }
+
+    fn planned(id: &str, layout: &str, beats: &[&str]) -> SectionPlan {
+        SectionPlan {
+            id: id.into(),
+            heading: id.into(),
+            intent: "略".into(),
+            layout: layout.into(),
+            beats: beats.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    // ── 骨架规划要一路传到底 ──────────────────────────────────────
+    // 骨架是全链路最便宜的一段，也是唯一一段"想清楚"的机会。
+    // 它规划出来的版式与必写项，只要有一环没传下去，就退回成
+    // 「每栏三行套话」——页面看着完整，其实什么都没说。
+
+    #[test]
+    fn beats_reach_the_content_stage_verbatim() {
+        let plan = plan_lines(&[planned(
+            "days",
+            "timeline",
+            &["2008年春天捡到它", "最后那个冬天"],
+        )]);
+        assert!(plan.contains("版式=timeline"), "版式要跟着走：{plan}");
+        assert!(
+            plan.contains("2008年春天捡到它"),
+            "必写项一个字都不能丢：{plan}"
+        );
+        assert!(plan.contains("最后那个冬天"), "{plan}");
+    }
+
+    #[test]
+    fn unknown_layout_degrades_to_prose() {
+        // 模型自造版式名（"masonry"、"英雄区"）是常事，不能让它漏到提示词里
+        // 变成内容阶段照着瞎猜的一个词
+        assert_eq!(planned("x", "masonry", &[]).layout_or_prose(), "prose");
+        assert_eq!(planned("x", "", &[]).layout_or_prose(), "prose");
+        assert_eq!(planned("x", "cards", &[]).layout_or_prose(), "cards");
+    }
+
+    #[test]
+    fn gray_model_takes_the_shape_the_skeleton_planned() {
+        // 第 10 秒屏幕上就该是成品的轮廓：卡片栏是卡片墙，时间线是一行行，
+        // 而不是清一色三根灰条。灰模越像成品，后面填内容才像"长出来"。
+        let mut d = draft();
+        d.sections = vec![
+            planned("works", "cards", &["a", "b", "c", "d"]),
+            planned("days", "timeline", &["x", "y", "z"]),
+            planned("about", "prose", &[]),
+        ];
+        let html = render(&d);
+        assert!(
+            html.contains(r#"<div class="gray-grid">"#),
+            "卡片栏要铺成网格：{html}"
+        );
+        let grid = html.split(r#"<div class="gray-grid">"#).nth(1).unwrap();
+        let grid = &grid[..grid.find("</div>").unwrap()];
+        assert_eq!(
+            grid.matches("<i>").count(),
+            4,
+            "占位块数量要跟着规划的条数走"
+        );
+        assert!(
+            html.contains(r#"<div class="gray-rows">"#),
+            "时间线要铺成一行行"
+        );
+        assert!(
+            html.contains(r#"<div class="gray-lines">"#),
+            "长文栏还是灰条"
+        );
+        assert!(html.contains(".gray-grid{"), "对应的样式要在基础样式表里");
+    }
+
+    #[test]
+    fn mood_is_shared_but_optional() {
+        // 首屏、内容、精修共用同一句气质描述，不然三段各画各的
+        assert!(mood_line("克制的暖色，纸质感").contains("克制的暖色"));
+        assert!(
+            mood_line("   ").is_empty(),
+            "没规划气质时不要塞一行空提示进提示词"
+        );
     }
 
     // ── 截断收口 ──────────────────────────────────────────────────
@@ -992,8 +1945,14 @@ mod tests {
         // 下一个 `>`，把紧随其后的整块 <style> 当属性吃掉——内容区样式全没了。
         let bad = r#"<section class="hero"><div class="hero-stat"><div class="num"#;
         let fixed = close_unclosed(bad);
-        assert!(!fixed.contains(r#"class="num"#), "没写完的标签必须砍掉：{fixed}");
-        assert!(fixed.ends_with("</div></section>"), "砍完还要补齐闭合：{fixed}");
+        assert!(
+            !fixed.contains(r#"class="num"#),
+            "没写完的标签必须砍掉：{fixed}"
+        );
+        assert!(
+            fixed.ends_with("</div></section>"),
+            "砍完还要补齐闭合：{fixed}"
+        );
     }
 
     #[test]
@@ -1038,7 +1997,10 @@ mod tests {
         let bad = "a{color:var(--gold);text-decoration:none;border-bottom:";
         let fixed = close_unclosed_braces(bad);
         assert!(fixed.ends_with('}'), "{fixed}");
-        assert!(!fixed.contains("border-bottom:"), "半条声明要切掉，别补成 `border-bottom:}}`：{fixed}");
+        assert!(
+            !fixed.contains("border-bottom:"),
+            "半条声明要切掉，别补成 `border-bottom:}}`：{fixed}"
+        );
         assert!(fixed.contains("color:var(--gold)"), "写完的声明不许丢");
     }
 
@@ -1047,7 +2009,10 @@ mod tests {
         // portfolio / cafe 的真实断法：末尾剩一个光秃秃的选择器
         let bad = ".project-card:nth-child(1){animation-delay:.1s}\n.project";
         let fixed = close_unclosed_braces(bad);
-        assert!(!fixed.trim_end().ends_with(".project"), "孤儿选择器会把后面的规则吞成选择器串：{fixed}");
+        assert!(
+            !fixed.trim_end().ends_with(".project"),
+            "孤儿选择器会把后面的规则吞成选择器串：{fixed}"
+        );
         assert!(fixed.contains("animation-delay:.1s"));
     }
 
@@ -1067,7 +2032,10 @@ mod tests {
         let guard = out.find("prefers-reduced-motion").expect("兜底闸必须在");
         let before = &out[..guard];
         let depth = before.matches('{').count() as i32 - before.matches('}').count() as i32;
-        assert_eq!(depth, 0, "兜底闸之前的括号必须已经配平，否则它会被吞掉：\n{out}");
+        assert_eq!(
+            depth, 0,
+            "兜底闸之前的括号必须已经配平，否则它会被吞掉：\n{out}"
+        );
     }
 
     #[test]
@@ -1114,7 +2082,15 @@ mod tests {
 
     #[test]
     fn stage_progress_is_monotonic() {
-        let seq = [Stage::Skeleton, Stage::Hero, Stage::Content, Stage::Footer, Stage::Polish, Stage::Done];
+        let seq = [
+            Stage::Skeleton,
+            Stage::Visuals,
+            Stage::Hero,
+            Stage::Content,
+            Stage::Footer,
+            Stage::Polish,
+            Stage::Done,
+        ];
         for w in seq.windows(2) {
             assert!(w[0].pct() < w[1].pct(), "{:?} 应早于 {:?}", w[0], w[1]);
         }
@@ -1132,9 +2108,15 @@ mod tests {
         let s = fallback_sections(&req);
         assert_eq!(s.len(), 2);
         assert_eq!(s[0].heading, "首页");
+        // 兜底栏目没有规划过，版式要落回长文而不是带着空字符串跑
+        assert_eq!(s[0].layout_or_prose(), "prose");
 
         // 需求单里连栏目都没有，也得给出可渲染的结构
-        let bare = Requirement { title: "t".into(), content: "c".into(), ..Default::default() };
+        let bare = Requirement {
+            title: "t".into(),
+            content: "c".into(),
+            ..Default::default()
+        };
         assert_eq!(fallback_sections(&bare).len(), 2);
     }
 
@@ -1144,7 +2126,10 @@ mod tests {
         let css = "header,section{opacity:0;animation:fadeUp .9s forwards}\
                    @keyframes fadeUp{from{opacity:0}to{opacity:1}}";
         let out = harden_css(css);
-        assert!(out.contains("opacity:0;animation:fadeUp"), "正常动效被误伤了：{out}");
+        assert!(
+            out.contains("opacity:0;animation:fadeUp"),
+            "正常动效被误伤了：{out}"
+        );
     }
 
     #[test]
@@ -1153,9 +2138,15 @@ mod tests {
         let css = "section{opacity:0;animation:fadeUpp .9s forwards}\
                    @keyframes fadeUp{from{opacity:0}to{opacity:1}}";
         let out = harden_css(css);
-        assert!(out.contains("section{animation:fadeUpp"), "打底 opacity 应被剥掉：{out}");
+        assert!(
+            out.contains("section{animation:fadeUpp"),
+            "打底 opacity 应被剥掉：{out}"
+        );
         // 关键帧内部的 from{opacity:0} 是合法的，必须原样留着
-        assert!(out.contains("@keyframes fadeUp{from{opacity:0}"), "误伤了关键帧：{out}");
+        assert!(
+            out.contains("@keyframes fadeUp{from{opacity:0}"),
+            "误伤了关键帧：{out}"
+        );
     }
 
     #[test]
@@ -1181,6 +2172,191 @@ mod tests {
         let css = "footer{opacity:.75;animation:ghost 1s}";
         let out = harden_css(css);
         assert!(out.contains("opacity:.75"));
+    }
+
+    #[test]
+    fn image_plans_always_have_one_real_cover_and_stay_bounded() {
+        let mut d = draft();
+        d.image_plans = (0..8)
+            .map(|i| ImagePlan {
+                slot: format!("scene-{i}"),
+                purpose: "section".into(),
+                prompt: "Editorial documentary photograph with warm natural light, no text".into(),
+                alt: format!("场景 {i}"),
+                section_id: if i % 2 == 0 {
+                    "photos".into()
+                } else {
+                    "missing".into()
+                },
+            })
+            .collect();
+        let plans = normalize_image_plans(&d, "一只猫的十八年回忆");
+        assert_eq!(
+            plans[0].slot, "cover",
+            "模型漏掉 cover 时必须补一张真实生图计划"
+        );
+        assert!(plans.len() <= MAX_VISUALS);
+        assert!(plans.iter().skip(1).all(|p| p.section_id == "photos"));
+        assert!(plans
+            .iter()
+            .all(|p| p.prompt.to_ascii_lowercase().contains("no text")));
+    }
+
+    #[test]
+    fn invalid_and_duplicate_image_slots_are_filtered() {
+        let mut d = draft();
+        d.image_plans = vec![
+            ImagePlan {
+                slot: "../cover".into(),
+                prompt: "A long enough unsafe path prompt for an editorial photo".into(),
+                ..Default::default()
+            },
+            ImagePlan {
+                slot: "cover".into(),
+                purpose: "anything".into(),
+                prompt: "A quiet cinematic portrait of an orange cat by a window, no text".into(),
+                alt: "窗边的橘猫".into(),
+                section_id: "photos".into(),
+            },
+            ImagePlan {
+                slot: "cover".into(),
+                prompt: "A duplicate cover that must not replace the first valid one, no text"
+                    .into(),
+                alt: "重复图".into(),
+                ..Default::default()
+            },
+        ];
+        let plans = normalize_image_plans(&d, "brief");
+        assert_eq!(plans.len(), 1);
+        assert_eq!(plans[0].slot, "cover");
+        assert_eq!(plans[0].alt, "窗边的橘猫");
+        assert!(plans[0].section_id.is_empty());
+    }
+
+    fn raster_site(html: &str, visuals: Vec<GeneratedVisual>) -> (PathBuf, SiteDraft) {
+        let dir = std::env::temp_dir().join(format!("yiju-raster-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(dir.join("assets")).unwrap();
+        std::fs::write(dir.join("index.html"), html).unwrap();
+        let mut jpeg = Vec::new();
+        image::codecs::jpeg::JpegEncoder::new_with_quality(&mut jpeg, 80)
+            .encode(&[24, 48, 72], 1, 1, image::ExtendedColorType::Rgb8)
+            .unwrap();
+        for visual in &visuals {
+            std::fs::write(dir.join(&visual.path), &jpeg).unwrap();
+        }
+        (
+            dir,
+            SiteDraft {
+                visuals,
+                ..Default::default()
+            },
+        )
+    }
+
+    fn cover_visual() -> GeneratedVisual {
+        GeneratedVisual {
+            slot: "cover".into(),
+            path: "assets/cover.jpg".into(),
+            alt: "真实生图封面".into(),
+            section_id: String::new(),
+        }
+    }
+
+    #[test]
+    fn final_asset_gate_accepts_only_the_generated_raster_manifest() {
+        let (dir, d) = raster_site(
+            r#"<!doctype html><img src="assets/cover.jpg" alt="真实生图封面">"#,
+            vec![cover_visual()],
+        );
+        assert!(validate_site_assets(&dir, &d).is_ok());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn final_asset_gate_rejects_svg_remote_unplanned_and_missing_alt() {
+        for html in [
+            r#"<svg></svg><img src="assets/cover.jpg" alt="图">"#,
+            r#"<img src="https://images.example/a.jpg" alt="远程图">"#,
+            r#"<img src="assets/other.jpg" alt="未规划图">"#,
+            r#"<img src="assets/cover.jpg" alt="">"#,
+        ] {
+            let (dir, d) = raster_site(html, vec![cover_visual()]);
+            assert!(validate_site_assets(&dir, &d).is_err(), "本应拒绝：{html}");
+            let _ = std::fs::remove_dir_all(dir);
+        }
+    }
+
+    #[test]
+    fn model_markup_is_sanitized_instead_of_failing_the_whole_site() {
+        let dirty = r##"<section><a href="#join" onclick="scrollIntoView()">加入</a><svg><path></path></svg><script>alert(1)</script><p>正文保留</p></section>"##;
+        let clean = sanitize_executable_html(dirty).unwrap();
+        assert!(clean.contains("正文保留"));
+        assert!(clean.contains("href=\"#join\""));
+        assert!(!clean.to_ascii_lowercase().contains("onclick"));
+        assert!(!clean.to_ascii_lowercase().contains("<script"));
+        assert!(!clean.to_ascii_lowercase().contains("<svg"));
+    }
+
+    #[test]
+    fn final_asset_gate_rejects_attribute_order_and_boundary_bypasses() {
+        for html in [
+            r#"<script defer src="https://attacker.example/x.js"></script><img src="assets/cover.jpg" alt="图">"#,
+            r#"<link href="https://attacker.example/x.css" rel="stylesheet"><img src="assets/cover.jpg" alt="图">"#,
+            r#"<img data-src="assets/cover.jpg" src="https://attacker.example/x.jpg" alt="图">"#,
+            r#"<img src="assets/cover.jpg" src="assets/other.jpg" alt="图">"#,
+            r##"<a href="java&#x73;cript:alert(1)">点我</a><img src="assets/cover.jpg" alt="图">"##,
+            r#"<img src="assets/cover.jpg" alt="图" onerror="alert(1)">"#,
+        ] {
+            let (dir, d) = raster_site(html, vec![cover_visual()]);
+            assert!(validate_site_assets(&dir, &d).is_err(), "本应拒绝：{html}");
+            let _ = std::fs::remove_dir_all(dir);
+        }
+
+        let scene = GeneratedVisual {
+            slot: "scene".into(),
+            path: "assets/scene.jpg".into(),
+            alt: "真实场景".into(),
+            section_id: "story".into(),
+        };
+        let (dir, d) = raster_site(
+            r#"<img src="assets/cover.jpg" alt="图"><!-- assets/scene.jpg -->"#,
+            vec![cover_visual(), scene],
+        );
+        assert!(
+            validate_site_assets(&dir, &d).is_err(),
+            "注释不能冒充图片引用"
+        );
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn generated_jpeg_must_decode_completely() {
+        let (dir, d) = raster_site(
+            r#"<img src="assets/cover.jpg" alt="图">"#,
+            vec![cover_visual()],
+        );
+        std::fs::write(dir.join("assets/cover.jpg"), b"\xff\xd8\xff").unwrap();
+        assert!(validate_site_assets(&dir, &d).is_err());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn exact_secret_scan_reaches_binary_and_nested_files() {
+        let dir = std::env::temp_dir().join(format!("yiju-exact-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(dir.join("nested")).unwrap();
+        std::fs::write(dir.join("index.html"), "clean").unwrap();
+        assert!(scan_for_exact_values(&dir, &["publish-token-12345"])
+            .unwrap()
+            .is_none());
+        std::fs::write(
+            dir.join("nested/image.jpg"),
+            b"jpeg publish-token-12345 bytes",
+        )
+        .unwrap();
+        assert!(scan_for_exact_values(&dir, &["publish-token-12345"])
+            .unwrap()
+            .is_some());
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

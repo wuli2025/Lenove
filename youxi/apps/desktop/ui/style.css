@@ -29,6 +29,33 @@ select.chip option{background:#0b1220;color:var(--tx)}
 
 main{display:flex;height:100vh}
 
+/* ── 启动环境医生 ──────────────────────────────────────────── */
+.doctor-gate{position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+  padding:24px;background:rgba(3,6,12,.94);backdrop-filter:blur(18px)}
+.doctor-gate.on{display:flex}
+.doctor-box{position:relative;width:min(760px,94vw);max-height:92vh;overflow:auto;padding:30px 34px 26px;
+  border:1px solid rgba(102,217,232,.26);border-radius:18px;background:#09111e;
+  box-shadow:0 28px 100px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.025)}
+.doctor-mark{position:absolute;right:34px;top:30px;width:50px;height:50px;border:1px solid rgba(102,217,232,.34);
+  border-radius:50%;display:grid;place-items:center}
+.doctor-mark::before,.doctor-mark::after,.doctor-mark span{content:"";position:absolute;background:var(--cy);border-radius:2px}
+.doctor-mark::before{width:22px;height:4px}.doctor-mark::after{width:4px;height:22px}.doctor-mark span{width:5px;height:5px;box-shadow:0 0 16px var(--cy)}
+.doctor-head{padding-right:76px}.doctor-head .eyebrow{margin:0 0 8px;color:var(--cy);font:10px var(--mono);letter-spacing:.2em}
+.doctor-head h2{margin:0 0 8px;font-size:24px;font-weight:650}.doctor-head>p:last-child{margin:0;color:var(--tx2);font-size:13px;line-height:1.7}
+.doctor-list{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin:24px 0 16px}
+.doctor-item{display:grid;grid-template-columns:18px 1fr;gap:9px;padding:11px 12px;border:1px solid var(--line2);
+  border-radius:10px;background:rgba(4,7,13,.46);min-width:0}
+.doctor-item .state{grid-row:1/3;width:9px;height:9px;margin-top:4px;border-radius:50%;background:rgba(217,226,234,.18)}
+.doctor-item .label{font-size:12.5px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doctor-item .detail{font:10.5px/1.55 var(--mono);color:var(--tx3);word-break:break-word}
+.doctor-item.running{border-color:rgba(102,217,232,.24)}.doctor-item.running .state{background:var(--cy);box-shadow:0 0 10px var(--cy);animation:breath 1.2s infinite}
+.doctor-item.pass .state{background:var(--gr)}.doctor-item.fail{border-color:rgba(226,101,107,.30)}.doctor-item.fail .state{background:var(--rd)}
+.doctor-item.skipped .state{background:var(--am)}
+.doctor-note{margin:0;color:var(--tx3);font:10.5px/1.65 var(--mono)}
+.doctor-actions{display:none;justify-content:flex-end;gap:9px;margin-top:20px}.doctor-actions.on{display:flex}.doctor-actions button{height:40px}
+.doctor-gate.success .doctor-mark{border-color:rgba(106,211,154,.4)}.doctor-gate.success .doctor-mark::before,.doctor-gate.success .doctor-mark::after,.doctor-gate.success .doctor-mark span{background:var(--gr)}
+@media(max-width:680px){.doctor-list{grid-template-columns:1fr}.doctor-box{padding:24px 20px}.doctor-head{padding-right:58px}.doctor-actions{flex-wrap:wrap}}
+
 /* ── 舞台：真昼 ───────────────────────────────────────────── */
 .stage{position:relative;flex:1 1 auto;min-width:0;height:100vh;background:#04070d;overflow:hidden;
   transition:flex-basis .6s cubic-bezier(.4,0,.2,1),flex-grow .6s}
@@ -96,17 +123,49 @@ button.ghost:hover:not(:disabled){color:var(--rd);border-color:rgba(226,101,107,
   font-family:var(--mono);font-size:11px;color:var(--tx3);min-height:24px}
 #status{color:var(--cy)}
 
-/* 开工按钮：需求单齐了才亮 */
+/* 开工按钮。以前是"需求单齐了才亮"，于是绝大多数时间它是灰的，
+   而灰按钮不会告诉你还差什么。现在只要有话可用就亮，
+   缺的部分在按下去之后由一句话直达补齐。 */
 .gobar{padding:8px 14px 12px;border-top:1px solid var(--line2)}
 #go{width:100%;height:46px;font-size:15px;letter-spacing:.06em;
   background:rgba(102,217,232,.14);border-color:rgba(102,217,232,.45)}
 #go:not(:disabled){animation:glow 2.6s ease-in-out infinite}
+/* 补需求单的那十几秒里按钮是禁用的，必须有别的东西在动，
+   否则和「点了没反应」在观感上没有区别。 */
+#go.working{animation:breath 1.4s ease-in-out infinite;opacity:.8}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(102,217,232,0)}50%{box-shadow:0 0 22px 0 rgba(102,217,232,.28)}}
 
 /* 小屏收窄侧栏。现场笔记本 1440×900 很常见，侧栏是输入区和「开始做」按钮所在，
    宁可窄一点也不能被挤出可视区。 */
 @media(max-width:1240px){ .side{flex:0 0 340px} }
 @media(max-width:1040px){ .side{flex:0 0 290px} }
+
+/* ── 一句话直达（就在真昼旁边这一栏的最上面）────────────────
+   放在侧栏里而不是单开一块：生成前右边那块预览是藏着的，
+   把它提前显出来只是为了摆一张卡，等于把"还没开始"演成"已经在做了"。
+   直达入口和对话入口共用同一栏，谁也不用先跳出去。 */
+.oneshot{flex:none;padding:4px 16px 12px;display:flex;flex-direction:column;
+  border-bottom:1px solid var(--line2)}
+/* 开工之后让位给阶段进度；点了"先聊两句"也收起来 */
+body.performing .oneshot,body.chatting .oneshot{display:none}
+
+#oneline{background:rgba(4,7,13,.7);border:1px solid var(--line);border-radius:10px;color:var(--tx);
+  padding:11px 13px;font-size:13.5px;font-family:var(--sans);line-height:1.7;outline:none;resize:none;
+  user-select:text;min-height:84px}
+#oneline:focus{border-color:rgba(102,217,232,.5);box-shadow:0 0 0 3px rgba(102,217,232,.07)}
+#oneline::placeholder{color:var(--tx3)}
+
+.lstatus{min-height:0;font-family:var(--mono);font-size:11px;color:var(--cy);line-height:1.6}
+.lstatus:not(:empty){min-height:20px;padding:8px 2px 0}
+.lstatus.bad{color:var(--rd)}
+
+.lex{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 10px}
+.lchip{border:1px solid var(--line2);border-radius:999px;padding:5px 11px;font-size:11.5px;
+  color:var(--tx2);cursor:pointer;transition:.15s;line-height:1.5;user-select:none}
+.lchip:hover{color:var(--cy);border-color:rgba(102,217,232,.35);background:rgba(102,217,232,.07)}
+
+.lchat{height:34px;font-size:12px;align-self:flex-start;padding:0 12px}
+.lchat:hover:not(:disabled){color:var(--cy);border-color:rgba(102,217,232,.3)}
 
 /* ── 预览区（生成模式）────────────────────────────────────── */
 .preview{flex:1 1 auto;min-width:0;display:none;flex-direction:column;background:#04070d;
@@ -169,3 +228,13 @@ body.finished .donebar{display:flex}
 .field .hint{font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.6}
 .modal .actions{display:flex;gap:9px;justify-content:flex-end;margin-top:20px}
 .modal .actions button{height:38px}
+
+/* Canvas 海报预览只缩放显示，背板始终由 HTML 属性固定为 1080×1440。 */
+.modal .posterbox{width:min(570px,92vw);overflow:hidden}
+.poster-preview{height:min(520px,58vh);aspect-ratio:3/4;margin:14px auto;overflow:hidden;
+  border:1px solid var(--line);border-radius:12px;background:#04070d;
+  box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#poster-canvas{display:block;width:100%;height:100%}
+#poster-status.ok{color:var(--gr)}
+#poster-status.warn{color:var(--am)}
+#poster-status.bad{color:var(--rd)}

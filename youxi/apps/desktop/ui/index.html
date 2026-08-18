@@ -28,6 +28,27 @@ window.addEventListener('DOMContentLoaded', function () {
 </head>
 <body>
 
+<!-- Rust 与静态 UI 已经起来后，先在这里验证真正会用到的本机/远端能力。
+     它不是安装 Node/Python 的通用体检；本应用没有这些运行时依赖。 -->
+<div class="doctor-gate on" id="doctor-gate" role="dialog" aria-modal="true"
+  aria-labelledby="doctor-title" aria-live="polite">
+  <div class="doctor-box">
+    <div class="doctor-mark" aria-hidden="true"><span></span></div>
+    <div class="doctor-head">
+      <p class="eyebrow">STARTUP ENVIRONMENT DOCTOR</p>
+      <h2 id="doctor-title">启动前环境医生</h2>
+      <p id="doctor-summary">正在确认这台电脑能完整运行模型、语音、生图与上线功能…</p>
+    </div>
+    <div class="doctor-list" id="doctor-list"></div>
+    <p class="doctor-note" id="doctor-note">首次启动会做最小真实 API 验证；通过后 7 天内只做快速检查，不重复产生费用。</p>
+    <div class="doctor-actions" id="doctor-actions">
+      <button class="ghost" id="doctor-limited">功能受限进入</button>
+      <button class="ghost" id="doctor-settings">打开设置</button>
+      <button id="doctor-retry">重试检查</button>
+    </div>
+  </div>
+</div>
+
 <header>
   <h1>一句话生成<span>ONE SENTENCE · LIVE</span></h1>
   <div class="chips">
@@ -35,6 +56,7 @@ window.addEventListener('DOMContentLoaded', function () {
     <select class="chip" id="voiceSel" title="真昼的音色"></select>
     <span class="chip" id="chip-voice">语音 …</span>
     <span class="chip" id="chip-creator" title="发布时归属到这个名字">创作者 —</span>
+    <span class="chip" id="chip-cloud" title="Cloudflare 发布与生图能力">云端 …</span>
     <button class="chip" id="btn-setting">设置</button>
   </div>
 </header>
@@ -53,11 +75,23 @@ window.addEventListener('DOMContentLoaded', function () {
 
   <!-- 右栏：访谈期是需求单，生成期是阶段进度 -->
   <div class="side">
-    <div class="hd"><span id="side-title">需求单 · 实时</span><span class="grow"></span><span id="side-sub"></span></div>
+    <div class="hd"><span id="side-title">一句话，直接开始</span><span class="grow"></span><span id="side-sub"></span></div>
+
+    <!-- 一句话直达。生成前右边那块预览是藏着的，所以直达入口就放在真昼旁边这一栏，
+         打开 app 第一眼看到的就是它；访谈是可选项，不是必经之路。 -->
+    <div class="oneshot" id="oneshot">
+      <!-- autocomplete=off：WebView2 会跨进程恢复表单值，实测重启后这里还留着上一个人
+           写的那句话。现场是一个人接一个人上来用的，接手的人可能没注意就按了生成。 -->
+      <textarea id="oneline" rows="3" spellcheck="false" autocomplete="off"
+        placeholder="例：给我家养了十八年的橘猫做一个纪念站，放照片和几段故事"></textarea>
+      <div class="lstatus" id="lstatus"></div>
+      <div class="lex" id="lex"></div>
+      <button class="ghost lchat" id="btn-chat">想说得更清楚？先跟真昼聊两句 →</button>
+    </div>
 
     <div id="req">
       <div class="reqcard empty" id="reqcard">
-        <div class="reqhint" id="reqhint">跟真昼说说你想做个什么样的网站。<br>她问几个问题，这里就会一条一条长出来。</div>
+        <div class="reqhint" id="reqhint">需求单会长在这里。<br>在上面写一句，按最下面那颗按钮就开始；<br>想说细一点，也可以先跟真昼聊两句。</div>
       </div>
     </div>
 
@@ -93,6 +127,7 @@ window.addEventListener('DOMContentLoaded', function () {
       </div>
       <div class="row">
         <button id="btn-publish">推上线，分配网址</button>
+        <button id="btn-share" class="ghost" disabled>生成分享卡/海报</button>
       </div>
     </div>
   </div>
@@ -125,7 +160,8 @@ window.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="field">
       <label>模型密钥 API KEY</label>
-      <input id="f-key" placeholder="sk-…" autocomplete="off" spellcheck="false">
+      <input id="f-key" type="password" placeholder="sk-…" autocomplete="new-password"
+        autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true">
       <div class="hint">只存在本机配置文件里，不会写进生成的网站。</div>
     </div>
     <div class="field">
@@ -134,7 +170,9 @@ window.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="field">
       <label>语音密钥 TTS KEY（留空则沿用上面那把）</label>
-      <input id="f-ttskey" placeholder="MiniMax 的 key" autocomplete="off" spellcheck="false">
+      <input id="f-ttskey" type="password" placeholder="MiniMax 的 key"
+        autocomplete="new-password" autocapitalize="off" spellcheck="false"
+        data-1p-ignore data-lpignore="true">
       <div class="hint">对话可以换任意 Anthropic 兼容网关，但 T2A 只有 MiniMax 有。
         对话换成 Kimi / 智谱之后，这里必须单独填 MiniMax 的 key，否则真昼不会说话。</div>
     </div>
@@ -150,6 +188,23 @@ window.addEventListener('DOMContentLoaded', function () {
     <div class="actions">
       <button class="ghost" id="btn-cancel">取消</button>
       <button id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Canvas 直接渲染的 1080×1440 PNG 海报；不创建 SVG 中间图。 -->
+<div class="modal" id="poster-modal" aria-hidden="true">
+  <div class="box posterbox">
+    <h2>分享卡 / 海报</h2>
+    <p class="sub" id="poster-status">正在准备 1080 × 1440 PNG…</p>
+    <div class="poster-preview">
+      <canvas id="poster-canvas" width="1080" height="1440"
+        aria-label="作品分享海报预览"></canvas>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="btn-poster-close">稍后</button>
+      <button class="ghost" id="btn-poster-retry" style="display:none">重试生成</button>
+      <button id="btn-poster-open" disabled>打开分享页</button>
     </div>
   </div>
 </div>

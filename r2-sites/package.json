@@ -6,7 +6,8 @@
     "verify:qr": "node scripts/verify-qr.mjs",
     "verify:pinyin": "node scripts/verify-pinyin.mjs",
     "verify:poster": "node scripts/preview-poster.mjs ./_preview",
-    "verify:all": "npm run verify:qr && npm run verify:pinyin",
+    "verify:cloud-publish": "node scripts/verify-cloud-publish.mjs",
+    "verify:all": "npm run verify:qr && npm run verify:pinyin && npm run verify:cloud-publish",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {

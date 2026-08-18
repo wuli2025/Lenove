@@ -100,16 +100,21 @@ impl Db {
         let _ = conn.pragma_update(None, "journal_mode", "WAL");
         let _ = conn.pragma_update(None, "synchronous", "NORMAL");
         // 锁竞争等待而非立即报 SQLITE_BUSY（多进程/外部工具读库时不炸）
-        conn.busy_timeout(std::time::Duration::from_secs(5)).map_err(dbe)?;
+        conn.busy_timeout(std::time::Duration::from_secs(5))
+            .map_err(dbe)?;
         let _ = conn.pragma_update(None, "cache_size", -16384); // 16MB 页缓存
         conn.execute_batch(SCHEMA).map_err(dbe)?;
-        Ok(Self { conn: Mutex::new(conn) })
+        Ok(Self {
+            conn: Mutex::new(conn),
+        })
     }
 
     pub fn open_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory().map_err(dbe)?;
         conn.execute_batch(SCHEMA).map_err(dbe)?;
-        Ok(Self { conn: Mutex::new(conn) })
+        Ok(Self {
+            conn: Mutex::new(conn),
+        })
     }
 
     pub fn insert_task(&self, spec: &TaskSpec, binding_id: &str) -> Result<()> {
@@ -196,8 +201,10 @@ impl Db {
                  RETURNING seq",
             )
             .map_err(dbe)?;
-        stmt.query_row(params![id, serde_json::to_string(event)?, now()], |row| row.get(0))
-            .map_err(dbe)
+        stmt.query_row(params![id, serde_json::to_string(event)?, now()], |row| {
+            row.get(0)
+        })
+        .map_err(dbe)
     }
 
     /// 回放：seq > after 的全部事件（Last-Event-ID 续传）
@@ -292,7 +299,8 @@ mod tests {
         assert_eq!(row.state, TaskState::Queued);
         assert_eq!(row.spec.prompt, "hi");
 
-        db.set_result(&"t1".to_string(), TaskState::Done, "ok").unwrap();
+        db.set_result(&"t1".to_string(), TaskState::Done, "ok")
+            .unwrap();
         let row = db.get_task(&"t1".to_string()).unwrap().unwrap();
         assert_eq!(row.state, TaskState::Done);
         assert_eq!(row.result.as_deref(), Some("ok"));
@@ -304,7 +312,12 @@ mod tests {
         let id = new_task_id();
         for i in 0..3u32 {
             let seq = db
-                .append_event(&id, &AgentEvent::Delta { text: format!("d{i}") })
+                .append_event(
+                    &id,
+                    &AgentEvent::Delta {
+                        text: format!("d{i}"),
+                    },
+                )
                 .unwrap();
             assert_eq!(seq, i as i64 + 1, "seq 应从 1 递增");
         }

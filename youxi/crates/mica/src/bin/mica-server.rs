@@ -15,8 +15,10 @@ use std::sync::Arc;
 async fn main() {
     // Docker HEALTHCHECK 模式：探自身 /healthz 后退出
     if std::env::args().any(|a| a == "--healthcheck") {
-        let port: u16 =
-            std::env::var("MICA_PORT").ok().and_then(|p| p.parse().ok()).unwrap_or(1440);
+        let port: u16 = std::env::var("MICA_PORT")
+            .ok()
+            .and_then(|p| p.parse().ok())
+            .unwrap_or(1440);
         let ok = reqwest::get(format!("http://127.0.0.1:{port}/healthz"))
             .await
             .map(|r| r.status().is_success())
@@ -35,7 +37,11 @@ async fn main() {
     let panic_log = paths::logs_dir().join("panic.log");
     let default_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
-        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&panic_log) {
+        if let Ok(mut f) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&panic_log)
+        {
             let _ = writeln!(f, "[{:?}] panic: {info}", std::time::SystemTime::now());
         }
         default_hook(info);
@@ -43,7 +49,8 @@ async fn main() {
 
     paths::ensure_base_dirs().expect("create MicaBase dirs");
     let db = Arc::new(Db::open(&paths::db_path()).expect("open mica.db"));
-    let providers = Arc::new(ProviderStore::load(paths::providers_path()).expect("load providers.json"));
+    let providers =
+        Arc::new(ProviderStore::load(paths::providers_path()).expect("load providers.json"));
 
     let mut cfg = SchedulerCfg::default();
     if let Ok(n) = std::env::var("MICA_CLI_SLOTS") {
@@ -62,10 +69,17 @@ async fn main() {
     let scheduler = Scheduler::new(cfg.clone(), db.clone(), providers.clone(), resolver);
     scheduler.start();
 
-    let state = AppState { scheduler: scheduler.clone(), providers, db };
+    let state = AppState {
+        scheduler: scheduler.clone(),
+        providers,
+        db,
+    };
     let app = router(state);
 
-    let port: u16 = std::env::var("MICA_PORT").ok().and_then(|p| p.parse().ok()).unwrap_or(1440);
+    let port: u16 = std::env::var("MICA_PORT")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(1440);
     let addr = format!("127.0.0.1:{port}");
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("bind");
     tracing::info!(%addr, cli_slots = cfg.cli_slots, queue_cap = cfg.queue_cap, "mica-server ready");

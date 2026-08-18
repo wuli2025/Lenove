@@ -25,8 +25,15 @@ const REAP_TIMEOUT: Duration = Duration::from_secs(10);
 /// 限时收割子进程：先补一刀 kill，再限时 wait，超时打日志放行，绝不卡死任务
 async fn reap(child: &mut tokio::process::Child, task: &str) {
     let _ = child.start_kill();
-    if tokio::time::timeout(REAP_TIMEOUT, child.wait()).await.is_err() {
-        tracing::warn!(task, "child did not exit within {}s after kill; abandoning (kill_on_drop)", REAP_TIMEOUT.as_secs());
+    if tokio::time::timeout(REAP_TIMEOUT, child.wait())
+        .await
+        .is_err()
+    {
+        tracing::warn!(
+            task,
+            "child did not exit within {}s after kill; abandoning (kill_on_drop)",
+            REAP_TIMEOUT.as_secs()
+        );
     }
 }
 /// codex 工人槽位轮转（每槽独立 CODEX_HOME，PRD 4.2.3 的坑）
@@ -47,7 +54,12 @@ pub async fn run(mut ctx: RunCtx, resolved: ResolvedRuntime) -> RunOutcome {
         .clone()
         .unwrap_or_else(|| paths::workspace_dir(&ctx.spec.tenant, &ctx.spec.id));
     if let Err(e) = std::fs::create_dir_all(&cwd) {
-        return RunOutcome::error(ErrorCode::Internal, format!("workspace: {e}"), false, String::new());
+        return RunOutcome::error(
+            ErrorCode::Internal,
+            format!("workspace: {e}"),
+            false,
+            String::new(),
+        );
     }
 
     // —— Command 构造（argv 只放开关，prompt 走 stdin）——
@@ -60,7 +72,13 @@ pub async fn run(mut ctx: RunCtx, resolved: ResolvedRuntime) -> RunOutcome {
     };
     match engine {
         EngineId::Claude => {
-            cmd.args(["--print", "--output-format", "stream-json", "--verbose", "--include-partial-messages"]);
+            cmd.args([
+                "--print",
+                "--output-format",
+                "stream-json",
+                "--verbose",
+                "--include-partial-messages",
+            ]);
             if let Some(model) = &ctx.spec.model {
                 cmd.args(["--model", model]);
             }
@@ -96,7 +114,9 @@ pub async fn run(mut ctx: RunCtx, resolved: ResolvedRuntime) -> RunOutcome {
         apply_managed_env(&mut cmd, &binding_env(&ctx.binding));
     }
 
-    cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    cmd.stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     cmd.kill_on_drop(true);
     #[cfg(windows)]
     {
@@ -143,7 +163,8 @@ pub async fn run(mut ctx: RunCtx, resolved: ResolvedRuntime) -> RunOutcome {
         reap(&mut child, &ctx.spec.id).await;
         return RunOutcome::canceled(String::new());
     }
-    ctx.bus.emit(&ctx.spec.id, AgentEvent::Started { pid: Some(pid) });
+    ctx.bus
+        .emit(&ctx.spec.id, AgentEvent::Started { pid: Some(pid) });
 
     // stdin：独立 task 写入，写完 drop 关管道给 EOF（PRD 4.2.4）
     if let Some(mut stdin) = child.stdin.take() {
@@ -325,7 +346,9 @@ fn emit_workspace_artifacts(
     let mut count = 0usize;
     let mut visited = 0usize; // 遍历总量上限：大工作区不允许拖住 worker 线程
     while let Some(dir) = stack.pop() {
-        let Ok(read_dir) = std::fs::read_dir(&dir) else { continue };
+        let Ok(read_dir) = std::fs::read_dir(&dir) else {
+            continue;
+        };
         for entry in read_dir.flatten() {
             visited += 1;
             if visited > 10_000 {
@@ -343,7 +366,10 @@ fn emit_workspace_artifacts(
             }
             ctx.bus.emit(
                 &ctx.spec.id,
-                AgentEvent::Artifact { kind: artifact_kind(&s).to_string(), path: s },
+                AgentEvent::Artifact {
+                    kind: artifact_kind(&s).to_string(),
+                    path: s,
+                },
             );
             count += 1;
             if count >= 100 {
@@ -356,7 +382,9 @@ fn emit_workspace_artifacts(
 /// 槽位 CODEX_HOME 鉴权播种：深隔离目录首次使用时从用户 `~/.codex` 复制
 /// auth.json / config.toml（继承 polaris「审批预播种」思路，防 headless 首启卡登录）。
 fn seed_codex_home(home: &std::path::Path) {
-    let Some(user_codex) = dirs::home_dir().map(|h| h.join(".codex")) else { return };
+    let Some(user_codex) = dirs::home_dir().map(|h| h.join(".codex")) else {
+        return;
+    };
     for file in ["auth.json", "config.toml"] {
         let dst = home.join(file);
         let src = user_codex.join(file);
@@ -383,7 +411,10 @@ pub struct ParsedLine {
 
 fn artifact_kind(path: &str) -> &'static str {
     let lower = path.to_ascii_lowercase();
-    if [".png", ".jpg", ".jpeg", ".webp", ".gif"].iter().any(|ext| lower.ends_with(ext)) {
+    if [".png", ".jpg", ".jpeg", ".webp", ".gif"]
+        .iter()
+        .any(|ext| lower.ends_with(ext))
+    {
         "image"
     } else {
         "file"
@@ -393,7 +424,9 @@ fn artifact_kind(path: &str) -> &'static str {
 /// claude --print --output-format stream-json --include-partial-messages
 pub fn parse_claude_line(line: &str) -> ParsedLine {
     let mut out = ParsedLine::default();
-    let Ok(json) = serde_json::from_str::<serde_json::Value>(line.trim()) else { return out };
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(line.trim()) else {
+        return out;
+    };
     match json.get("type").and_then(|t| t.as_str()) {
         Some("stream_event")
             if json.pointer("/event/type").and_then(|t| t.as_str())
@@ -409,7 +442,10 @@ pub fn parse_claude_line(line: &str) -> ParsedLine {
                 for block in blocks {
                     if block.get("type").and_then(|t| t.as_str()) == Some("tool_use") {
                         let name = block.get("name").and_then(|n| n.as_str()).unwrap_or("tool");
-                        let summary = block.get("input").map(|i| i.to_string()).unwrap_or_default();
+                        let summary = block
+                            .get("input")
+                            .map(|i| i.to_string())
+                            .unwrap_or_default();
                         out.tool = Some((name.to_string(), truncate(&summary, 200)));
                     }
                 }
@@ -417,7 +453,9 @@ pub fn parse_claude_line(line: &str) -> ParsedLine {
         }
         Some("result") => {
             out.usage_in = json.pointer("/usage/input_tokens").and_then(|v| v.as_u64());
-            out.usage_out = json.pointer("/usage/output_tokens").and_then(|v| v.as_u64());
+            out.usage_out = json
+                .pointer("/usage/output_tokens")
+                .and_then(|v| v.as_u64());
             if let Some(text) = json.get("result").and_then(|r| r.as_str()) {
                 out.result = Some(text.to_string());
             } else if json.get("is_error").and_then(|e| e.as_bool()) == Some(true) {
@@ -436,7 +474,9 @@ pub fn parse_claude_line(line: &str) -> ParsedLine {
 /// 旧版 `{"msg":{"type":"agent_message",...}}`。未知事件容忍（PRD 12.1-R2）。
 pub fn parse_codex_line(line: &str) -> ParsedLine {
     let mut out = ParsedLine::default();
-    let Ok(json) = serde_json::from_str::<serde_json::Value>(line.trim()) else { return out };
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(line.trim()) else {
+        return out;
+    };
 
     // —— 新版 schema（顶层 type）——
     match json.get("type").and_then(|t| t.as_str()) {
@@ -458,7 +498,8 @@ pub fn parse_codex_line(line: &str) -> ParsedLine {
                     if let Some(changes) = item.get("changes").and_then(|c| c.as_array()) {
                         for change in changes {
                             if let Some(path) = change.get("path").and_then(|p| p.as_str()) {
-                                out.artifacts.push((path.to_string(), artifact_kind(path).to_string()));
+                                out.artifacts
+                                    .push((path.to_string(), artifact_kind(path).to_string()));
                             }
                         }
                     }
@@ -470,7 +511,9 @@ pub fn parse_codex_line(line: &str) -> ParsedLine {
         }
         Some("turn.completed") => {
             out.usage_in = json.pointer("/usage/input_tokens").and_then(|v| v.as_u64());
-            out.usage_out = json.pointer("/usage/output_tokens").and_then(|v| v.as_u64());
+            out.usage_out = json
+                .pointer("/usage/output_tokens")
+                .and_then(|v| v.as_u64());
             return out;
         }
         Some("turn.failed") | Some("error") => {
@@ -510,15 +553,18 @@ pub fn parse_codex_line(line: &str) -> ParsedLine {
             out.tool = Some(("exec".into(), truncate(&command, 200)));
         }
         Some("token_count") => {
-            out.usage_in = msg.pointer("/info/total_token_usage/input_tokens")
+            out.usage_in = msg
+                .pointer("/info/total_token_usage/input_tokens")
                 .or_else(|| msg.get("input_tokens"))
                 .and_then(|v| v.as_u64());
-            out.usage_out = msg.pointer("/info/total_token_usage/output_tokens")
+            out.usage_out = msg
+                .pointer("/info/total_token_usage/output_tokens")
                 .or_else(|| msg.get("output_tokens"))
                 .and_then(|v| v.as_u64());
         }
         Some("task_complete") if out.result.is_none() => {
-            out.result = msg.get("last_agent_message")
+            out.result = msg
+                .get("last_agent_message")
                 .and_then(|m| m.as_str())
                 .map(String::from)
                 .or(Some(String::new()));
@@ -570,14 +616,19 @@ mod tests {
 
     #[test]
     fn codex_agent_message_and_complete() {
-        let p = parse_codex_line(r#"{"id":"1","msg":{"type":"agent_message","message":"done text"}}"#);
+        let p =
+            parse_codex_line(r#"{"id":"1","msg":{"type":"agent_message","message":"done text"}}"#);
         assert_eq!(p.delta.as_deref(), Some("done text"));
         assert_eq!(p.result.as_deref(), Some("done text"));
 
-        let p = parse_codex_line(r#"{"id":"2","msg":{"type":"task_complete","last_agent_message":"final"}}"#);
+        let p = parse_codex_line(
+            r#"{"id":"2","msg":{"type":"task_complete","last_agent_message":"final"}}"#,
+        );
         assert_eq!(p.result.as_deref(), Some("final"));
 
-        let p = parse_codex_line(r#"{"msg":{"type":"exec_command_begin","command":["bash","-c","ls"]}}"#);
+        let p = parse_codex_line(
+            r#"{"msg":{"type":"exec_command_begin","command":["bash","-c","ls"]}}"#,
+        );
         let (name, summary) = p.tool.unwrap();
         assert_eq!(name, "exec");
         assert!(summary.contains("ls"));
@@ -622,6 +673,8 @@ mod tests {
     fn garbage_lines_tolerated() {
         assert!(parse_claude_line("not json").delta.is_none());
         assert!(parse_codex_line("{}").delta.is_none());
-        assert!(parse_claude_line(r#"{"type":"unknown_future_event"}"#).result.is_none());
+        assert!(parse_claude_line(r#"{"type":"unknown_future_event"}"#)
+            .result
+            .is_none());
     }
 }

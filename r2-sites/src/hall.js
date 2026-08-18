@@ -8,7 +8,7 @@
  *   ⑤ 先审后展（status != public 不出现）
  *   ⑥ 永不空榜（无数据时出引导态而不是空白）
  */
-import { BRAND, accentOf, esc, coverSvg } from './brand.js';
+import { BRAND, accentOf, esc } from './brand.js';
 import { topbar, baseCss } from './layout.js';
 import { heat } from './api.js';
 
@@ -24,9 +24,7 @@ function timeAgo(ts, now) {
 
 function cardHtml(w, origin, big, rank) {
   const accent = accentOf(w.accent || 0);
-  const cover = w.cover
-    ? `<img src="${origin}/r2/${esc(w.cover)}" alt="" loading="lazy">`
-    : `<div class="gen">${coverSvg(w.id + w.title, accent, { w: 640, h: 400 })}</div>`;
+  const cover = `<img src="${origin}/r2/${esc(w.cover)}" alt="${esc(w.title)} 作品封面" loading="lazy">`;
   const initial = esc(String(w.creator || '?').trim().slice(0, 1));
   return `<a class="c${big ? ' big' : ''}" href="${origin}/p/${esc(w.id)}">
   ${rank ? `<span class="rk">${rank}</span>` : ''}
@@ -43,9 +41,11 @@ function cardHtml(w, origin, big, rank) {
 }
 
 export function hallHtml(works, { origin, sort, now, user = null }) {
-  const top = works.slice(0, 3);
-  const rest = works.slice(3);
-  const empty = works.length === 0;
+  // 旧库里可能还有无封面的 public 记录；宁可不展示，也不画 SVG 假封面。
+  const visible = works.filter((w) => Boolean(w.cover));
+  const top = visible.slice(0, 3);
+  const rest = visible.slice(3);
+  const empty = visible.length === 0;
 
   return `<!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="utf-8">
@@ -77,7 +77,6 @@ body{background-image:radial-gradient(900px 500px at 78% -8%,rgba(102,217,232,.1
 .th{aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid rgba(217,226,234,.09);background:#0b111b}
 .c.big .th{aspect-ratio:16/9}
 .th img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
-.gen,.gen svg{width:100%;height:100%;display:block}
 .in{padding:12px 14px 13px}
 /* 规则②：固定三行，标题超长省略而不是换行或缩字号 */
 .t1{font-size:14px;font-weight:650;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -111,7 +110,7 @@ ${topbar('hall', user)}
   </div>
 
   <div class="subbar">
-    <div class="cnt">已诞生 <b>${works.length}</b> 个网站</div>
+    <div class="cnt">已诞生 <b>${visible.length}</b> 个网站</div>
     <div class="tabs">
       <a class="tb${sort === 'hot' ? ' on' : ''}" href="/hall?sort=hot">最热</a>
       <a class="tb${sort === 'new' ? ' on' : ''}" href="/hall?sort=new">最新</a>

@@ -1,9 +1,9 @@
 //! ApiEngine（PRD 4.2.1）：纯 Rust 直连 Anthropic 兼容 /v1/messages，SSE 流式，零子进程。
 
+use crate::core::AgentEvent;
 use crate::core::{ErrorCode, TaskState};
 use crate::engine::batcher::DeltaBatcher;
 use crate::engine::{CtrlMsg, RunCtx, RunOutcome};
-use crate::core::AgentEvent;
 use futures_util::StreamExt;
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -29,7 +29,11 @@ pub async fn run(mut ctx: RunCtx) -> RunOutcome {
     let client = shared_client();
 
     let url = format!("{}/v1/messages", ctx.binding.base_url.trim_end_matches('/'));
-    let model = ctx.spec.model.clone().unwrap_or_else(|| ctx.binding.models.default.clone());
+    let model = ctx
+        .spec
+        .model
+        .clone()
+        .unwrap_or_else(|| ctx.binding.models.default.clone());
     let mut body = serde_json::json!({
         "model": model,
         "max_tokens": 8192,
@@ -77,10 +81,16 @@ pub async fn run(mut ctx: RunCtx) -> RunOutcome {
             .and_then(|r| r.ok())
             .unwrap_or_default();
         let (code, retryable) = classify_status(status.as_u16());
-        return RunOutcome::error(code, format!("{status}: {detail}"), retryable, String::new());
+        return RunOutcome::error(
+            code,
+            format!("{status}: {detail}"),
+            retryable,
+            String::new(),
+        );
     }
 
-    ctx.bus.emit(&ctx.spec.id, AgentEvent::Started { pid: None });
+    ctx.bus
+        .emit(&ctx.spec.id, AgentEvent::Started { pid: None });
 
     let mut stream = resp.bytes_stream();
     let mut line_buf = String::new();
@@ -200,7 +210,10 @@ fn classify_status(status: u16) -> (ErrorCode, bool) {
 
 /// 供 scheduler 判断该错误是否计入供应商故障窗口（PRD 5.5 失败分类）
 pub fn counts_toward_failover(code: ErrorCode) -> bool {
-    matches!(code, ErrorCode::Auth | ErrorCode::Network | ErrorCode::Timeout | ErrorCode::ProviderError)
+    matches!(
+        code,
+        ErrorCode::Auth | ErrorCode::Network | ErrorCode::Timeout | ErrorCode::ProviderError
+    )
 }
 
 // 终态由调度器统一发 StateChanged / Done / Error（见 scheduler::run_one），

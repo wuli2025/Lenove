@@ -40,7 +40,13 @@ pub struct RunOutcome {
 
 impl RunOutcome {
     pub fn done(result: String, input: u64, output: u64) -> Self {
-        Self { state: TaskState::Done, result, error: None, input_tokens: input, output_tokens: output }
+        Self {
+            state: TaskState::Done,
+            result,
+            error: None,
+            input_tokens: input,
+            output_tokens: output,
+        }
     }
 
     pub fn canceled(partial: String) -> Self {

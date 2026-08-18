@@ -3,9 +3,16 @@ resolver = "2"
 members = ["crates/mica", "apps/desktop"]
 
 [workspace.package]
-version = "0.1.0"
+version = "1.0.1"
 edition = "2021"
 
+# 发布构建同时也是「抬高逆向门槛」的一环：
+# strip 抹掉符号表，fat LTO + 单 codegen 单元把跨模块调用揉进去、让函数边界更糊，
+# overflow-checks 关掉减少可辨识的 panic 分支。这些让 IDA/反编译读起来更费劲，
+# 但和凭据混淆一样，是抬门槛不是上锁——决心够大的人照样能逆。
 [profile.release]
-lto = "thin"
+lto = true
+codegen-units = 1
 strip = true
+opt-level = 3
+overflow-checks = false

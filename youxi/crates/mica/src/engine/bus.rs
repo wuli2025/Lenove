@@ -16,7 +16,10 @@ pub struct EventBus {
 
 impl EventBus {
     pub fn new(db: Arc<Db>) -> Self {
-        Self { db, chans: DashMap::new() }
+        Self {
+            db,
+            chans: DashMap::new(),
+        }
     }
 
     /// 落库 + 广播，返回 seq。落库失败降级为只广播（日志告警，不断流）。
@@ -43,7 +46,10 @@ impl EventBus {
 
     /// 当前订阅者数（断连即取消判据，PRD 4.8）
     pub fn subscriber_count(&self, id: &TaskId) -> usize {
-        self.chans.get(id).map(|tx| tx.receiver_count()).unwrap_or(0)
+        self.chans
+            .get(id)
+            .map(|tx| tx.receiver_count())
+            .unwrap_or(0)
     }
 
     /// 终态后延迟清理通道（订阅者读完落库事件即可，无需常驻）

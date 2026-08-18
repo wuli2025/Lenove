@@ -51,7 +51,9 @@ pub struct R2Config {
 fn require_env(key: &str) -> Result<String> {
     match std::env::var(key) {
         Ok(v) if !v.trim().is_empty() => Ok(v.trim().to_string()),
-        _ => Err(MicaError::Other(format!("缺少环境变量 {key}，无法上传站点产物到 R2"))),
+        _ => Err(MicaError::Other(format!(
+            "缺少环境变量 {key}，无法上传站点产物到 R2"
+        ))),
     }
 }
 
@@ -154,7 +156,9 @@ fn worker_upload_path(key: &str) -> Result<String> {
         }
     };
     if rest.is_empty() || rest.contains("..") || rest.contains("//") || rest.starts_with('/') {
-        return Err(MicaError::Other(format!("键 {key} 路径不合法（含 .. 或 // 或空段）")));
+        return Err(MicaError::Other(format!(
+            "键 {key} 路径不合法（含 .. 或 // 或空段）"
+        )));
     }
     // Worker 侧会 decodeURIComponent，这里必须先转义，否则带空格/中文的文件名会挂
     Ok(format!("/api/upload/{kind}/{}", uri_encode(rest, true)))
@@ -261,7 +265,10 @@ fn civil_from_days(z: i64) -> (i64, u32, u32) {
 
 /// 返回 (x-amz-date, datestamp)，例如 ("20260812T031415Z", "20260812")
 fn amz_now() -> (String, String) {
-    let secs = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) as i64;
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0) as i64;
     let days = secs.div_euclid(86_400);
     let rem = secs.rem_euclid(86_400);
     let (y, mo, d) = civil_from_days(days);
@@ -274,19 +281,27 @@ fn amz_now() -> (String, String) {
 
 /// 为一次 PUT 生成签名头，返回 (x-amz-date, payload sha256, Authorization)。
 /// 签名头集合固定为 content-type;host;x-amz-content-sha256;x-amz-date（已按字典序）。
-fn sign_put(cfg: &R2Config, key: &str, content_type: &str, payload: &[u8]) -> (String, String, String) {
+fn sign_put(
+    cfg: &R2Config,
+    key: &str,
+    content_type: &str,
+    payload: &[u8],
+) -> (String, String, String) {
     let (amz_date, date_stamp) = amz_now();
     let payload_hash = hex_sha256(payload);
     let host = cfg.host();
 
-    let canonical_uri = format!("/{}/{}", uri_encode(&cfg.bucket, false), uri_encode(key, true));
+    let canonical_uri = format!(
+        "/{}/{}",
+        uri_encode(&cfg.bucket, false),
+        uri_encode(key, true)
+    );
     let canonical_headers = format!(
         "content-type:{content_type}\nhost:{host}\nx-amz-content-sha256:{payload_hash}\nx-amz-date:{amz_date}\n"
     );
     let signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date";
-    let canonical_request = format!(
-        "PUT\n{canonical_uri}\n\n{canonical_headers}\n{signed_headers}\n{payload_hash}"
-    );
+    let canonical_request =
+        format!("PUT\n{canonical_uri}\n\n{canonical_headers}\n{signed_headers}\n{payload_hash}");
 
     let scope = format!("{date_stamp}/{REGION}/{SERVICE}/aws4_request");
     let string_to_sign = format!(
@@ -320,7 +335,9 @@ async fn explain_failure(mode: &str, key: &str, resp: reqwest::Response) -> Mica
     let status = resp.status();
     let text = resp.text().await.unwrap_or_default();
     let hint = match (mode, status.as_u16()) {
-        ("worker", 401) => "（发布令牌无效，检查 MICA_PUBLISH_TOKEN 与服务端 PUBLISH_TOKEN 是否一致）",
+        ("worker", 401) => {
+            "（发布令牌无效，检查 MICA_PUBLISH_TOKEN 与服务端 PUBLISH_TOKEN 是否一致）"
+        }
         ("worker", 413) => "（单文件超过 25MB，Worker 代理拒收）",
         ("worker", 404) => "（代理端点不存在，服务端可能还没部署 /api/upload/*）",
         ("s3", 401) | ("s3", 403) => {
@@ -456,12 +473,18 @@ fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf)>) -> R
 /// 宁可让上层把作品记录藏起来，也不能留一个点开半截的站点。
 pub async fn upload_site(target: &UploadTarget, slug: &str, dir: &Path) -> Result<usize> {
     if !dir.is_dir() {
-        return Err(MicaError::Other(format!("站点目录不存在或不是目录：{}", dir.display())));
+        return Err(MicaError::Other(format!(
+            "站点目录不存在或不是目录：{}",
+            dir.display()
+        )));
     }
     let mut files = Vec::new();
     collect_files(dir, dir, &mut files)?;
     if files.is_empty() {
-        return Err(MicaError::Other(format!("站点目录为空，没有可发布的产物：{}", dir.display())));
+        return Err(MicaError::Other(format!(
+            "站点目录为空，没有可发布的产物：{}",
+            dir.display()
+        )));
     }
     // 排序只为让日志和失败复现顺序稳定
     files.sort();
@@ -477,7 +500,10 @@ pub async fn upload_site(target: &UploadTarget, slug: &str, dir: &Path) -> Resul
         let key = format!("{prefix}/{rel}");
         tasks.spawn(async move {
             // permit 拿不到只可能是信号量被关闭，这里没人关它
-            let _permit = sem.acquire_owned().await.map_err(|e| MicaError::Other(e.to_string()))?;
+            let _permit = sem
+                .acquire_owned()
+                .await
+                .map_err(|e| MicaError::Other(e.to_string()))?;
             let body = tokio::fs::read(&path)
                 .await
                 .map_err(|e| MicaError::Other(format!("读取 {} 失败：{e}", path.display())))?;
@@ -511,26 +537,107 @@ pub async fn upload_site(target: &UploadTarget, slug: &str, dir: &Path) -> Resul
 
 /// 按魔数认图片类型，返回 (扩展名, Content-Type)。
 /// 认字节比认调用方给的字段名准——Worker 端最终读的就是对象上的 httpMetadata.contentType。
-fn sniff_image(bytes: &[u8]) -> (&'static str, &'static str) {
+fn sniff_image(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
     if bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
-        ("png", "image/png")
+        Some(("png", "image/png"))
+    } else if bytes.starts_with(b"\xff\xd8\xff") {
+        Some(("jpg", "image/jpeg"))
     } else if bytes.starts_with(b"RIFF") && bytes.get(8..12) == Some(b"WEBP") {
-        ("webp", "image/webp")
+        Some(("webp", "image/webp"))
     } else {
-        ("jpg", "image/jpeg")
+        None
     }
+}
+
+fn png_ends_at_iend(bytes: &[u8]) -> bool {
+    if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+        return false;
+    }
+    let mut pos = 8usize;
+    while pos.checked_add(12).is_some_and(|end| end <= bytes.len()) {
+        let length = u32::from_be_bytes(bytes[pos..pos + 4].try_into().unwrap()) as usize;
+        let Some(end) = pos.checked_add(12).and_then(|n| n.checked_add(length)) else {
+            return false;
+        };
+        if end > bytes.len() {
+            return false;
+        }
+        if bytes.get(pos + 4..pos + 8) == Some(b"IEND") {
+            return length == 0 && end == bytes.len();
+        }
+        pos = end;
+    }
+    false
+}
+
+/// 完整解码位图并要求容器正好结束，避免三字节 JPEG 或伪造 IHDR 被公开上传。
+pub(crate) fn validate_raster_image(
+    bytes: &[u8],
+) -> Result<(&'static str, &'static str, u32, u32)> {
+    if bytes.is_empty() || bytes.len() > 20 * 1024 * 1024 {
+        return Err(MicaError::Other("图片为空或超过 20MB".into()));
+    }
+    let (ext, mime) =
+        sniff_image(bytes).ok_or_else(|| MicaError::Other("图片不是 PNG/JPEG/WebP 位图".into()))?;
+
+    let format = match ext {
+        "png" if png_ends_at_iend(bytes) => image::ImageFormat::Png,
+        "jpg" if bytes.ends_with(b"\xff\xd9") => image::ImageFormat::Jpeg,
+        "webp" if bytes.len() >= 12 => {
+            let declared = u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize;
+            if declared.checked_add(8) != Some(bytes.len()) {
+                return Err(MicaError::Other("WebP 容器长度不完整".into()));
+            }
+            image::ImageFormat::WebP
+        }
+        _ => return Err(MicaError::Other("图片容器已截断或尾部含多余数据".into())),
+    };
+
+    let mut reader = image::ImageReader::with_format(std::io::Cursor::new(bytes), format);
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(8192);
+    limits.max_image_height = Some(8192);
+    limits.max_alloc = Some(256 * 1024 * 1024);
+    reader.limits(limits);
+    let decoded = reader
+        .decode()
+        .map_err(|_| MicaError::Other("图片像素数据损坏或尺寸异常".into()))?;
+    let (width, height) = (decoded.width(), decoded.height());
+    if width == 0 || height == 0 {
+        return Err(MicaError::Other("图片像素尺寸为空".into()));
+    }
+    Ok((ext, mime, width, height))
 }
 
 /// 上传封面到 `covers/<id>.<ext>`，返回该 R2 key（供 PATCH 回填）。
 /// 后缀取自真实字节：代理端点只放行 png/jpg/jpeg/webp，这三种都在里面。
 pub async fn upload_cover(target: &UploadTarget, id: &str, bytes: &[u8]) -> Result<String> {
-    if bytes.is_empty() {
-        return Err(MicaError::Other("封面数据为空，无法上传".into()));
-    }
-    let (ext, content_type) = sniff_image(bytes);
+    let (ext, content_type, _, _) = validate_raster_image(bytes)
+        .map_err(|_| MicaError::Other("封面不是有效的 PNG/JPEG/WebP 位图".into()))?;
     let key = format!("covers/{id}.{ext}");
     let client = http_client()?;
     put_object(&client, target, &key, bytes, content_type).await?;
+    Ok(key)
+}
+
+/// 上传 1080×1440 PNG 分享海报，返回 R2 key（供 PATCH 回填）。
+pub async fn upload_poster(target: &UploadTarget, id: &str, bytes: &[u8]) -> Result<String> {
+    let (ext, _, width, height) = validate_raster_image(bytes)
+        .map_err(|_| MicaError::Other("分享海报不是有效 PNG".into()))?;
+    if ext != "png" {
+        return Err(MicaError::Other("分享海报必须是 PNG".into()));
+    }
+    if (width, height) != (1080, 1440) {
+        return Err(MicaError::Other(format!(
+            "分享海报尺寸必须是 1080×1440，实际为 {width}×{height}"
+        )));
+    }
+    if bytes.len() > 20 * 1024 * 1024 {
+        return Err(MicaError::Other("分享海报超过 20MB".into()));
+    }
+    let key = format!("posters/{id}.png");
+    let client = http_client()?;
+    put_object(&client, target, &key, bytes, "image/png").await?;
     Ok(key)
 }
 
@@ -540,11 +647,24 @@ mod tests {
 
     #[test]
     fn content_type_mapping() {
-        assert_eq!(content_type_for("sites/a/index.html"), "text/html; charset=utf-8");
-        assert_eq!(content_type_for("a/b/style.CSS"), "text/css; charset=utf-8", "扩展名大小写不敏感");
+        assert_eq!(
+            content_type_for("sites/a/index.html"),
+            "text/html; charset=utf-8"
+        );
+        assert_eq!(
+            content_type_for("a/b/style.CSS"),
+            "text/css; charset=utf-8",
+            "扩展名大小写不敏感"
+        );
         assert_eq!(content_type_for("app.js"), "text/javascript; charset=utf-8");
-        assert_eq!(content_type_for("app.mjs"), "text/javascript; charset=utf-8");
-        assert_eq!(content_type_for("data.json"), "application/json; charset=utf-8");
+        assert_eq!(
+            content_type_for("app.mjs"),
+            "text/javascript; charset=utf-8"
+        );
+        assert_eq!(
+            content_type_for("data.json"),
+            "application/json; charset=utf-8"
+        );
         assert_eq!(content_type_for("logo.svg"), "image/svg+xml; charset=utf-8");
         assert_eq!(content_type_for("shot.PNG"), "image/png");
         assert_eq!(content_type_for("cover.jpeg"), "image/jpeg");
@@ -583,10 +703,18 @@ mod tests {
     #[test]
     fn amz_date_format_is_sane() {
         let (amz, stamp) = amz_now();
-        assert_eq!(amz.len(), 16, "x-amz-date 必须是 20060102T150405Z 形式：{amz}");
+        assert_eq!(
+            amz.len(),
+            16,
+            "x-amz-date 必须是 20060102T150405Z 形式：{amz}"
+        );
         assert!(amz.ends_with('Z') && amz.as_bytes()[8] == b'T');
         assert_eq!(stamp.len(), 8);
-        assert_eq!(&amz[..8], stamp, "两个时间戳必须同日，否则签名 scope 对不上");
+        assert_eq!(
+            &amz[..8],
+            stamp,
+            "两个时间戳必须同日，否则签名 scope 对不上"
+        );
         // 1970-01-01 与 2026-08-12 的换算校验
         assert_eq!(civil_from_days(0), (1970, 1, 1));
         assert_eq!(civil_from_days(20_677), (2026, 8, 12));
@@ -605,7 +733,10 @@ mod tests {
         assert!(auth.starts_with("AWS4-HMAC-SHA256 Credential=AKID/"));
         assert!(auth.contains(&format!("/{REGION}/{SERVICE}/aws4_request")));
         assert!(auth.contains("SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date"));
-        assert!(auth.contains(&amz_date[..8]), "scope 日期须与 x-amz-date 同日");
+        assert!(
+            auth.contains(&amz_date[..8]),
+            "scope 日期须与 x-amz-date 同日"
+        );
     }
 
     #[test]
@@ -634,8 +765,14 @@ mod tests {
             worker_upload_path("sites/a/assets/img/logo.png").unwrap(),
             "/api/upload/site/a/assets/img/logo.png"
         );
-        assert_eq!(worker_upload_path("covers/abc123.png").unwrap(), "/api/upload/cover/abc123.png");
-        assert_eq!(worker_upload_path("posters/abc123.png").unwrap(), "/api/upload/poster/abc123.png");
+        assert_eq!(
+            worker_upload_path("covers/abc123.png").unwrap(),
+            "/api/upload/cover/abc123.png"
+        );
+        assert_eq!(
+            worker_upload_path("posters/abc123.png").unwrap(),
+            "/api/upload/poster/abc123.png"
+        );
         // 带空格/中文的文件名必须转义，Worker 侧会 decodeURIComponent 还原
         assert_eq!(
             worker_upload_path("sites/a/my page.html").unwrap(),
@@ -651,11 +788,20 @@ mod tests {
 
     #[test]
     fn image_sniffing_picks_extension_and_type() {
-        assert_eq!(sniff_image(b"\x89PNG\r\n\x1a\n\x00\x00"), ("png", "image/png"));
-        assert_eq!(sniff_image(b"RIFF\x00\x00\x00\x00WEBPVP8 "), ("webp", "image/webp"));
-        assert_eq!(sniff_image(b"\xff\xd8\xff\xe0"), ("jpg", "image/jpeg"));
-        // 认不出来按 jpg 兜底，代理端点的白名单里有它
-        assert_eq!(sniff_image(b"whatever"), ("jpg", "image/jpeg"));
+        assert_eq!(
+            sniff_image(b"\x89PNG\r\n\x1a\n\x00\x00"),
+            Some(("png", "image/png"))
+        );
+        assert_eq!(
+            sniff_image(b"RIFF\x00\x00\x00\x00WEBPVP8 "),
+            Some(("webp", "image/webp"))
+        );
+        assert_eq!(
+            sniff_image(b"\xff\xd8\xff\xe0"),
+            Some(("jpg", "image/jpeg"))
+        );
+        // 认不出来必须拒绝，不能把 HTML/SVG 等任意字节伪装成 JPEG。
+        assert_eq!(sniff_image(b"whatever"), None);
     }
 
     #[test]

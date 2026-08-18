@@ -1,51 +1,57 @@
+#!/usr/bin/env node
 /**
- * 本地预览海报，不依赖部署。
- * 会把几种边界情况（长标题 / 长亮点 / 长姓名）一起渲出来，
- * 用来检查有没有溢出画布或撞版。
+ * 预览桌面端已经生成的 1080×1440 PNG 海报，不在 Node 侧伪造作品画面。
  *
- *   node scripts/preview-poster.mjs <输出目录>
+ *   node scripts/preview-poster.mjs <PNG目录>
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { posterSvg } from '../src/poster.js';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-const outDir = process.argv[2] || './_preview';
-mkdirSync(outDir, { recursive: true });
-
-const CASES = [
-  {
-    file: 'a-normal',
-    w: { id: 'demo0001', slug: 'zhangsan-x1', creator: '张三', accent: 0,
-         title: '我家猫的十八年回忆录', tagline: '用一句话给橘子做了个纪念馆' },
-  },
-  {
-    file: 'b-long',   // 最坏情况：标题两行 + 亮点两行
-    w: { id: 'demo0002', slug: 'ouyangxiaoming-x2', creator: '欧阳小明', accent: 2,
-         title: '给女儿做的成长时间线从出生到上小学', tagline: '把六年里散落在各处的照片和小事按时间排好，一页看完' },
-  },
-  {
-    file: 'c-short',  // 极短内容，检查有没有大片空档
-    w: { id: 'demo0003', slug: 'lin-x3', creator: 'Lin', accent: 3, title: '摄影集', tagline: '十张照片' },
-  },
-  {
-    file: 'd-maxname', // 姓名顶到 24 字上限
-    w: { id: 'demo0004', slug: 'maxname-x4', creator: '司马相如司马相如司马相如司马相如', accent: 5,
-         title: '一个很长很长的作品主题用来测试截断', tagline: '亮点描述也写满六十个字来看看排版会不会被撑破掉真的会吗' },
-  },
-];
-
-for (const c of CASES) {
-  const svg = posterSvg(c.w, `https://r2t-9f3x.llmwiki.cloud/u/${c.w.slug}/`, null);
-  writeFileSync(`${outDir}/${c.file}.svg`, svg, 'utf8');
-  console.log(`${c.file}.svg  ${(svg.length / 1024).toFixed(1)} KB`);
+const outDir = resolve(process.argv[2] || './_preview');
+let files;
+try {
+  files = readdirSync(outDir)
+    .filter((name) => name.toLowerCase().endsWith('.png'))
+    .sort();
+} catch {
+  console.error(`目录不存在：${outDir}`);
+  process.exit(2);
 }
 
-// 拼一张对照页，一次看完
-const html =
-  `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-   *{margin:0;padding:0}body{background:#04070d;display:flex;gap:20px;padding:20px}
-   figure{width:540px}img{width:540px;display:block;border:1px solid #234}
-   figcaption{color:#8fa3b6;font:12px/2 monospace;text-align:center}</style></head><body>` +
-  CASES.map((c) => `<figure><img src="${c.file}.svg"><figcaption>${c.file}</figcaption></figure>`).join('') +
-  `</body></html>`;
-writeFileSync(`${outDir}/index.html`, html, 'utf8');
-console.log(`\n对照页: ${outDir}/index.html`);
+if (!files.length) {
+  console.error(`目录里没有桌面端生成的 PNG 海报：${outDir}`);
+  process.exit(2);
+}
+
+const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+for (const file of files) {
+  const bytes = readFileSync(resolve(outDir, file));
+  const valid =
+    bytes.length >= 24 &&
+    bytes.subarray(0, 8).equals(pngSignature) &&
+    bytes.readUInt32BE(16) === 1080 &&
+    bytes.readUInt32BE(20) === 1440;
+  if (!valid) {
+    console.error(`${file} 不是 1080×1440 PNG`);
+    process.exit(1);
+  }
+  console.log(`${file}  ${(bytes.length / 1024).toFixed(1)} KB  1080×1440`);
+}
+
+const escapeHtml = (text) => String(text)
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;');
+
+const html = `<!doctype html>
+<meta charset="utf-8">
+<title>一句话生成 · PNG 海报预览</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;padding:24px;background:#04070d;color:#dbe8f5;font:14px/1.6 system-ui,sans-serif}
+  main{display:flex;flex-wrap:wrap;gap:24px}figure{width:min(540px,100%);margin:0}img{display:block;width:100%;aspect-ratio:3/4;object-fit:contain;border:1px solid #234;border-radius:10px;background:#020409}figcaption{text-align:center;padding:8px}
+</style>
+<h1>桌面端 Canvas PNG 海报</h1>
+<main>${files.map((file) => `<figure><img src="${encodeURIComponent(file)}" alt="${escapeHtml(file)} 海报"><figcaption>${escapeHtml(file)}</figcaption></figure>`).join('')}</main>`;
+writeFileSync(resolve(outDir, 'index.html'), html, 'utf8');
+console.log(`\n对照页：${resolve(outDir, 'index.html')}`);

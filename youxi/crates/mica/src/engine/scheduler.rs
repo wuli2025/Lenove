@@ -31,8 +31,15 @@ pub struct SchedulerCfg {
 
 impl Default for SchedulerCfg {
     fn default() -> Self {
-        let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
-        Self { cli_slots: (cores * 4).min(32), api_slots: 512, queue_cap: 1000, tenant_cap: 4 }
+        let cores = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(4);
+        Self {
+            cli_slots: (cores * 4).min(32),
+            api_slots: 512,
+            queue_cap: 1000,
+            tenant_cap: 4,
+        }
     }
 }
 
@@ -140,7 +147,9 @@ impl Scheduler {
         }
         let engine = spec.engine;
         if spec.prompt.len() > MAX_PROMPT_BYTES {
-            return Err(MicaError::Other(format!("prompt exceeds {MAX_PROMPT_BYTES} bytes")));
+            return Err(MicaError::Other(format!(
+                "prompt exceeds {MAX_PROMPT_BYTES} bytes"
+            )));
         }
         // 绑定在入队时解析并快照（PRD 5.3）；未配置供应商时给「未配置」绑定，
         // CLI 冒烟（mock exe）不需要真实密钥，真实 API 任务会自然报 Auth。
@@ -158,7 +167,9 @@ impl Scheduler {
             self.db.insert_task(&spec, &binding.id)?;
             self.states.insert(spec.id.clone(), TaskState::Queued);
             let id = spec.id.clone();
-            queue.deque(spec.priority).push_back(QueuedTask { spec, binding });
+            queue
+                .deque(spec.priority)
+                .push_back(QueuedTask { spec, binding });
             self.bus.emit(&id, AgentEvent::Queued { position });
             position
         };
@@ -175,7 +186,9 @@ impl Scheduler {
 
     /// 实时控制（PRD 4.8 指令语义表的实现）
     pub fn control(&self, id: &TaskId, op: ControlOp) -> Result<()> {
-        let state = self.state_of(id).ok_or_else(|| MicaError::NotFound(id.clone()))?;
+        let state = self
+            .state_of(id)
+            .ok_or_else(|| MicaError::NotFound(id.clone()))?;
         if state.is_terminal() {
             return Err(MicaError::Terminal(state));
         }
@@ -275,7 +288,10 @@ impl Scheduler {
                 self.set_state(id, TaskState::Queued);
                 let mut queue = self.queue.lock().unwrap();
                 let position = queue.position_of_new(row.spec.priority);
-                queue.deque(row.spec.priority).push_back(QueuedTask { spec: row.spec, binding });
+                queue.deque(row.spec.priority).push_back(QueuedTask {
+                    spec: row.spec,
+                    binding,
+                });
                 drop(queue);
                 self.bus.emit(id, AgentEvent::Queued { position });
                 self.notify.notify_one();
@@ -293,7 +309,9 @@ impl Scheduler {
         priority: Option<Priority>,
         provider: Option<String>,
     ) -> Result<()> {
-        let state = self.state_of(id).ok_or_else(|| MicaError::NotFound(id.clone()))?;
+        let state = self
+            .state_of(id)
+            .ok_or_else(|| MicaError::NotFound(id.clone()))?;
         if state.is_terminal() {
             return Err(MicaError::Terminal(state));
         }
@@ -453,38 +471,51 @@ impl Scheduler {
                 },
             }
         };
-        let outcome = match futures_util::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(run)).await {
-            Ok(outcome) => outcome,
-            Err(panic) => {
-                let msg = panic
-                    .downcast_ref::<&str>()
-                    .map(|s| s.to_string())
-                    .or_else(|| panic.downcast_ref::<String>().cloned())
-                    .unwrap_or_else(|| "unknown panic".into());
-                tracing::error!(task = %id, panic = %msg, "engine panicked");
-                self.registry.kill(&id);
-                self.registry.remove(&id);
-                RunOutcome::error(
-                    crate::core::ErrorCode::Internal,
-                    format!("engine panicked: {msg}"),
-                    false,
-                    String::new(),
-                )
-            }
-        };
+        let outcome =
+            match futures_util::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(run)).await {
+                Ok(outcome) => outcome,
+                Err(panic) => {
+                    let msg = panic
+                        .downcast_ref::<&str>()
+                        .map(|s| s.to_string())
+                        .or_else(|| panic.downcast_ref::<String>().cloned())
+                        .unwrap_or_else(|| "unknown panic".into());
+                    tracing::error!(task = %id, panic = %msg, "engine panicked");
+                    self.registry.kill(&id);
+                    self.registry.remove(&id);
+                    RunOutcome::error(
+                        crate::core::ErrorCode::Internal,
+                        format!("engine panicked: {msg}"),
+                        false,
+                        String::new(),
+                    )
+                }
+            };
 
         // —— 终态统一路径：记账 → 落库 → 事件（双引擎一字不差）——
         let duration_ms = started.elapsed().as_millis() as u64;
-        let code = outcome.error.as_ref().map(|(c, _, _)| format!("{c:?}")).unwrap_or_else(|| "ok".into());
+        let code = outcome
+            .error
+            .as_ref()
+            .map(|(c, _, _)| format!("{c:?}"))
+            .unwrap_or_else(|| "ok".into());
         let _ = self.db.record_usage(
-            &id, engine, &binding_id,
-            outcome.input_tokens, outcome.output_tokens, duration_ms, &code,
+            &id,
+            engine,
+            &binding_id,
+            outcome.input_tokens,
+            outcome.output_tokens,
+            duration_ms,
+            &code,
         );
         if outcome.input_tokens > 0 || outcome.output_tokens > 0 {
-            self.bus.emit(&id, AgentEvent::Usage {
-                input_tokens: outcome.input_tokens,
-                output_tokens: outcome.output_tokens,
-            });
+            self.bus.emit(
+                &id,
+                AgentEvent::Usage {
+                    input_tokens: outcome.input_tokens,
+                    output_tokens: outcome.output_tokens,
+                },
+            );
         }
         let _ = self.db.set_result(&id, outcome.state, &outcome.result);
         self.states.insert(id.clone(), outcome.state);
@@ -497,19 +528,32 @@ impl Scheduler {
                         tracing::warn!(from = %binding_id, to = %switched, "provider failover triggered");
                     }
                 }
-                self.bus.emit(&id, AgentEvent::Error {
-                    code: *code,
-                    detail: detail.clone(),
-                    retryable: *retryable,
-                });
+                self.bus.emit(
+                    &id,
+                    AgentEvent::Error {
+                        code: *code,
+                        detail: detail.clone(),
+                        retryable: *retryable,
+                    },
+                );
             }
             (None, TaskState::Done) => {
                 self.providers.record_success(&binding_id);
-                self.bus.emit(&id, AgentEvent::Done { result: outcome.result.clone() });
+                self.bus.emit(
+                    &id,
+                    AgentEvent::Done {
+                        result: outcome.result.clone(),
+                    },
+                );
             }
             _ => {}
         }
-        self.bus.emit(&id, AgentEvent::StateChanged { state: outcome.state });
+        self.bus.emit(
+            &id,
+            AgentEvent::StateChanged {
+                state: outcome.state,
+            },
+        );
 
         self.ctrl.remove(&id);
         if let Some(mut n) = self.tenant_inflight.get_mut(&tenant) {
@@ -585,8 +629,11 @@ mod tests {
 
     fn test_sched(cfg: SchedulerCfg) -> Arc<Scheduler> {
         let db = Arc::new(Db::open_in_memory().unwrap());
-        let dir = std::env::temp_dir()
-            .join(format!("mica-sched-{}-{:?}", std::process::id(), std::thread::current().id()));
+        let dir = std::env::temp_dir().join(format!(
+            "mica-sched-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         let providers = Arc::new(ProviderStore::load(dir.join("providers.json")).unwrap());
         let resolver: RuntimeResolver =
@@ -620,7 +667,11 @@ mod tests {
         let normal = spec(EngineId::Api, Priority::Normal);
         let high = spec(EngineId::Api, Priority::High);
         assert_eq!(sched.submit(low.clone()).unwrap().0, 0);
-        assert_eq!(sched.submit(normal.clone()).unwrap().0, 0, "normal 排在 low 前");
+        assert_eq!(
+            sched.submit(normal.clone()).unwrap().0,
+            0,
+            "normal 排在 low 前"
+        );
         assert_eq!(sched.submit(high.clone()).unwrap().0, 0, "high 排最前");
 
         assert_eq!(sched.pop_next().unwrap().spec.id, high.id);
@@ -631,12 +682,20 @@ mod tests {
 
     #[tokio::test]
     async fn queue_full_backpressure() {
-        let cfg = SchedulerCfg { queue_cap: 2, ..Default::default() };
+        let cfg = SchedulerCfg {
+            queue_cap: 2,
+            ..Default::default()
+        };
         let sched = test_sched(cfg);
         sched.submit(spec(EngineId::Api, Priority::Normal)).unwrap();
         sched.submit(spec(EngineId::Api, Priority::Normal)).unwrap();
-        let err = sched.submit(spec(EngineId::Api, Priority::Normal)).unwrap_err();
-        assert!(matches!(err, MicaError::QueueFull(2)), "队列满必须 QueueFull 而非静默丢");
+        let err = sched
+            .submit(spec(EngineId::Api, Priority::Normal))
+            .unwrap_err();
+        assert!(
+            matches!(err, MicaError::QueueFull(2)),
+            "队列满必须 QueueFull 而非静默丢"
+        );
     }
 
     #[tokio::test]
@@ -652,7 +711,9 @@ mod tests {
         assert!(sched.pop_next().is_none(), "held 不参与调度");
 
         // patch held 任务
-        sched.patch(&id, Some("m2".into()), Some(Priority::High), None).unwrap();
+        sched
+            .patch(&id, Some("m2".into()), Some(Priority::High), None)
+            .unwrap();
 
         // resume → queued，且带上 patch 后的优先级
         sched.control(&id, ControlOp::Resume).unwrap();
@@ -662,7 +723,12 @@ mod tests {
         assert_eq!(popped.spec.priority, Priority::High);
 
         // 重新放回再取消
-        sched.queue.lock().unwrap().deque(Priority::High).push_back(popped);
+        sched
+            .queue
+            .lock()
+            .unwrap()
+            .deque(Priority::High)
+            .push_back(popped);
         sched.control(&id, ControlOp::Cancel).unwrap();
         assert_eq!(sched.state_of(&id), Some(TaskState::Canceled));
 
@@ -673,7 +739,10 @@ mod tests {
 
     #[tokio::test]
     async fn tenant_cap_respected() {
-        let cfg = SchedulerCfg { tenant_cap: 1, ..Default::default() };
+        let cfg = SchedulerCfg {
+            tenant_cap: 1,
+            ..Default::default()
+        };
         let sched = test_sched(cfg);
         sched.tenant_inflight.insert("t".into(), 1);
         sched.submit(spec(EngineId::Api, Priority::Normal)).unwrap();

@@ -68,7 +68,10 @@ fn read_config_file() -> PublishFile {
 }
 
 fn trimmed_env(key: &str) -> Option<String> {
-    std::env::var(key).ok().map(|v| v.trim().to_string()).filter(|v| !v.is_empty())
+    std::env::var(key)
+        .ok()
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
 }
 
 /// 解析出 (base_url, token)：环境变量优先，其次 `<data_dir>/publish.json`，
@@ -84,7 +87,11 @@ pub fn resolve_endpoint() -> Result<(String, String)> {
             ))
         })?;
     let base_url = trimmed_env("MICA_PUBLISH_BASE_URL")
-        .or_else(|| file.base_url.map(|u| u.trim().to_string()).filter(|u| !u.is_empty()))
+        .or_else(|| {
+            file.base_url
+                .map(|u| u.trim().to_string())
+                .filter(|u| !u.is_empty())
+        })
         .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
     Ok((base_url.trim_end_matches('/').to_string(), token))
 }
@@ -102,7 +109,11 @@ impl HallClient {
             .timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| MicaError::Other(format!("创建 HTTP 客户端失败：{e}")))?;
-        Ok(Self { base_url: base_url.trim_end_matches('/').to_string(), token, http })
+        Ok(Self {
+            base_url: base_url.trim_end_matches('/').to_string(),
+            token,
+            http,
+        })
     }
 
     pub fn base_url(&self) -> &str {
@@ -162,15 +173,39 @@ impl HallClient {
         Ok(())
     }
 
+    /// POST /api/works/<id>/finalize —— 服务端核对首页与真实封面后才公开。
+    pub async fn finalize_work(&self, id: &str) -> Result<()> {
+        let url = format!("{}/api/works/{id}/finalize", self.base_url);
+        let resp = self
+            .http
+            .post(&url)
+            .header("x-publish-token", &self.token)
+            .send()
+            .await
+            .map_err(|e| MicaError::Other(format!("连接大厅失败（{url}）：{e}")))?;
+        if !resp.status().is_success() {
+            return Err(self.explain("公开作品", resp).await);
+        }
+        Ok(())
+    }
+
     /// 回填封面 key。
     pub async fn set_cover(&self, id: &str, cover_key: &str) -> Result<()> {
-        self.patch_work(id, &serde_json::json!({ "cover": cover_key })).await
+        self.patch_work(id, &serde_json::json!({ "cover": cover_key }))
+            .await
+    }
+
+    /// 回填桌面端生成的 PNG 海报 key。
+    pub async fn set_poster(&self, id: &str, poster_key: &str) -> Result<()> {
+        self.patch_work(id, &serde_json::json!({ "poster": poster_key }))
+            .await
     }
 
     /// 把作品从大厅隐藏。发布中途翻车时的回滚手段——
     /// 记录已经建了删不掉，至少不能让它以「点开就 404」的样子挂在墙上。
     pub async fn hide_work(&self, id: &str) -> Result<()> {
-        self.patch_work(id, &serde_json::json!({ "status": "hidden" })).await
+        self.patch_work(id, &serde_json::json!({ "status": "hidden" }))
+            .await
     }
 
     /// GET /api/health —— 发布前的连通性预检。
@@ -206,7 +241,10 @@ mod tests {
             cover: None,
         };
         let json = serde_json::to_string(&req).unwrap();
-        assert!(!json.contains("slug"), "slug 为空必须不发，让服务端自己生成：{json}");
+        assert!(
+            !json.contains("slug"),
+            "slug 为空必须不发，让服务端自己生成：{json}"
+        );
         assert!(!json.contains("cover"));
         assert!(json.contains(r#""creator":"张三""#));
     }
