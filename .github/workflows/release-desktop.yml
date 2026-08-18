@@ -146,6 +146,7 @@ jobs:
               "target/x86_64-apple-darwin/release/$bin" \
               -output "target/universal-apple-darwin/release/$bin"
             chmod +x "target/universal-apple-darwin/release/$bin"
+            codesign --force --sign - "target/universal-apple-darwin/release/$bin"
           done
 
       - name: Build ad-hoc signed universal app and DMG
