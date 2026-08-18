@@ -130,6 +130,24 @@ jobs:
       - name: Install fixed Tauri CLI
         run: cargo install tauri-cli --version 2.11.4 --locked
 
+      - name: Build universal companion binaries
+        working-directory: youxi
+        env:
+          MICA_DATA_DIR: ${{ runner.temp }}/MicaBase
+          MICA_PUBLISH_TOKEN: ${{ secrets.MICA_PUBLISH_TOKEN }}
+          MICA_PUBLISH_BASE_URL: https://r2t-9f3x.llmwiki.cloud
+        run: |
+          cargo build -p yiju-desktop --release --target aarch64-apple-darwin --bins --features custom-protocol
+          cargo build -p yiju-desktop --release --target x86_64-apple-darwin --bins --features custom-protocol
+          mkdir -p target/universal-apple-darwin/release
+          for bin in yiju-smoke yiju-gen yiju-doctor yiju-publish; do
+            lipo -create \
+              "target/aarch64-apple-darwin/release/$bin" \
+              "target/x86_64-apple-darwin/release/$bin" \
+              -output "target/universal-apple-darwin/release/$bin"
+            chmod +x "target/universal-apple-darwin/release/$bin"
+          done
+
       - name: Build ad-hoc signed universal app and DMG
         working-directory: youxi/apps/desktop
         env:
@@ -143,10 +161,16 @@ jobs:
           APP=$(find youxi/target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)
           DMG=$(find youxi/target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' -print -quit)
           test -n "$APP" -a -n "$DMG"
-          BIN=$(find "$APP/Contents/MacOS" -type f -perm -111 -print -quit)
+          MAIN=$(plutil -extract CFBundleExecutable raw "$APP/Contents/Info.plist")
+          BIN="$APP/Contents/MacOS/$MAIN"
+          test -x "$BIN"
           ARCHS=$(lipo -archs "$BIN")
-          echo "$ARCHS" | grep -q 'x86_64'
-          echo "$ARCHS" | grep -q 'arm64'
+          while IFS= read -r EXEC; do
+            EXEC_ARCHS=$(lipo -archs "$EXEC")
+            echo "$EXEC: $EXEC_ARCHS"
+            echo "$EXEC_ARCHS" | grep -q 'x86_64'
+            echo "$EXEC_ARCHS" | grep -q 'arm64'
+          done < <(find "$APP/Contents/MacOS" -type f -perm -111 -print)
           codesign --verify --deep --strict --verbose=2 "$APP"
           hdiutil verify "$DMG"
           SHA=$(shasum -a 256 "$DMG" | awk '{print $1}')
