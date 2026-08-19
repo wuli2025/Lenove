@@ -1197,6 +1197,7 @@ const modal = $('modal');
 function clearSettingSecrets() {
   $('f-key').value = '';
   $('f-ttskey').value = '';
+  $('f-pubtoken').value = '';
 }
 $('btn-setting').onclick = async () => {
   clearSettingSecrets();
@@ -1218,6 +1219,8 @@ $('btn-save').onclick = async () => {
   if (k) patch.apiKey = k;
   const tk = $('f-ttskey').value.trim();
   if (tk) patch.ttsKey = tk;
+  const publishToken = $('f-pubtoken').value.trim();
+  if (publishToken) patch.publishToken = publishToken;
   // invoke 会在返回 Promise 前同步序列化参数；随后立刻清空 DOM，避免 WebView2
   // 的表单恢复/自动填充资料库在网络等待期间抓走明文。
   let saving;
@@ -1376,9 +1379,9 @@ async function runEnvironmentDoctor(forceDeep) {
   doctorGate.classList.remove('success');
   $('doctor-actions').classList.remove('on');
   $('doctor-summary').textContent = forceDeep
-    ? '正在重新执行最小真实 API 验证，请稍候…'
-    : '正在确认这台电脑能完整运行模型、语音、生图与上线功能…';
-  $('doctor-note').textContent = '首次启动会做最小真实 API 验证；通过后 7 天内只做快速检查，不重复产生费用。';
+    ? '正在重新验证模型、语音、生图与发布配置，请稍候…'
+    : '正在装载随安装包交付的公开配置，并确认全部运行能力…';
+  $('doctor-note').textContent = '静态资源和公开配置已随安装包交付；私密凭据只保存在本机。首次验证通过后 7 天内只做快速检查。';
   resetDoctorRows();
   try {
     await doctorListenReady;
@@ -1386,8 +1389,12 @@ async function runEnvironmentDoctor(forceDeep) {
     if (seq !== doctorSeq) return report;
     for (const check of report.checks || []) renderDoctorCheck(check);
     $('doctor-summary').textContent = report.summary || (report.ready ? '检查通过' : '检查未通过');
+    const cloudDeferred = (report.checks || []).some(check =>
+      check.id === 'cloud' && check.status === 'skipped');
     $('doctor-note').textContent = report.cached
-      ? '真实模型、语音和生图检查命中 7 天安全缓存；本次仍重新验证了本机目录、WebView、预览与 Cloudflare。'
+      ? cloudDeferred
+        ? '真实模型、语音和生图检查命中 7 天安全缓存；云端探测暂时失败，进入后可点击右上角云端状态重试。'
+        : '真实模型、语音和生图检查命中 7 天安全缓存；本次仍重新验证了本机目录、WebView、预览与 Cloudflare。'
       : report.deep ? '本次已向模型、MiniMax TTS 和 Workers AI 发出最小真实请求。'
       : '本次只执行快速检查。';
     if (report.capabilities) applyCloudCapabilities(report.capabilities);

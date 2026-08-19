@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/mica", "apps/desktop"]
 
 [workspace.package]
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 
 # 发布构建同时也是「抬高逆向门槛」的一环：

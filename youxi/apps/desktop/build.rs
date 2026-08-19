@@ -1,8 +1,8 @@
-//! 构建期把本机 `~\MicaBase\yiju.json` 嵌进二进制（OUT_DIR/bootstrap_yiju.json）。
+//! 默认受控构建可把本机 `~\MicaBase\yiju.json` 嵌进二进制；公开构建设置
+//! `YIJU_PUBLIC_BUILD=1` 后会强制写入空 bootstrap，并拒绝任何凭据环境变量。
 //!
-//! 为什么放在构建期而不是写进源码：红线是**源码零硬编码凭据**，key 只存在于
-//! 打包这台机器的 home 目录和最终产物里，仓库里永远看不到它。
-//! 首启时 config::bootstrap_config_file() 会把它落成目标机器的配置文件。
+//! 为什么放在构建期而不是写进源码：红线是**源码零硬编码凭据**。公开 GitHub
+//! Artifact 进一步禁止携带凭据；私密配置由安装者在首次启动时写入本机凭据库。
 //!
 //! 打包机上没有配置文件也能编译（嵌一段空字节，首启不写盘），
 //! 只是打出来的包不带预置 key。
@@ -16,47 +16,62 @@ use std::path::PathBuf;
 include!("src/obf.rs");
 
 fn main() {
+    let public_build = env_flag("YIJU_PUBLIC_BUILD");
+    if public_build {
+        reject_public_build_credentials();
+    }
+    println!(
+        "cargo:rustc-env=YIJU_PUBLIC_BUILD={}",
+        if public_build { "1" } else { "0" }
+    );
+    println!("cargo:rerun-if-env-changed=YIJU_PUBLIC_BUILD");
+
     tauri_build::build();
 
-    let src = if let Ok(d) = std::env::var("MICA_DATA_DIR") {
-        if !d.trim().is_empty() {
-            PathBuf::from(d).join("yiju.json")
+    let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bootstrap_yiju.json");
+    if public_build {
+        std::fs::write(&out, []).expect("写空的公开 bootstrap_yiju.json 失败");
+    } else {
+        let src = if let Ok(d) = std::env::var("MICA_DATA_DIR") {
+            if !d.trim().is_empty() {
+                PathBuf::from(d).join("yiju.json")
+            } else {
+                home_config()
+            }
         } else {
             home_config()
-        }
-    } else {
-        home_config()
-    };
-
-    let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bootstrap_yiju.json");
-    let body = std::fs::read(&src).unwrap_or_default();
-    // 1.0.1 运行后会把打包机自己的配置也迁移成 `YJO1 + 混淆字节`。
-    // 后续重打包必须先认出并还原；否则这里再 transform 一次，收件端只解一层，
-    // 拿到的仍是 YJO1 blob 而不是 JSON，首启会静默落到“未配置”。
-    let plain = match body.strip_prefix(OBF_MAGIC) {
-        Some(rest) => transform(rest),
-        None => body,
-    };
-    // 空文件混淆后仍是空——首启的 BOOTSTRAP.is_empty() 判断照旧成立。
-    let obfuscated = transform(&plain);
-    std::fs::write(&out, obfuscated).expect("写 bootstrap_yiju.json 失败");
-    // 换 key 重打包：key 文件变了要触发重编（绝对路径也支持）
-    println!("cargo:rerun-if-changed={}", src.display());
+        };
+        let body = std::fs::read(&src).unwrap_or_default();
+        // 旧版运行后会把打包机自己的配置迁移成 `YJO1 + 混淆字节`。
+        // 后续重打包必须先认出并还原；否则这里再 transform 一次，收件端只解一层，
+        // 拿到的仍是 YJO1 blob 而不是 JSON，首启会静默落到“未配置”。
+        let plain = match body.strip_prefix(OBF_MAGIC) {
+            Some(rest) => transform(rest),
+            None => body,
+        };
+        let obfuscated = transform(&plain);
+        std::fs::write(&out, obfuscated).expect("写 bootstrap_yiju.json 失败");
+        println!("cargo:rerun-if-changed={}", src.display());
+    }
     println!("cargo:rerun-if-env-changed=MICA_DATA_DIR");
 
-    write_publish_bootstrap();
+    write_publish_bootstrap(public_build);
 }
 
 /// 受控现场版把 Worker 发布令牌装进独立引导包；源码和构建日志都不出现令牌值。
-fn write_publish_bootstrap() {
+fn write_publish_bootstrap(public_build: bool) {
     const DEFAULT_BASE: &str = "https://r2t-9f3x.llmwiki.cloud";
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let dev_vars = manifest.join("../../../r2-sites/.dev.vars");
 
-    let token = env_nonempty("MICA_PUBLISH_TOKEN")
-        .or_else(|| env_nonempty("PUBLISH_TOKEN"))
-        .or_else(|| read_dev_var(&dev_vars, "PUBLISH_TOKEN"))
-        .unwrap_or_default();
+    let token = if public_build {
+        String::new()
+    } else {
+        env_nonempty("MICA_PUBLISH_TOKEN")
+            .or_else(|| env_nonempty("PUBLISH_TOKEN"))
+            .or_else(|| read_dev_var(&dev_vars, "PUBLISH_TOKEN"))
+            .unwrap_or_default()
+    };
     let base = env_nonempty("MICA_PUBLISH_BASE_URL").unwrap_or_else(|| DEFAULT_BASE.into());
 
     let mut plain = Vec::with_capacity(base.len() + token.len() + 1);
@@ -72,6 +87,32 @@ fn write_publish_bootstrap() {
     println!("cargo:rerun-if-env-changed=PUBLISH_TOKEN");
     println!("cargo:rerun-if-env-changed=MICA_PUBLISH_BASE_URL");
     println!("cargo:rerun-if-changed={}", dev_vars.display());
+}
+
+fn env_flag(name: &str) -> bool {
+    std::env::var(name).ok().is_some_and(|value| {
+        matches!(
+            value.trim().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes"
+        )
+    })
+}
+
+fn reject_public_build_credentials() {
+    for name in [
+        "MICA_DATA_DIR",
+        "MICA_PUBLISH_TOKEN",
+        "PUBLISH_TOKEN",
+        "MICA_PUBLISH_BASE_URL",
+        "YIJU_BOOTSTRAP_B64",
+        "YIJU_API_KEY",
+        "YIJU_TTS_KEY",
+    ] {
+        if env_nonempty(name).is_some() {
+            panic!("公开构建禁止设置可能携带凭据的环境变量：{name}");
+        }
+        println!("cargo:rerun-if-env-changed={name}");
+    }
 }
 
 fn env_nonempty(name: &str) -> Option<String> {

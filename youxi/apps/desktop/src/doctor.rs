@@ -10,6 +10,8 @@ use tokio::task::JoinSet;
 
 const CACHE_SCHEMA: u32 = 1;
 const CACHE_MAX_AGE_SECS: u64 = 7 * 24 * 60 * 60;
+const REMOTE_PROBE_ATTEMPTS: u32 = 3;
+const REMOTE_PROBE_TIMEOUT: Duration = Duration::from_secs(28);
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -131,20 +133,43 @@ where
     let cloud_for_caps = cloud.clone();
     jobs.spawn(async move {
         let started = std::time::Instant::now();
-        let result = match cloud_for_caps {
+        match cloud_for_caps {
             Ok(cloud) => {
-                match tokio::time::timeout(Duration::from_secs(25), cloud.capabilities()).await {
-                    Ok(Ok(capabilities)) => Ok((
-                        format!("发布、R2/D1 与 {} 已就绪", capabilities.image_model),
-                        Some(capabilities),
-                    )),
-                    Ok(Err(error)) => Err(redact(&error, &[cloud.exact_secret()])),
-                    Err(_) => Err("Cloudflare 能力检查超过 25 秒".into()),
+                match tokio::time::timeout(Duration::from_secs(45), cloud.capabilities_probe())
+                    .await
+                {
+                    Ok(Ok(capabilities)) => remote_outcome(
+                        "cloud",
+                        "Cloudflare 发布能力",
+                        started,
+                        Ok((
+                            format!("发布、R2/D1 与 {} 已就绪", capabilities.image_model),
+                            Some(capabilities),
+                        )),
+                    ),
+                    Ok(Err(failure)) if cached && failure.is_transient() => cached_cloud_fallback(
+                        started,
+                        redact(failure.message(), &[cloud.exact_secret()]),
+                    ),
+                    Ok(Err(failure)) => remote_outcome(
+                        "cloud",
+                        "Cloudflare 发布能力",
+                        started,
+                        Err(redact(failure.message(), &[cloud.exact_secret()])),
+                    ),
+                    Err(_) if cached => {
+                        cached_cloud_fallback(started, "Cloudflare 能力检查超过 45 秒".into())
+                    }
+                    Err(_) => remote_outcome(
+                        "cloud",
+                        "Cloudflare 发布能力",
+                        started,
+                        Err("Cloudflare 能力检查超过 45 秒".into()),
+                    ),
                 }
             }
-            Err(error) => Err(error),
-        };
-        remote_outcome("cloud", "Cloudflare 发布能力", started, result)
+            Err(error) => remote_outcome("cloud", "Cloudflare 发布能力", started, Err(error)),
+        }
     });
 
     if deep {
@@ -247,7 +272,12 @@ where
         .iter()
         .filter(|check| check.required && check.status == DoctorStatus::Fail)
         .count();
-    let summary = if ready && cached {
+    let cloud_deferred = checks
+        .iter()
+        .any(|check| check.id == "cloud" && check.status == DoctorStatus::Skipped);
+    let summary = if ready && cached && cloud_deferred {
+        "本机快速检查通过；云端暂时不可达，进入后可点击云端状态重试".into()
+    } else if ready && cached {
         "快速检查通过；真实模型、语音和生图在最近 7 天内已验证".into()
     } else if ready {
         "全部检查通过，这台电脑可以使用所有功能".into()
@@ -359,6 +389,20 @@ fn remote_outcome(
     }
 }
 
+fn cached_cloud_fallback(started: std::time::Instant, error: String) -> RemoteOutcome {
+    RemoteOutcome {
+        check: DoctorCheck {
+            id: "cloud".into(),
+            label: "Cloudflare 发布能力".into(),
+            status: DoctorStatus::Skipped,
+            detail: format!("最近 7 天已验证；本次云端探测暂不可用，进入后可重试：{error}"),
+            required: false,
+            elapsed_ms: started.elapsed().as_millis().try_into().unwrap_or(u64::MAX),
+        },
+        capabilities: None,
+    }
+}
+
 fn check_platform() -> Result<String, String> {
     let os = std::env::consts::OS;
     let arch = std::env::consts::ARCH;
@@ -372,7 +416,9 @@ fn check_platform() -> Result<String, String> {
             "{os} / {arch} 受支持；启动目录已自愈；无需 Node、Python 或其他 CLI"
         ))
     } else {
-        Err(format!("当前平台 {os} / {arch} 不在 1.0.1 支持范围"))
+        Err(format!(
+            "当前平台 {os} / {arch} 不在 {APP_VERSION} 支持范围"
+        ))
     }
 }
 
@@ -465,32 +511,103 @@ async fn probe_model(cfg: &Config) -> Result<String, String> {
     }
     let llm = Llm::new(&cfg.api_url, &cfg.api_key, &cfg.model);
     let messages = [Msg::user("请回复：正常")];
-    let request = llm.complete(
-        "这是启动环境检查。不要解释，只回复两个汉字：正常。",
-        &messages,
-        128,
-    );
-    let completion = tokio::time::timeout(Duration::from_secs(90), request)
-        .await
-        .map_err(|_| "模型真实请求超过 90 秒".to_string())?
-        .map_err(|error| redact(&error, &[&cfg.api_key, cfg.effective_tts_key()]))?;
-    if completion.text.trim().is_empty() {
-        return Err("模型请求成功但没有返回正文".into());
+    let mut last_error = String::new();
+
+    for attempt in 1..=REMOTE_PROBE_ATTEMPTS {
+        let request = llm.complete(
+            "这是启动环境检查。不要解释，只回复两个汉字：正常。",
+            &messages,
+            128,
+        );
+        match tokio::time::timeout(REMOTE_PROBE_TIMEOUT, request).await {
+            Ok(Ok(completion)) => {
+                if completion.text.trim().is_empty() {
+                    return Err("模型请求成功但没有返回正文".into());
+                }
+                return Ok(format!("{} 已返回有效文本", cfg.model.trim()));
+            }
+            Ok(Err(error)) => {
+                last_error = redact(&error, &[&cfg.api_key, cfg.effective_tts_key()]);
+                if !retryable_model_probe_error(&error) {
+                    return Err(last_error);
+                }
+            }
+            Err(_) => {
+                last_error = format!("模型单次真实请求超过 {} 秒", REMOTE_PROBE_TIMEOUT.as_secs());
+            }
+        }
+        if attempt < REMOTE_PROBE_ATTEMPTS {
+            wait_before_probe_retry(attempt).await;
+        }
     }
-    Ok(format!("{} 已返回有效文本", cfg.model.trim()))
+
+    Err(format!(
+        "{last_error}（已自动尝试 {REMOTE_PROBE_ATTEMPTS} 次）"
+    ))
 }
 
 async fn probe_tts(cfg: &Config) -> Result<String, String> {
     if cfg.effective_tts_key().is_empty() {
         return Err("安装包未装入 MiniMax 语音密钥".into());
     }
-    let request = tts::synthesize(cfg, "环境检查", &cfg.voice_id, "neutral", tts::MODELS[0]);
-    let bytes = tokio::time::timeout(Duration::from_secs(100), request)
-        .await
-        .map_err(|_| "MiniMax 语音真实请求超过 100 秒".to_string())?
-        .map_err(|error| redact(&error, &[&cfg.api_key, cfg.effective_tts_key()]))?;
-    tts::validate_mp3(&bytes)?;
-    Ok(format!("MiniMax 已返回有效 MP3（{} 字节）", bytes.len()))
+    let mut last_error = String::new();
+
+    for attempt in 1..=REMOTE_PROBE_ATTEMPTS {
+        let request = tts::synthesize(cfg, "环境检查", &cfg.voice_id, "neutral", tts::MODELS[0]);
+        match tokio::time::timeout(REMOTE_PROBE_TIMEOUT, request).await {
+            Ok(Ok(bytes)) => {
+                tts::validate_mp3(&bytes)?;
+                return Ok(format!("MiniMax 已返回有效 MP3（{} 字节）", bytes.len()));
+            }
+            Ok(Err(error)) => {
+                last_error = redact(&error, &[&cfg.api_key, cfg.effective_tts_key()]);
+                if !retryable_tts_probe_error(&error) {
+                    return Err(last_error);
+                }
+            }
+            Err(_) => {
+                last_error = format!(
+                    "MiniMax 语音单次真实请求超过 {} 秒",
+                    REMOTE_PROBE_TIMEOUT.as_secs()
+                );
+            }
+        }
+        if attempt < REMOTE_PROBE_ATTEMPTS {
+            wait_before_probe_retry(attempt).await;
+        }
+    }
+
+    Err(format!(
+        "{last_error}（已自动尝试 {REMOTE_PROBE_ATTEMPTS} 次）"
+    ))
+}
+
+fn retryable_model_probe_error(error: &str) -> bool {
+    error.starts_with("模型请求失败：")
+        || error.starts_with("读取模型响应失败：")
+        || retryable_http_error(error, "模型返回 ")
+}
+
+fn retryable_tts_probe_error(error: &str) -> bool {
+    error.starts_with("T2A 请求失败：")
+        || error.starts_with("读取 T2A 响应失败：")
+        || error.starts_with("T2A 1002 ")
+        || retryable_http_error(error, "T2A HTTP ")
+}
+
+fn retryable_http_error(error: &str, prefix: &str) -> bool {
+    let Some(code) = error
+        .strip_prefix(prefix)
+        .and_then(|rest| rest.split_whitespace().next())
+        .and_then(|code| code.parse::<u16>().ok())
+    else {
+        return false;
+    };
+    code == 408 || code == 429 || (500..=599).contains(&code)
+}
+
+async fn wait_before_probe_retry(attempt: u32) {
+    tokio::time::sleep(Duration::from_secs(u64::from(attempt))).await;
 }
 
 async fn probe_image(cloud: Result<CloudConfig, String>) -> Result<String, String> {
@@ -637,6 +754,41 @@ mod tests {
         assert!(validate_https_endpoint("http://localhost:8080/v1", "模型").is_ok());
         assert!(validate_https_endpoint("http://evil.example/v1", "模型").is_err());
         assert!(validate_https_endpoint("https://user:pass@example.com/v1", "模型").is_err());
+    }
+
+    #[test]
+    fn probe_retry_rules_only_accept_transient_failures() {
+        assert!(retryable_model_probe_error(
+            "模型请求失败：connection reset"
+        ));
+        assert!(retryable_model_probe_error(
+            "模型返回 503 Service Unavailable：busy"
+        ));
+        assert!(!retryable_model_probe_error(
+            "模型返回 401 Unauthorized：bad key"
+        ));
+        assert!(!retryable_model_probe_error("模型响应不是预期 JSON"));
+
+        assert!(retryable_tts_probe_error("T2A 请求失败：timeout"));
+        assert!(retryable_tts_probe_error(
+            "T2A HTTP 429 Too Many Requests：busy"
+        ));
+        assert!(!retryable_tts_probe_error(
+            "T2A HTTP 401 Unauthorized：bad key"
+        ));
+        assert!(!retryable_tts_probe_error("T2A 响应不是 JSON"));
+    }
+
+    #[test]
+    fn cached_transient_cloud_failure_does_not_block_startup() {
+        let outcome = cached_cloud_fallback(
+            std::time::Instant::now(),
+            "temporary connect failure".into(),
+        );
+        assert_eq!(outcome.check.status, DoctorStatus::Skipped);
+        assert!(!outcome.check.required);
+        assert!(outcome.capabilities.is_none());
+        assert!(outcome.check.detail.contains("进入后可重试"));
     }
 
     #[test]

@@ -7,9 +7,9 @@
 //! 优先级：环境变量 > 配置文件 > 内置默认值（默认值里绝不含密钥）。
 //! 配置文件位置：`%MICA_DATA_DIR%\yiju.json`，默认 `~\MicaBase\yiju.json`。
 //!
-//! 安装包分发（规划书外的新场景）：build.rs 会把**打包机**上的 yiju.json 嵌进
-//! 二进制，收件人机器上首次 load 时发现没有配置文件就自动落盘——装完即用。
-//! key 依旧不进源码树，只存在于打包机 home 目录和编译产物里。
+//! 受控安装包可由 build.rs 把**打包机**上的 yiju.json 嵌进二进制，收件人机器上
+//! 首次 load 时发现没有配置文件就自动落盘。公开 GitHub 构建会强制嵌入空值，
+//! 私密凭据改由安装者在首次启动设置页填写。
 //!
 //! 凭据混淆（见 obf.rs 顶部那段诚实话）：内嵌的这份、以及落到用户 home 的
 //! yiju.json，都过一遍 obf::transform，让 `strings` 和记事本都拿不到明文 key。
@@ -250,6 +250,13 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn public_build_has_no_model_or_tts_bootstrap() {
+        if option_env!("YIJU_PUBLIC_BUILD") == Some("1") {
+            assert!(BOOTSTRAP.is_empty(), "公开安装包不得内嵌模型或语音密钥");
+        }
+    }
 
     #[test]
     fn defaults_carry_no_secret() {

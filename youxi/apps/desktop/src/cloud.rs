@@ -1,7 +1,8 @@
 //! Cloudflare 发布 / Workers AI 的 Rust 侧凭据与客户端。
 //!
-//! 令牌绝不序列化给 WebView。受控现场包首启会把构建期混淆引导值导入
-//! Windows Credential Manager；内嵌值仍只是抬高逆向门槛，不能冒充服务端机密。
+//! 令牌绝不序列化给 WebView。受控现场包可把构建期混淆引导值导入系统凭据库；
+//! 公开安装包不携带引导值，由安装者在首次启动设置页写入 Credential Manager/Keychain。
+//! 内嵌值仍只是抬高逆向门槛，不能冒充服务端机密。
 
 use crate::{config, obf};
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,38 @@ const KEYRING_SERVICE: &str = "com.migao.yiju.cloudflare";
 const KEYRING_USER: &str = "publisher-v1";
 const BOOTSTRAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/bootstrap_publish.bin"));
 const IMAGE_ATTEMPTS: u32 = 4;
+const CAPABILITY_ATTEMPTS: u32 = 3;
+const CAPABILITY_TIMEOUT: Duration = Duration::from_secs(12);
+
+#[derive(Debug)]
+pub(crate) struct CapabilityFailure {
+    message: String,
+    transient: bool,
+}
+
+impl CapabilityFailure {
+    fn permanent(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            transient: false,
+        }
+    }
+
+    fn transient(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            transient: true,
+        }
+    }
+
+    pub(crate) fn is_transient(&self) -> bool {
+        self.transient
+    }
+
+    pub(crate) fn message(&self) -> &str {
+        &self.message
+    }
+}
 
 #[derive(Clone)]
 pub struct CloudConfig {
@@ -70,7 +103,7 @@ impl CloudConfig {
         // 记录读取。否则服务端轮换令牌后，即使安装了带新令牌的版本，旧值仍会永久遮住它。
         if let Some((base, token)) = decode_bootstrap() {
             let config = Self::new(base, token, false)?;
-            config.persist();
+            let _ = config.persist();
             return Ok(config);
         }
 
@@ -84,11 +117,21 @@ impl CloudConfig {
         // 不把值带进 UI。
         if let Some(stored) = load_legacy_file() {
             let config = Self::new(stored.base_url, stored.token, false)?;
-            config.persist();
+            let _ = config.persist();
             return Ok(config);
         }
 
-        Err("发布与生图凭据未装入当前安装包，请用受控打包配置重新构建".into())
+        Err("发布与生图凭据尚未配置，请在设置中填写发布/生图令牌".into())
+    }
+
+    pub fn validate_user_token(token: &str) -> Result<(), String> {
+        Self::new(DEFAULT_BASE_URL.into(), token.to_string(), false).map(drop)
+    }
+
+    pub fn save_user_token(token: String) -> Result<Self, String> {
+        let config = Self::new(DEFAULT_BASE_URL.into(), token, false)?;
+        config.persist()?;
+        Ok(config)
     }
 
     fn new(base_url: String, token: String, allow_local: bool) -> Result<Self, String> {
@@ -98,7 +141,7 @@ impl CloudConfig {
             return Err("发布令牌为空或格式异常".into());
         }
         let http = reqwest::Client::builder()
-            .user_agent("Yiju-Desktop/1.0.1")
+            .user_agent(concat!("Yiju-Desktop/", env!("CARGO_PKG_VERSION")))
             .timeout(Duration::from_secs(150))
             .build()
             .map_err(|e| format!("Cloudflare 客户端启动失败：{e}"))?;
@@ -109,17 +152,17 @@ impl CloudConfig {
         })
     }
 
-    fn persist(&self) {
-        let Some(entry) = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER).ok() else {
-            return;
-        };
+    fn persist(&self) -> Result<(), String> {
+        let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)
+            .map_err(|error| format!("无法打开系统凭据库：{error}"))?;
         let value = serde_json::to_string(&StoredCloud {
             base_url: self.base_url.clone(),
             token: self.token.clone(),
-        });
-        if let Ok(value) = value {
-            let _ = entry.set_password(&value);
-        }
+        })
+        .map_err(|error| format!("无法整理发布凭据：{error}"))?;
+        entry
+            .set_password(&value)
+            .map_err(|error| format!("无法写入系统凭据库：{error}"))
     }
 
     pub fn hall_client(&self) -> Result<mica::publish::client::HallClient, String> {
@@ -135,26 +178,64 @@ impl CloudConfig {
     }
 
     pub async fn capabilities(&self) -> Result<Capabilities, String> {
+        self.capabilities_probe()
+            .await
+            .map_err(|failure| failure.message)
+    }
+
+    pub(crate) async fn capabilities_probe(&self) -> Result<Capabilities, CapabilityFailure> {
         let url = format!("{}/api/capabilities", self.base_url);
-        let response = self
-            .http
-            .get(&url)
-            .timeout(Duration::from_secs(20))
-            .header("x-publish-token", &self.token)
-            .send()
-            .await
-            .map_err(|e| format!("连接 Cloudflare 能力预检失败：{e}"))?;
-        if !response.status().is_success() {
-            return Err(explain("Cloudflare 能力预检", response).await);
+        let mut last_transient = String::new();
+
+        for attempt in 1..=CAPABILITY_ATTEMPTS {
+            let response = self
+                .http
+                .get(&url)
+                .timeout(CAPABILITY_TIMEOUT)
+                .header("x-publish-token", &self.token)
+                .send()
+                .await;
+
+            let response = match response {
+                Ok(response) => response,
+                Err(error) => {
+                    last_transient = format!("连接 Cloudflare 能力预检失败：{error}");
+                    if attempt < CAPABILITY_ATTEMPTS {
+                        wait_before_capability_retry(attempt).await;
+                        continue;
+                    }
+                    break;
+                }
+            };
+
+            if !response.status().is_success() {
+                let transient = retryable_cloud_status(response.status());
+                let message = explain("Cloudflare 能力预检", response).await;
+                if transient {
+                    last_transient = message;
+                    if attempt < CAPABILITY_ATTEMPTS {
+                        wait_before_capability_retry(attempt).await;
+                        continue;
+                    }
+                    break;
+                }
+                return Err(CapabilityFailure::permanent(message));
+            }
+
+            let caps = response.json::<Capabilities>().await.map_err(|e| {
+                CapabilityFailure::permanent(format!("Cloudflare 能力响应无法解析：{e}"))
+            })?;
+            if !caps.ok || !caps.publish || !caps.image {
+                return Err(CapabilityFailure::permanent(
+                    "Cloudflare 发布、R2/D1 或生图模型尚未完整启用",
+                ));
+            }
+            return Ok(caps);
         }
-        let caps = response
-            .json::<Capabilities>()
-            .await
-            .map_err(|e| format!("Cloudflare 能力响应无法解析：{e}"))?;
-        if !caps.ok || !caps.publish || !caps.image {
-            return Err("Cloudflare 发布、R2/D1 或生图模型尚未完整启用".into());
-        }
-        Ok(caps)
+
+        Err(CapabilityFailure::transient(format!(
+            "{last_transient}（已自动尝试 {CAPABILITY_ATTEMPTS} 次）"
+        )))
     }
 
     pub async fn generate_image(&self, prompt: &str) -> Result<Vec<u8>, String> {
@@ -187,7 +268,7 @@ impl CloudConfig {
             };
 
             if !response.status().is_success() {
-                let retryable = retryable_image_status(response.status());
+                let retryable = retryable_cloud_status(response.status());
                 last_error = explain("Cloudflare 生图", response).await;
                 if retryable && attempt < IMAGE_ATTEMPTS {
                     wait_before_image_retry(attempt).await;
@@ -241,10 +322,14 @@ impl CloudConfig {
     }
 }
 
-fn retryable_image_status(status: reqwest::StatusCode) -> bool {
+fn retryable_cloud_status(status: reqwest::StatusCode) -> bool {
     status == reqwest::StatusCode::REQUEST_TIMEOUT
         || status == reqwest::StatusCode::TOO_MANY_REQUESTS
         || status.is_server_error()
+}
+
+async fn wait_before_capability_retry(attempt: u32) {
+    tokio::time::sleep(Duration::from_secs(u64::from(attempt))).await;
 }
 
 async fn wait_before_image_retry(attempt: u32) {
@@ -344,6 +429,45 @@ fn decode_bootstrap() -> Option<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    const CAPABILITIES_JSON: &str = r##"{"ok":true,"publish":true,"image":true,"imageModel":"test-image","brand":{"name":"一句话生成","event":"测试活动","slogan":"一句话，一个网站","en":"ONE SITE","date":"2026.08.18","bg":"#070b12","accent":"#66d9e8","gold":"#f0d08a"}}"##;
+
+    async fn serve_once(
+        listener: tokio::net::TcpListener,
+        status: &str,
+        body: &str,
+        requests: Arc<AtomicUsize>,
+    ) {
+        let (mut stream, _) = listener.accept().await.unwrap();
+        requests.fetch_add(1, Ordering::SeqCst);
+        let mut request = [0u8; 4096];
+        let _ = stream.read(&mut request).await;
+        let response = format!(
+            "HTTP/1.1 {status}\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
+            body.len()
+        );
+        stream.write_all(response.as_bytes()).await.unwrap();
+    }
+
+    #[test]
+    fn public_build_has_no_publish_bootstrap() {
+        if option_env!("YIJU_PUBLIC_BUILD") == Some("1") {
+            assert!(BOOTSTRAP.is_empty(), "公开安装包不得内嵌发布令牌");
+            assert!(decode_bootstrap().is_none());
+        }
+    }
+
+    #[test]
+    fn user_publish_token_is_validated_before_keyring_write() {
+        assert!(CloudConfig::validate_user_token("").is_err());
+        assert!(CloudConfig::validate_user_token("bad\ntoken").is_err());
+        assert!(CloudConfig::validate_user_token("publisher-token").is_ok());
+    }
 
     #[test]
     fn production_base_is_pinned() {
@@ -358,16 +482,63 @@ mod tests {
 
     #[test]
     fn only_transient_image_http_failures_are_retried() {
-        assert!(retryable_image_status(reqwest::StatusCode::REQUEST_TIMEOUT));
-        assert!(retryable_image_status(
+        assert!(retryable_cloud_status(reqwest::StatusCode::REQUEST_TIMEOUT));
+        assert!(retryable_cloud_status(
             reqwest::StatusCode::TOO_MANY_REQUESTS
         ));
-        assert!(retryable_image_status(reqwest::StatusCode::BAD_GATEWAY));
-        assert!(retryable_image_status(
+        assert!(retryable_cloud_status(reqwest::StatusCode::BAD_GATEWAY));
+        assert!(retryable_cloud_status(
             reqwest::StatusCode::SERVICE_UNAVAILABLE
         ));
-        assert!(!retryable_image_status(reqwest::StatusCode::BAD_REQUEST));
-        assert!(!retryable_image_status(reqwest::StatusCode::UNAUTHORIZED));
+        assert!(!retryable_cloud_status(reqwest::StatusCode::BAD_REQUEST));
+        assert!(!retryable_cloud_status(reqwest::StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn capabilities_recovers_after_a_connect_failure() {
+        let reservation = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = reservation.local_addr().unwrap();
+        drop(reservation);
+
+        let requests = Arc::new(AtomicUsize::new(0));
+        let server_requests = requests.clone();
+        let server = tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+            serve_once(listener, "200 OK", CAPABILITIES_JSON, server_requests).await;
+        });
+
+        let cloud = CloudConfig::new(format!("http://{addr}"), "test-token".into(), true).unwrap();
+        let capabilities = cloud.capabilities_probe().await.unwrap();
+        server.await.unwrap();
+
+        assert!(capabilities.publish && capabilities.image);
+        assert_eq!(requests.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn capabilities_does_not_retry_unauthorized() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let requests = Arc::new(AtomicUsize::new(0));
+        let server_requests = requests.clone();
+        let server = tokio::spawn(async move {
+            serve_once(
+                listener,
+                "401 Unauthorized",
+                r#"{"error":"bad token"}"#,
+                server_requests,
+            )
+            .await;
+        });
+
+        let cloud = CloudConfig::new(format!("http://{addr}"), "test-token".into(), true).unwrap();
+        let failure = cloud.capabilities_probe().await.unwrap_err();
+        server.await.unwrap();
+
+        assert!(!failure.is_transient());
+        assert_eq!(requests.load(Ordering::SeqCst), 1);
+        assert!(failure.message().contains("发布令牌无效"));
     }
 
     #[test]

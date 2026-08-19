@@ -49,7 +49,7 @@ struct PendingPoster {
 
 struct AppState {
     cfg: Mutex<Config>,
-    cloud: Result<CloudConfig, String>,
+    cloud: Mutex<Result<CloudConfig, String>>,
     preview: Mutex<Option<preview::Preview>>,
     /// 当前作品由 Rust 持有；前端不能改标题、封面路径或把旧发布结果接到新作品上。
     current: Mutex<Option<CurrentWork>>,
@@ -98,6 +98,8 @@ fn begin_cloud_write(state: &AppState) -> Result<CloudBusyGuard<'_>, String> {
 fn configured_cloud(state: &AppState) -> Result<CloudConfig, String> {
     state
         .cloud
+        .lock()
+        .unwrap()
         .clone()
         .map_err(|e| format!("Cloudflare 发布/生图不可用：{e}"))
 }
@@ -127,6 +129,7 @@ struct Boot {
 #[tauri::command]
 fn boot(state: State<'_, AppState>) -> Boot {
     let c = state.cfg.lock().unwrap().clone();
+    let cloud = state.cloud.lock().unwrap();
     Boot {
         configured: c.configured(),
         opening: interview::OPENING.to_string(),
@@ -139,8 +142,8 @@ fn boot(state: State<'_, AppState>) -> Boot {
         hard_deadline_secs: c.hard_deadline_secs,
         gen_token_budget: c.gen_token_budget,
         tts_configured: !c.effective_tts_key().is_empty(),
-        cloud_configured: state.cloud.is_ok(),
-        cloud_status: match &state.cloud {
+        cloud_configured: cloud.is_ok(),
+        cloud_status: match &*cloud {
             Ok(_) => "发布与生图凭据已装入，等待联网预检".into(),
             Err(e) => e.clone(),
         },
@@ -162,7 +165,7 @@ async fn environment_doctor(
     force_deep: bool,
 ) -> Result<doctor::DoctorReport, String> {
     let cfg = state.cfg.lock().unwrap().clone();
-    let cloud = state.cloud.clone();
+    let cloud = state.cloud.lock().unwrap().clone();
     let preview_url = state
         .preview
         .lock()
@@ -492,6 +495,7 @@ fn open_external(url: String) -> Result<(), String> {
 struct CfgPatch {
     api_key: Option<String>,
     tts_key: Option<String>,
+    publish_token: Option<String>,
     api_url: Option<String>,
     model: Option<String>,
     voice_id: Option<String>,
@@ -523,6 +527,15 @@ fn validate_api_change(
 
 #[tauri::command]
 fn save_config(state: State<'_, AppState>, patch: CfgPatch) -> Result<(), String> {
+    let publish_token = patch
+        .publish_token
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string);
+    if let Some(token) = publish_token.as_deref() {
+        CloudConfig::validate_user_token(token)?;
+    }
     let mut c = state.cfg.lock().unwrap();
 
     // 不能允许“只换端点、沿用预置 key”。否则安装者把 api_url 改成自己开的
@@ -561,6 +574,11 @@ fn save_config(state: State<'_, AppState>, patch: CfgPatch) -> Result<(), String
     }
     c.save().map_err(|e| format!("写配置失败：{e}"))?;
     drop(c);
+
+    if let Some(token) = publish_token {
+        let cloud = CloudConfig::save_user_token(token)?;
+        *state.cloud.lock().unwrap() = Ok(cloud);
+    }
     doctor::invalidate_cache()
 }
 
@@ -927,7 +945,7 @@ fn main() {
 
             app.manage(AppState {
                 cfg: Mutex::new(cfg),
-                cloud,
+                cloud: Mutex::new(cloud),
                 preview: Mutex::new(Some(preview)),
                 current: Mutex::new(None),
                 last_published: Mutex::new(None),

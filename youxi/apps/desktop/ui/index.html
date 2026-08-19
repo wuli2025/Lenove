@@ -28,19 +28,19 @@ window.addEventListener('DOMContentLoaded', function () {
 </head>
 <body>
 
-<!-- Rust 与静态 UI 已经起来后，先在这里验证真正会用到的本机/远端能力。
-     它不是安装 Node/Python 的通用体检；本应用没有这些运行时依赖。 -->
+<!-- Rust 与静态 UI 已经起来后，先准备并验证真正会用到的本机/远端能力。
+     本应用不依赖 Node/Python；公开配置与静态资源随安装包交付，私密凭据由用户填入系统凭据库。 -->
 <div class="doctor-gate on" id="doctor-gate" role="dialog" aria-modal="true"
   aria-labelledby="doctor-title" aria-live="polite">
   <div class="doctor-box">
     <div class="doctor-mark" aria-hidden="true"><span></span></div>
     <div class="doctor-head">
-      <p class="eyebrow">STARTUP ENVIRONMENT DOCTOR</p>
-      <h2 id="doctor-title">启动前环境医生</h2>
-      <p id="doctor-summary">正在确认这台电脑能完整运行模型、语音、生图与上线功能…</p>
+      <p class="eyebrow">FIRST-RUN ENVIRONMENT PREPARATION</p>
+      <h2 id="doctor-title">正在准备运行环境</h2>
+      <p id="doctor-summary">正在装载公开配置，并确认模型、语音、生图与上线功能…</p>
     </div>
     <div class="doctor-list" id="doctor-list"></div>
-    <p class="doctor-note" id="doctor-note">首次启动会做最小真实 API 验证；通过后 7 天内只做快速检查，不重复产生费用。</p>
+    <p class="doctor-note" id="doctor-note">静态资源和公开配置已随安装包交付；私密凭据只保存在本机。首次验证通过后 7 天内只做快速检查。</p>
     <div class="doctor-actions" id="doctor-actions">
       <button class="ghost" id="doctor-limited">功能受限进入</button>
       <button class="ghost" id="doctor-settings">打开设置</button>
@@ -162,7 +162,7 @@ window.addEventListener('DOMContentLoaded', function () {
       <label>模型密钥 API KEY</label>
       <input id="f-key" type="password" placeholder="sk-…" autocomplete="new-password"
         autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true">
-      <div class="hint">只存在本机配置文件里，不会写进生成的网站。</div>
+      <div class="hint">保存在本机应用配置中，不会写进源码或生成的网站。</div>
     </div>
     <div class="field">
       <label>模型端点 API URL</label>
@@ -175,6 +175,13 @@ window.addEventListener('DOMContentLoaded', function () {
         data-1p-ignore data-lpignore="true">
       <div class="hint">对话可以换任意 Anthropic 兼容网关，但 T2A 只有 MiniMax 有。
         对话换成 Kimi / 智谱之后，这里必须单独填 MiniMax 的 key，否则真昼不会说话。</div>
+    </div>
+    <div class="field">
+      <label>发布 / 生图令牌（必填）</label>
+      <input id="f-pubtoken" type="password" placeholder="Cloudflare 发布令牌"
+        autocomplete="new-password" autocapitalize="off" spellcheck="false"
+        data-1p-ignore data-lpignore="true">
+      <div class="hint">只写入 Windows Credential Manager 或 macOS Keychain，不会回显到界面。</div>
     </div>
     <div class="field">
       <label>模型名</label>
